@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Performance: Training Zones & Physiological Adaptations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Slate 50 */
+            color: #0f172a; /* Slate 900 */
+        }
+
+        /* Typography Polish */
+        h1, h2, h3, h4 {
+            text-wrap: balance;
+        }
+
+        /* Strict Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            height: 40vh;
+            max-height: 400px;
+        }
+        
+        /* Centered Doughnut Chart Container */
+        .chart-container-sm {
+            position: relative;
+            width: 100%;
+            max-width: 220px; /* Tighter width for perfect centering */
+            margin: 0 auto;
+            height: 220px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 35vh;
+                max-height: 300px;
+            }
+        }
+
+        /* Elegant Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Modern Tab Styling */
+        .tab-btn {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .tab-active {
+            color: #047857; /* Emerald 700 */
+            font-weight: 600;
+        }
+        .tab-active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #059669; /* Emerald 600 */
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
+        }
+        .tab-inactive {
+            color: #64748b;
+            font-weight: 500;
+        }
+        .tab-inactive:hover {
+            color: #334155;
+        }
+
+        /* Sticky Table Column Shadow */
+        .sticky-col-shadow {
+            box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.05);
+            clip-path: inset(0 -10px 0 0);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+
+    <!-- Chosen Palette: Slate (Professional/Neutral) & Emerald (Scientific/Actionable) -->
+    <!-- Application Structure Plan: Linear, cohesive flow from macro-data to micro-application. -->
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+
+    <!-- Premium Navigation / Header -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center font-bold text-slate-900 text-sm tracking-tighter">
+                    AIS
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-center md:text-left leading-tight">High Performance Analytics</h1>
+                    <p class="text-slate-400 text-xs mt-0.5 text-center md:text-left">Physiological Adaptations & Training Zones</p>
+                </div>
+            </div>
+            <nav class="flex flex-wrap justify-center gap-1 md:gap-2 text-xs md:text-sm font-medium items-center">
+                <a href="#matrix" class="hover:text-emerald-400 hover:bg-slate-800 px-3 py-1.5 rounded transition-colors">Matrix</a>
+                <a href="#analytics" class="hover:text-emerald-400 hover:bg-slate-800 px-3 py-1.5 rounded transition-colors">Analytics</a>
+                <a href="#tid" class="hover:text-emerald-400 hover:bg-slate-800 px-3 py-1.5 rounded transition-colors">TID Models</a>
+                <a href="#monitoring" class="hover:text-emerald-400 hover:bg-slate-800 px-3 py-1.5 rounded transition-colors">Field Guide</a>
+                <a href="#prescriptions" class="text-emerald-300 bg-slate-800 px-3 py-1.5 rounded shadow-inner transition-colors">Prescriptions</a>
+                <a href="index.html" class="ml-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-[11px] font-semibold text-slate-100 hover:bg-slate-700 transition-colors">
+                    <span aria-hidden="true">←</span> Home
+                </a>
+                <a href="../index.html" class="ml-1 inline-flex items-center gap-1.5 rounded-lg border border-slate-600 bg-slate-700 px-3 py-1.5 text-[11px] font-semibold text-slate-200 hover:bg-slate-600 transition-colors">
+                    Learning Hub
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-20">
+
+        <!-- Introduction Section -->
+        <section id="intro" class="max-w-4xl mx-auto text-center space-y-4">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight">Translating Science to Practical Application</h2>
+            <p class="text-slate-500 text-lg leading-relaxed">
+                This interactive report synthesizes elite-level sport science data regarding the <strong>Standardisation of Exercise Intensity Training Zones (T1 - T8)</strong> and their corresponding <strong>Physiological Adaptations</strong>.
+            </p>
+            <div class="inline-flex items-center text-sm text-emerald-800 bg-emerald-50 px-5 py-3 rounded-full border border-emerald-100 shadow-sm mt-4">
+                <span class="mr-2 text-lg leading-none font-bold">&#9432;</span>
+                <span>Highlighting potent stimuli: Zones yielding <strong>3+</strong> or <strong>4+</strong> adaptations.</span>
+            </div>
+        </section>
+
+        <!-- Section 1: The Matrix -->
+        <section id="matrix" class="space-y-6 scroll-mt-24">
+            <div class="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-200 pb-4">
+                <div class="max-w-2xl">
+                    <h2 class="text-2xl font-bold text-slate-800">The Physiological Adaptation Matrix</h2>
+                    <p class="text-slate-500 mt-2 text-sm leading-relaxed">
+                        Identify the most highly effective zones for driving specific biological changes. Highly potent adaptations are highlighted in <span class="font-semibold text-emerald-600 bg-emerald-50 px-1 rounded">Emerald</span>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-5 bg-slate-50/50 border-b border-slate-200 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+                    <h3 class="font-semibold text-slate-700 text-sm uppercase tracking-wider">Zone Impact Heatmap</h3>
+                    
+                    <!-- Unified Button-Based Filtering -->
+                    <div class="flex flex-wrap gap-2" id="matrixFilters">
+                        <button class="filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 transition-all" data-category="all">All Categories</button>
+                        <button class="filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 hover:border-slate-400 transition-all" data-category="Central Aerobic">Central Aerobic</button>
+                        <button class="filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 hover:border-slate-400 transition-all" data-category="Peripheral Aerobic">Peripheral Aerobic</button>
+                        <button class="filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 hover:border-slate-400 transition-all" data-category="Fatigue Mitigation">Fatigue Mitigation</button>
+                        <button class="filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 hover:border-slate-400 transition-all" data-category="Anaerobic">Neuromuscular</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-sm text-left text-slate-600 min-w-[900px]">
+                        <thead class="text-xs text-slate-500 uppercase tracking-wider bg-white border-b border-slate-200">
+                            <tr>
+                                <th scope="col" class="px-6 py-5 sticky left-0 bg-white z-10 w-1/4 sticky-col-shadow">Adaptation Trait</th>
+                                <th scope="col" class="px-3 py-5 text-center" title="Light / Recovery"><div class="font-bold text-slate-800">T1</div><div class="text-[10px] font-medium text-slate-400 mt-1">Light</div></th>
+                                <th scope="col" class="px-3 py-5 text-center" title="Moderate Aerobic"><div class="font-bold text-slate-800">T2</div><div class="text-[10px] font-medium text-slate-400 mt-1">Mod Aerobic</div></th>
+                                <th scope="col" class="px-3 py-5 text-center" title="Heavy Aerobic"><div class="font-bold text-slate-800">T3</div><div class="text-[10px] font-medium text-slate-400 mt-1">Hvy Aerobic</div></th>
+                                <th scope="col" class="px-3 py-5 text-center" title="Threshold"><div class="font-bold text-slate-800">T4</div><div class="text-[10px] font-medium text-slate-400 mt-1">Threshold</div></th>
+                                <th scope="col" class="px-3 py-5 text-center" title="Maximal Aerobic"><div class="font-bold text-slate-800">T5</div><div class="text-[10px] font-medium text-slate-400 mt-1">Max Aerobic</div></th>
+                                <th scope="col" class="px-3 py-5 text-center" title="Speed Endurance"><div class="font-bold text-slate-800">T6</div><div class="text-[10px] font-medium text-slate-400 mt-1">Spd Endur</div></th>
+                                <th scope="col" class="px-3 py-5 text-center" title="Speed Maintenance"><div class="font-bold text-slate-800">T7</div><div class="text-[10px] font-medium text-slate-400 mt-1">Spd Maint</div></th>
+                                <th scope="col" class="px-3 py-5 text-center" title="Speed Production"><div class="font-bold text-slate-800">T8</div><div class="text-[10px] font-medium text-slate-400 mt-1">Spd Prod</div></th>
+                            </tr>
+                        </thead>
+                        <tbody id="matrixBody" class="divide-y divide-slate-100">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Visual Analytics -->
+        <section id="analytics" class="space-y-6 scroll-mt-24">
+            <div class="border-b border-slate-200 pb-4">
+                <h2 class="text-2xl font-bold text-slate-800">Adaptation Analytics</h2>
+                <p class="text-slate-500 mt-2 text-sm max-w-3xl">
+                    Visualize the physiological profile of specific training zones. Compare the systemic impact "shape" across different intensity domains, or isolate a specific biological trait.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Chart 1: Radar -->
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
+                    <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h3 class="font-bold text-slate-800">Zone Profile Comparison</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <button id="btnRadarT2" class="px-3 py-1.5 text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-full transition-all ring-1 ring-slate-200 ring-inset">T2 (Mod)</button>
+                            <button id="btnRadarT5" class="px-3 py-1.5 text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-full transition-all ring-1 ring-slate-200 ring-inset">T5 (Max)</button>
+                            <button id="btnRadarT8" class="px-3 py-1.5 text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-full transition-all ring-1 ring-slate-200 ring-inset">T8 (Spd)</button>
+                        </div>
+                    </div>
+                    <div class="chart-container flex-grow">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Bar -->
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
+                    <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h3 class="font-bold text-slate-800">High-Yield Trait Analysis</h3>
+                        <select id="traitSelect" class="bg-white border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block p-2 shadow-sm font-medium">
+                            <option value="Stroke volume">Stroke Volume</option>
+                            <option value="Mitochondrial biogenesis (AMPK)">Mito Biogenesis (AMPK)</option>
+                            <option value="Lactate clearance">Lactate Clearance</option>
+                            <option value="Motor unit recruitment">Motor Unit Recruitment</option>
+                        </select>
+                    </div>
+                    <div class="chart-container flex-grow">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- NEW SECTION: TID Models -->
+        <section id="tid" class="space-y-6 scroll-mt-24">
+            <div class="border-b border-slate-200 pb-4">
+                <h2 class="text-2xl font-bold text-slate-800">Training Intensity Distribution (TID)</h2>
+                <p class="text-slate-500 mt-2 text-sm max-w-3xl">
+                    Based on contemporary literature (Seiler, Stöggl), these charts map the traditional 3-zone physiological model to our AIS T1-T8 framework, demonstrating elite volume distribution.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Polarized -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center text-center">
+                    <div class="h-16 mb-2">
+                        <h3 class="font-bold text-slate-800 text-lg mb-1">Polarized Model</h3>
+                        <p class="text-xs text-slate-500 leading-tight">Highly common in elite endurance. Avoids the T3/T4 "grey zone".</p>
+                    </div>
+                    <div class="chart-container-sm relative my-4">
+                        <!-- Custom Center Text for aesthetics -->
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span class="text-2xl font-bold text-slate-800">80%</span>
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">Zone 1</span>
+                        </div>
+                        <canvas id="chartPolarized"></canvas>
+                    </div>
+                    <div class="mt-auto pt-4 w-full flex flex-col gap-2 text-xs font-medium text-slate-600">
+                        <div class="flex items-center justify-between px-4"><span class="flex items-center gap-2"><span class="w-3 h-3 bg-sky-400 rounded-sm"></span>T1-T2</span> <span>80%</span></div>
+                        <div class="flex items-center justify-between px-4"><span class="flex items-center gap-2"><span class="w-3 h-3 bg-amber-400 rounded-sm"></span>T3-T4</span> <span>5%</span></div>
+                        <div class="flex items-center justify-between px-4"><span class="flex items-center gap-2"><span class="w-3 h-3 bg-emerald-500 rounded-sm"></span>T5-T8</span> <span>15%</span></div>
+                    </div>
+                </div>
+                
+                <!-- Pyramidal -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center text-center">
+                    <div class="h-16 mb-2">
+                        <h3 class="font-bold text-slate-800 text-lg mb-1">Pyramidal Model</h3>
+                        <p class="text-xs text-slate-500 leading-tight">Often seen in cycling/rowing. Volume steps down as intensity rises.</p>
+                    </div>
+                    <div class="chart-container-sm relative my-4">
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span class="text-2xl font-bold text-slate-800">75%</span>
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">Zone 1</span>
+                        </div>
+                        <canvas id="chartPyramidal"></canvas>
+                    </div>
+                    <div class="mt-auto pt-4 w-full flex flex-col gap-2 text-xs font-medium text-slate-600">
+                        <div class="flex items-center justify-between px-4"><span class="flex items-center gap-2"><span class="w-3 h-3 bg-sky-400 rounded-sm"></span>T1-T2</span> <span>75%</span></div>
+                        <div class="flex items-center justify-between px-4"><span class="flex items-center gap-2"><span class="w-3 h-3 bg-amber-400 rounded-sm"></span>T3-T4</span> <span>15%</span></div>
+                        <div class="flex items-center justify-between px-4"><span class="flex items-center gap-2"><span class="w-3 h-3 bg-emerald-500 rounded-sm"></span>T5-T8</span> <span>10%</span></div>
+                    </div>
+                </div>
+
+                <!-- Threshold -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center text-center">
+                    <div class="h-16 mb-2">
+                        <h3 class="font-bold text-slate-800 text-lg mb-1">Threshold Model</h3>
+                        <p class="text-xs text-slate-500 leading-tight">Sub-elite or specific middle-distance phases. High T3/T4 accumulation.</p>
+                    </div>
+                    <div class="chart-container-sm relative my-4">
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span class="text-2xl font-bold text-slate-800">45%</span>
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">Zone 2</span>
+                        </div>
+                        <canvas id="chartThreshold"></canvas>
+                    </div>
+                    <div class="mt-auto pt-4 w-full flex flex-col gap-2 text-xs font-medium text-slate-600">
+                        <div class="flex items-center justify-between px-4"><span class="flex items-center gap-2"><span class="w-3 h-3 bg-sky-400 rounded-sm"></span>T1-T2</span> <span>45%</span></div>
+                        <div class="flex items-center justify-between px-4"><span class="flex items-center gap-2"><span class="w-3 h-3 bg-amber-400 rounded-sm"></span>T3-T4</span> <span>45%</span></div>
+                        <div class="flex items-center justify-between px-4"><span class="flex items-center gap-2"><span class="w-3 h-3 bg-emerald-500 rounded-sm"></span>T5-T8</span> <span>10%</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- NEW SECTION: Field Monitoring Guide -->
+        <section id="monitoring" class="space-y-6 scroll-mt-24">
+             <div class="border-b border-slate-200 pb-4">
+                <h2 class="text-2xl font-bold text-slate-800">Field Prescription & Monitoring Guide</h2>
+                <p class="text-slate-500 mt-2 text-sm max-w-3xl">
+                    Select a training zone below to view expected physiological markers (HR, Lactate) and subjective metrics (RPE, Talk Test) for immediate on-field application.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row">
+                <!-- Zone Selector -->
+                <div class="w-full md:w-1/3 bg-slate-50/50 p-6 md:p-8 border-b md:border-b-0 md:border-r border-slate-200">
+                    <h3 class="font-bold text-slate-700 mb-5 uppercase text-xs tracking-widest">Select Intensity Domain</h3>
+                    <div class="flex flex-col gap-2" id="zoneSelectButtons">
+                        <button class="zone-btn text-left px-5 py-3 rounded-xl shadow-sm bg-emerald-600 text-white font-semibold transition-all" data-zone="T1">
+                            <span class="inline-block w-8 font-bold opacity-80">T1</span> Light / Recovery
+                        </button>
+                        <button class="zone-btn text-left px-5 py-3 rounded-xl border border-slate-200 bg-white text-slate-600 font-medium hover:bg-slate-50 hover:border-slate-300 transition-all" data-zone="T2">
+                            <span class="inline-block w-8 font-bold text-slate-400">T2</span> Moderate Aerobic
+                        </button>
+                        <button class="zone-btn text-left px-5 py-3 rounded-xl border border-slate-200 bg-white text-slate-600 font-medium hover:bg-slate-50 hover:border-slate-300 transition-all" data-zone="T3">
+                            <span class="inline-block w-8 font-bold text-slate-400">T3</span> Heavy Aerobic
+                        </button>
+                        <button class="zone-btn text-left px-5 py-3 rounded-xl border border-slate-200 bg-white text-slate-600 font-medium hover:bg-slate-50 hover:border-slate-300 transition-all" data-zone="T4">
+                            <span class="inline-block w-8 font-bold text-slate-400">T4</span> Threshold
+                        </button>
+                        <button class="zone-btn text-left px-5 py-3 rounded-xl border border-slate-200 bg-white text-slate-600 font-medium hover:bg-slate-50 hover:border-slate-300 transition-all" data-zone="T5">
+                            <span class="inline-block w-8 font-bold text-slate-400">T5</span> Maximal Aerobic
+                        </button>
+                        <button class="zone-btn text-left px-5 py-3 rounded-xl border border-slate-200 bg-white text-slate-600 font-medium hover:bg-slate-50 hover:border-slate-300 transition-all" data-zone="T6">
+                            <span class="inline-block w-8 font-bold text-slate-400">T6+</span> Supramaximal
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Display Data -->
+                <div class="w-full md:w-2/3 p-6 md:p-10 flex flex-col justify-center animate-fadeIn bg-white" id="monitoringDataDisplay">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Practical Prescriptions -->
+        <section id="prescriptions" class="space-y-6 scroll-mt-24">
+            <div class="border-b border-slate-200 pb-4">
+                <h2 class="text-2xl font-bold text-slate-800">Practical Session Prescriptions</h2>
+                <p class="text-slate-500 mt-2 text-sm max-w-3xl">
+                    Translating high-yield physiological data into actionable training protocols. Select an intensity cluster and customize by athlete profile.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                
+                <!-- Premium Tabs -->
+                <div class="flex border-b border-slate-200 overflow-x-auto custom-scrollbar bg-slate-50/50">
+                    <button class="tab-btn tab-active px-8 py-5 text-sm whitespace-nowrap focus:outline-none tracking-wide" data-target="cluster1">
+                        Cluster 1: Base & Efficiency (T2-T4)
+                    </button>
+                    <button class="tab-btn tab-inactive px-8 py-5 text-sm whitespace-nowrap focus:outline-none tracking-wide" data-target="cluster2">
+                        Cluster 2: Engine Builder (T5)
+                    </button>
+                    <button class="tab-btn tab-inactive px-8 py-5 text-sm whitespace-nowrap focus:outline-none tracking-wide" data-target="cluster3">
+                        Cluster 3: Neuromuscular (T6-T8)
+                    </button>
+                </div>
+
+                <!-- Content Area -->
+                <div class="p-6 md:p-8">
+                    
+                    <!-- Athlete Selector - Unified Pill Design -->
+                    <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div>
+                            <h4 class="font-semibold text-slate-800 text-sm">Contextualize Protocol</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">Filter by primary athlete phenotype</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="profile-btn bg-emerald-600 text-white shadow-sm text-xs px-4 py-2 rounded-full font-semibold transition-all" data-profile="endurance">Endurance</button>
+                            <button class="profile-btn bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs px-4 py-2 rounded-full font-medium transition-all" data-profile="middle">Middle Distance</button>
+                            <button class="profile-btn bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs px-4 py-2 rounded-full font-medium transition-all" data-profile="power">Power / Sprint</button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Session Content Containers -->
+                    <!-- Cluster 1 Content -->
+                    <div id="cluster1" class="tab-content block animate-fadeIn">
+                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                            <div class="lg:col-span-2 bg-slate-900 text-white rounded-xl p-6 md:p-8 shadow-inner flex flex-col">
+                                <h3 class="text-lg font-bold text-white border-b border-slate-700 pb-3 mb-5">Targeted Adaptations</h3>
+                                <p class="text-sm text-slate-400 mb-6 leading-relaxed">Zones T2 to T4 establish the foundation of peripheral efficiency and central cardiovascular capacity.</p>
+                                <ul class="space-y-4 text-sm mt-auto">
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-emerald-400 font-bold bg-emerald-400/10 px-2 py-0.5 rounded text-xs">+++</span>
+                                        <span class="text-slate-200"><strong>Mito Biogenesis (AMPK):</strong> Driven by high volume in T2/T3.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-emerald-400 font-bold bg-emerald-400/10 px-2 py-0.5 rounded text-xs">+++</span>
+                                        <span class="text-slate-200"><strong>Fat Oxidation:</strong> Maximized in T2/T3 domains.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-emerald-400 font-bold bg-emerald-400/10 px-2 py-0.5 rounded text-xs">+++</span>
+                                        <span class="text-slate-200"><strong>Lactate Clearance:</strong> Trained heavily in T4 (Threshold).</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="lg:col-span-3 flex flex-col">
+                                <h3 class="text-lg font-bold text-slate-800 mb-4 px-1">Prescribed Session</h3>
+                                <div id="c1-prescription" class="flex-grow">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cluster 2 Content -->
+                    <div id="cluster2" class="tab-content hidden animate-fadeIn">
+                         <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                            <div class="lg:col-span-2 bg-slate-900 text-white rounded-xl p-6 md:p-8 shadow-inner flex flex-col">
+                                <h3 class="text-lg font-bold text-white border-b border-slate-700 pb-3 mb-5">Targeted Adaptations</h3>
+                                <p class="text-sm text-slate-400 mb-6 leading-relaxed">Zone T5 (Maximal Aerobic / VO2max) is critical for extreme central physiological scaling.</p>
+                                <ul class="space-y-4 text-sm mt-auto">
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-emerald-400 font-bold bg-emerald-400/10 px-2 py-0.5 rounded text-xs">++++</span>
+                                        <span class="text-slate-200"><strong>Stroke Volume & Q:</strong> Maximizing central pumping capacity.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-emerald-400 font-bold bg-emerald-400/10 px-2 py-0.5 rounded text-xs">+++</span>
+                                        <span class="text-slate-200"><strong>Mito Biogenesis (Ca2+):</strong> Driven by high-intensity flux.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="lg:col-span-3 flex flex-col">
+                                <h3 class="text-lg font-bold text-slate-800 mb-4 px-1">Prescribed Session</h3>
+                                <div id="c2-prescription" class="flex-grow">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cluster 3 Content -->
+                    <div id="cluster3" class="tab-content hidden animate-fadeIn">
+                         <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                            <div class="lg:col-span-2 bg-slate-900 text-white rounded-xl p-6 md:p-8 shadow-inner flex flex-col">
+                                <h3 class="text-lg font-bold text-white border-b border-slate-700 pb-3 mb-5">Targeted Adaptations</h3>
+                                <p class="text-sm text-slate-400 mb-6 leading-relaxed">Zones T6-T8 push extreme anaerobic capacity, buffering, and neuromuscular firing rates.</p>
+                                <ul class="space-y-4 text-sm mt-auto">
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-emerald-400 font-bold bg-emerald-400/10 px-2 py-0.5 rounded text-xs">++++</span>
+                                        <span class="text-slate-200"><strong>Motor Unit Recruitment:</strong> Maximum nervous system activation.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-emerald-400 font-bold bg-emerald-400/10 px-2 py-0.5 rounded text-xs">+++</span>
+                                        <span class="text-slate-200"><strong>Buffering Capacity:</strong> Managing extreme intracellular acidosis.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="lg:col-span-3 flex flex-col">
+                                <h3 class="text-lg font-bold text-slate-800 mb-4 px-1">Prescribed Session</h3>
+                                <div id="c3-prescription" class="flex-grow">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-10 text-center text-sm border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-center mb-4">
+                <div class="w-8 h-8 rounded bg-slate-800 flex items-center justify-center font-bold text-slate-500 text-xs">AIS</div>
+            </div>
+            <p>Interactive Data Visualization App built for High-Performance Sport Scientists.</p>
+            <p class="mt-2 text-xs text-slate-500">Based on standardisation of Exercise Intensity Training Zones literature.</p>
+        </div>
+    </footer>
+
+    <!-- Application Logic & Data -->
+    <script>
+        // --- 1. DATA STRUCTURES ---
+        const adaptationsData = [
+            { category: "Central Aerobic", trait: "Plasma volume", scores: [0, 2, 2, 3, 3, 1, 0, 0] },
+            { category: "Central Aerobic", trait: "Left ventricular mass", scores: [0, 1, 2, 3, 4, 1, 0, 0] },
+            { category: "Central Aerobic", trait: "Stroke volume", scores: [1, 2, 3, 4, 4, 1, 0, 0] },
+            { category: "Central Aerobic", trait: "Cardiac output", scores: [0, 1, 2, 3, 4, 2, 0, 0] },
+            
+            { category: "Peripheral Aerobic", trait: "Mitochondrial biogenesis (Ca2+)", scores: [0, 1, 2, 3, 4, 3, 1, 0] },
+            { category: "Peripheral Aerobic", trait: "Mitochondrial biogenesis (AMPK)", scores: [1, 3, 4, 3, 2, 1, 0, 0] },
+            { category: "Peripheral Aerobic", trait: "Capillarisation (Type I)", scores: [1, 3, 3, 2, 1, 0, 0, 0] },
+            { category: "Peripheral Aerobic", trait: "Capillarisation (Type II)", scores: [0, 0, 1, 3, 4, 2, 0, 0] },
+            { category: "Peripheral Aerobic", trait: "Fat oxidation", scores: [2, 4, 3, 1, 0, 0, 0, 0] },
+            
+            { category: "Fatigue Mitigation", trait: "Lactate clearance", scores: [1, 2, 3, 4, 2, 1, 0, 0] },
+            { category: "Fatigue Mitigation", trait: "Buffering capacity", scores: [0, 0, 0, 1, 3, 4, 2, 0] },
+            
+            { category: "Anaerobic", trait: "Muscle glycogen storage", scores: [0, 1, 2, 3, 4, 2, 1, 0] },
+            { category: "Anaerobic", trait: "Glycolytic enzyme activity", scores: [0, 0, 0, 1, 2, 3, 4, 2] },
+            { category: "Anaerobic", trait: "Motor unit recruitment", scores: [0, 0, 0, 0, 1, 2, 3, 4] },
+            { category: "Anaerobic", trait: "Nerve conduction velocity", scores: [0, 0, 0, 0, 0, 1, 3, 4] }
+        ];
+
+        const sessionData = {
+            cluster1: { // T2-T4
+                endurance: { title: "Long Aerobic Base & Sweet-Spot (T2/T4)", protocol: "<strong>LSD (T2):</strong> 2-4 hours continuous at 60-70% HRmax.<br><br><strong>Sweet-Spot (T4):</strong> 3 x 15 mins at 88-92% HRmax (just below LT2) with 5 min active recovery.", rationale: "Maximizes AMPK-driven mitochondrial biogenesis and fat oxidation through duration, while the T4 intervals drive lactate clearance capacity without severe autonomic fatigue.", metrics: "Targets: +++ Fat Ox, +++ Mito (AMPK), ++++ Lactate Clearance." },
+                middle: { title: "Extensive Tempo Intervals (T3/T4)", protocol: "<strong>Tempo:</strong> 40 mins continuous at T3 (Heavy Aerobic, 80-85% HRmax).<br><br><strong>Threshold Intervals:</strong> 5 x 6 mins at T4 (LT2) with 2 min float recovery.", rationale: "Builds specific fatigue resistance and pushes the LT2 curve to the right, heavily promoting Type IIa fiber capillarisation and peripheral efficiency.", metrics: "Targets: +++ Stroke Volume, +++ Lactate Clearance." },
+                power: { title: "Extensive Recovery & Aerobic Flush (T1/T2)", protocol: "<strong>Active Recovery:</strong> 30-45 mins at very low intensity (T1/low T2) on non-impact equipment.", rationale: "Power athletes require this cluster purely for autonomic recovery and maintaining basic capillary density to assist with inter-set recovery during heavy lifting.", metrics: "Targets: + Plasma Volume, ++ Capillarisation (Type I)." }
+            },
+            cluster2: { // T5
+                endurance: { title: "Classic VO2max Intervals (T5)", protocol: "<strong>Intervals:</strong> 4-5 x 4 mins at 90-95% HRmax (Severe domain) with 3 mins active recovery (T1).", rationale: "The gold standard for maximizing central cardiovascular adaptations. Time accumulated at >90% VO2max forces structural changes to the left ventricle.", metrics: "Targets: ++++ Stroke Volume, ++++ Cardiac Output, +++ Capillarisation (Type II)." },
+                middle: { title: "Short HIIT / Micro-intervals (T5)", protocol: "<strong>Micro-bursts:</strong> 3 sets of [10 x 30s work / 30s rest]. Work is performed at 100-105% vVO2max. 4 mins rest between sets.", rationale: "Allows high accumulation of time at T5 without the severe metabolic acidosis associated with longer intervals. Excellent for neuromuscular coordination under fatigue.", metrics: "Targets: ++++ Cardiac Output, +++ Mito (Ca2+), ++ Buffering." },
+                power: { title: "Repeated Sprint Ability (T5)", protocol: "<strong>RSA:</strong> 6 x 15s maximal sprints, STRICT 45s recovery.", rationale: "While sprints are maximal, the short recovery shifts the energy demand heavily onto the aerobic system to replenish PCr, driving rapid T5 adaptations.", metrics: "Targets: +++ Cardiac Output, ++ Muscle Glycogen." }
+            },
+            cluster3: { // T6-T8
+                endurance: { title: "Speed Reserve / Alactic Sprints (T8)", protocol: "<strong>Alactic Sprints:</strong> 6-8 x 8-10s maximal uphill sprints. 3 mins full walking recovery.", rationale: "Counter-intuitive for endurance, but heavily relies on recruiting dormant high-threshold motor units. Increases neuromuscular efficiency and 'speed reserve'.", metrics: "Targets: ++++ Motor Unit Recruitment, +++ Nerve Conduction." },
+                middle: { title: "Lactate Tolerance / Speed Endurance (T6/T7)", protocol: "<strong>Lactate Tolerance:</strong> 3 x 400m (or 60s max effort) with 8 mins complete passive recovery.", rationale: "Produces massive H+ ion accumulation. Forces the muscle to upregulate intra-cellular buffering capacity (carnosine, bicarbonate) and glycolytic enzyme kinetics.", metrics: "Targets: ++++ Buffering Capacity, ++++ Glycolytic Enzyme Activity." },
+                power: { title: "True Speed Production (T8)", protocol: "<strong>Speed Production:</strong> 4 x 30m block starts, followed by 3 x flying 20m sprints. Full recovery (4-5 mins) between reps.", rationale: "Absolute focus on CNS output. Requires complete ATP-PCr resynthesis. Drives maximum rate of force development and motor unit synchronization.", metrics: "Targets: ++++ Motor Unit Recruitment, ++++ Nerve Conduction Velocity." }
+            }
+        };
+
+        const monitoringData = {
+            'T1': { name: 'Light / Recovery', hr: '< 75% HRmax', lactate: '< 1.5 mmol/L', rpe: '1 - 2 (Very Easy)', talk: 'Effortless continuous conversation. Breathing through nose easily.', desc: 'Primary purpose is autonomic recovery, promoting blood flow without adding mechanical or metabolic stress.' },
+            'T2': { name: 'Moderate Aerobic', hr: '75 - 85% HRmax', lactate: '1.5 - 2.0 mmol/L', rpe: '3 - 4 (Easy to Mod)', talk: 'Comfortable conversation, slight increase in breathing depth.', desc: 'The "Base" zone. Maximizes fat oxidation. Often corresponds to the First Ventilatory Threshold (VT1).' },
+            'T3': { name: 'Heavy Aerobic', hr: '85 - 90% HRmax', lactate: '2.0 - 3.0 mmol/L', rpe: '5 - 6 (Hard)', talk: 'Can speak in full sentences, but breathing is noticeably deeper/faster.', desc: 'Between VT1 and VT2. Also known as Tempo or Sweet-Spot. High carbohydrate utilization.' },
+            'T4': { name: 'Threshold', hr: '90 - 95% HRmax', lactate: '3.0 - 4.0+ mmol/L', rpe: '7 - 8 (Very Hard)', talk: '1 to 2 words only. Conversation is impossible.', desc: 'Corresponds to VT2 / Critical Power / Maximal Lactate Steady State. The maximum sustainable physiological steady state.' },
+            'T5': { name: 'Maximal Aerobic', hr: '95 - 100% HRmax', lactate: '> 6.0 mmol/L', rpe: '9 - 10 (Maximal)', talk: 'Cannot speak at all. Hyperventilating.', desc: 'Severe intensity domain. Working at or near VO2max. Time to exhaustion is generally 3 to 8 minutes.' },
+            'T6': { name: 'Supramaximal (T6-T8)', hr: 'N/A (Lag time)', lactate: 'Maximal (> 10 mmol/L)', rpe: '10 (All Out)', talk: 'Gasping / completely breathless post-effort.', desc: 'Extreme intensity domains reliant on anaerobic glycolysis and ATP-PCr systems. Covers Speed Endurance, Maintenance, and Production.' }
+        };
+
+        // --- 2. STATE ---
+        const state = {
+            currentProfile: 'endurance',
+            currentTab: 'cluster1',
+            charts: { radar: null, bar: null, tid: [] }
+        };
+
+        // --- 3. INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMatrix('all');
+            initCharts();
+            initTIDCharts();
+            updateSessionContent();
+            updateMonitoringDisplay('T1');
+            setupEventListeners();
+        });
+
+        // --- 4. RENDER MATRIX ---
+        function renderMatrix(filterCategory) {
+            const tbody = document.getElementById('matrixBody');
+            tbody.innerHTML = '';
+
+            const filteredData = filterCategory === 'all' 
+                ? adaptationsData 
+                : adaptationsData.filter(d => d.category === filterCategory);
+
+            filteredData.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.className = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50';
+
+                const th = document.createElement('th');
+                th.className = 'px-6 py-4 font-semibold text-slate-700 whitespace-nowrap sticky left-0 bg-inherit z-10 sticky-col-shadow';
+                th.textContent = row.trait;
+                tr.appendChild(th);
+
+                row.scores.forEach(score => {
+                    const td = document.createElement('td');
+                    td.className = 'px-3 py-4 text-center text-sm font-bold transition-colors duration-300';
+                    
+                    let symbol = '', styleClass = '';
+                    if (score === 1) { symbol = '+'; styleClass = 'text-slate-400 font-medium'; }
+                    else if (score === 2) { symbol = '++'; styleClass = 'text-slate-600'; }
+                    else if (score === 3) { symbol = '+++'; styleClass = 'text-emerald-700 bg-emerald-100/80 px-2 py-1 rounded-md shadow-sm border border-emerald-200/50 inline-block'; }
+                    else if (score === 4) { symbol = '++++'; styleClass = 'text-emerald-800 bg-emerald-200 px-2 py-1 rounded-md shadow-sm border border-emerald-300 inline-block'; }
+                    else { symbol = '-'; styleClass = 'text-slate-300 font-normal'; }
+
+                    td.innerHTML = `<span class="${styleClass}">${symbol}</span>`;
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- 5. CHARTS LOGIC ---
+        function initCharts() {
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.color = '#64748b';
+            Chart.defaults.maintainAspectRatio = false;
+
+            // Radar
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            const getZoneAverages = (zoneIndex) => {
+                const cats = ["Central Aerobic", "Peripheral Aerobic", "Fatigue Mitigation", "Anaerobic"];
+                return cats.map(cat => {
+                    const traits = adaptationsData.filter(d => d.category === cat);
+                    return traits.reduce((acc, curr) => acc + curr.scores[zoneIndex], 0) / traits.length;
+                });
+            };
+
+            state.charts.radar = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Central', 'Peripheral', 'Fatigue Mitig.', 'Neuromuscular'],
+                    datasets: [
+                        { label: 'T2 (Moderate)', data: getZoneAverages(1), backgroundColor: 'rgba(56, 189, 248, 0.15)', borderColor: 'rgba(56, 189, 248, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(56, 189, 248, 1)', pointRadius: 3 },
+                        { label: 'T5 (Maximal)', data: getZoneAverages(4), backgroundColor: 'rgba(16, 185, 129, 0.15)', borderColor: 'rgba(16, 185, 129, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(16, 185, 129, 1)', pointRadius: 3 },
+                        { label: 'T8 (Speed)', data: getZoneAverages(7), backgroundColor: 'rgba(244, 63, 94, 0.15)', borderColor: 'rgba(244, 63, 94, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(244, 63, 94, 1)', pointRadius: 3 }
+                    ]
+                },
+                options: {
+                    scales: { r: { angleLines: { color: 'rgba(0, 0, 0, 0.05)' }, grid: { color: 'rgba(0, 0, 0, 0.05)' }, pointLabels: { font: { size: 12, weight: '600', family: 'Inter' }, color: '#475569' }, ticks: { min: 0, max: 4, stepSize: 1, display: false } } },
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 20, usePointStyle: true, pointStyle: 'circle' } } }
+                }
+            });
+
+            // Bar
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            const initialTraitData = adaptationsData.find(d => d.trait === "Stroke volume");
+            state.charts.bar = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8'],
+                    datasets: [{
+                        label: 'Adaptation Magnitude (1-4)',
+                        data: initialTraitData.scores,
+                        backgroundColor: (ctx) => {
+                            const val = ctx.dataset.data[ctx.dataIndex];
+                            return val >= 3 ? '#10b981' : val > 0 ? '#cbd5e1' : 'rgba(0,0,0,0.03)';
+                        },
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    scales: { 
+                        y: { beginAtZero: true, max: 4.5, ticks: { stepSize: 1, callback: (v) => v===1?'+':v===2?'++':v===3?'+++':v===4?'++++':'' }, grid: { color: 'rgba(0, 0, 0, 0.05)', drawBorder: false } }, 
+                        x: { grid: { display: false, drawBorder: false }, ticks: { font: { weight: '600' } } } 
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function initTIDCharts() {
+            const chartConfig = (data) => ({
+                type: 'doughnut',
+                data: {
+                    labels: ['Zone 1 (T1-T2)', 'Zone 2 (T3-T4)', 'Zone 3 (T5-T8)'],
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#38bdf8', '#fbbf24', '#10b981'], // Sky, Amber, Emerald
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    cutout: '75%',
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw}%` } } }
+                }
+            });
+
+            state.charts.tid.push(new Chart(document.getElementById('chartPolarized').getContext('2d'), chartConfig([80, 5, 15])));
+            state.charts.tid.push(new Chart(document.getElementById('chartPyramidal').getContext('2d'), chartConfig([75, 15, 10])));
+            state.charts.tid.push(new Chart(document.getElementById('chartThreshold').getContext('2d'), chartConfig([45, 45, 10])));
+        }
+
+        // --- 6. DOM UPDATES ---
+        function updateBarChart(traitName) {
+            const traitData = adaptationsData.find(d => d.trait === traitName);
+            if(traitData && state.charts.bar) {
+                state.charts.bar.data.datasets[0].data = traitData.scores;
+                state.charts.bar.update();
+            }
+        }
+
+        function updateSessionContent() {
+            const generateHTML = (data) => `
+                <div class="bg-white border border-slate-200 rounded-xl p-6 md:p-8 h-full flex flex-col shadow-sm relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                    <div>
+                        <h4 class="font-extrabold text-slate-800 text-xl tracking-tight">${data.title}</h4>
+                        <div class="mt-5 text-slate-600 text-sm leading-relaxed prose prose-sm max-w-none">${data.protocol}</div>
+                        <div class="mt-6 pt-5 border-t border-slate-100">
+                            <p class="text-sm text-slate-600 leading-relaxed"><strong class="text-slate-800 font-semibold">Physiological Rationale:</strong> ${data.rationale}</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 bg-emerald-50/80 text-emerald-800 text-xs px-4 py-2.5 rounded-lg font-semibold border border-emerald-100/50 self-start shadow-sm">
+                        ${data.metrics}
+                    </div>
+                </div>
+            `;
+            ['cluster1', 'cluster2', 'cluster3'].forEach((cluster, index) => {
+                const targetDiv = document.getElementById(`c${index + 1}-prescription`);
+                if(targetDiv) targetDiv.innerHTML = generateHTML(sessionData[cluster][state.currentProfile]);
+            });
+        }
+
+        function updateMonitoringDisplay(zoneKey) {
+            const data = monitoringData[zoneKey];
+            const display = document.getElementById('monitoringDataDisplay');
+            
+            display.classList.remove('animate-fadeIn');
+            void display.offsetWidth; // Trigger reflow
+            display.classList.add('animate-fadeIn');
+
+            display.innerHTML = `
+                <div class="flex items-center mb-8">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center font-black text-xl mr-5 shadow-md border border-emerald-400/20">${zoneKey.split('-')[0]}</div>
+                    <div>
+                        <h3 class="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight">${data.name}</h3>
+                        <p class="text-slate-500 text-sm font-medium mt-1">${data.desc}</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-slate-50 border border-slate-200/60 p-5 rounded-xl">
+                        <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">Heart Rate</p>
+                        <p class="text-xl font-bold text-slate-800">${data.hr}</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200/60 p-5 rounded-xl">
+                        <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">Blood Lactate</p>
+                        <p class="text-xl font-bold text-slate-800">${data.lactate}</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200/60 p-5 rounded-xl">
+                        <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">Borg RPE (1-10)</p>
+                        <p class="text-xl font-bold text-slate-800">${data.rpe}</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200/60 p-5 rounded-xl">
+                        <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">Talk Test Guide</p>
+                        <p class="text-sm font-medium text-slate-700 leading-snug">${data.talk}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- 7. EVENT LISTENERS ---
+        function setupEventListeners() {
+            // Matrix Filter
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    filterBtns.forEach(b => {
+                        b.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm', 'font-semibold', 'hover:bg-emerald-700');
+                        b.classList.add('bg-white', 'border', 'border-slate-300', 'text-slate-600', 'hover:bg-slate-50', 'hover:border-slate-400', 'font-medium');
+                    });
+                    e.target.classList.remove('bg-white', 'border', 'border-slate-300', 'text-slate-600', 'hover:bg-slate-50', 'hover:border-slate-400', 'font-medium');
+                    e.target.classList.add('bg-emerald-600', 'text-white', 'shadow-sm', 'font-semibold', 'hover:bg-emerald-700');
+                    renderMatrix(e.target.getAttribute('data-category'));
+                });
+            });
+
+            // Bar Chart Trait Select
+            document.getElementById('traitSelect').addEventListener('change', (e) => updateBarChart(e.target.value));
+
+            // Radar Chart Toggles
+            const toggleDataset = (btnId, datasetIndex) => {
+                document.getElementById(btnId).addEventListener('click', (e) => {
+                    const chart = state.charts.radar;
+                    const meta = chart.getDatasetMeta(datasetIndex);
+                    meta.hidden = meta.hidden === null ? !chart.data.datasets[datasetIndex].hidden : null;
+                    chart.update();
+                    if(meta.hidden) {
+                        e.target.classList.replace('bg-slate-100', 'bg-white');
+                        e.target.classList.add('opacity-50', 'line-through', 'border', 'border-slate-200');
+                        e.target.classList.remove('ring-1');
+                    } else {
+                        e.target.classList.replace('bg-white', 'bg-slate-100');
+                        e.target.classList.remove('opacity-50', 'line-through', 'border', 'border-slate-200');
+                        e.target.classList.add('ring-1');
+                    }
+                });
+            };
+            toggleDataset('btnRadarT2', 0);
+            toggleDataset('btnRadarT5', 1);
+            toggleDataset('btnRadarT8', 2);
+
+            // Tabs for Clusters
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    tabBtns.forEach(b => { b.classList.remove('tab-active'); b.classList.add('tab-inactive'); });
+                    e.target.classList.remove('tab-inactive'); e.target.classList.add('tab-active');
+
+                    const targetId = e.target.getAttribute('data-target');
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.add('hidden'); content.classList.remove('block');
+                    });
+                    const targetContent = document.getElementById(targetId);
+                    targetContent.classList.remove('hidden'); targetContent.classList.add('block');
+                    state.currentTab = targetId;
+                });
+            });
+
+            // Athlete Profile Selector
+            const profileBtns = document.querySelectorAll('.profile-btn');
+            profileBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    state.currentProfile = e.target.getAttribute('data-profile');
+                    profileBtns.forEach(b => {
+                        b.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm', 'font-semibold');
+                        b.classList.add('bg-white', 'border', 'border-slate-300', 'text-slate-600', 'hover:bg-slate-100', 'font-medium');
+                    });
+                    e.target.classList.remove('bg-white', 'border', 'border-slate-300', 'text-slate-600', 'hover:bg-slate-100', 'font-medium');
+                    e.target.classList.add('bg-emerald-600', 'text-white', 'shadow-sm', 'font-semibold');
+                    updateSessionContent();
+                });
+            });
+
+            // Monitoring Guide Zone Selector
+            const zoneBtns = document.querySelectorAll('.zone-btn');
+            zoneBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const zone = e.currentTarget.getAttribute('data-zone'); // Use currentTarget to ensure we get the button, not inner spans
+                    zoneBtns.forEach(b => {
+                        b.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm');
+                        b.classList.add('bg-white', 'border', 'border-slate-200', 'text-slate-600', 'hover:bg-slate-50', 'hover:border-slate-300');
+                        b.querySelector('span').classList.remove('opacity-80', 'text-white');
+                        b.querySelector('span').classList.add('text-slate-400');
+                    });
+                    e.currentTarget.classList.remove('bg-white', 'border', 'border-slate-200', 'text-slate-600', 'hover:bg-slate-50', 'hover:border-slate-300');
+                    e.currentTarget.classList.add('bg-emerald-600', 'text-white', 'shadow-sm');
+                    e.currentTarget.querySelector('span').classList.remove('text-slate-400');
+                    e.currentTarget.querySelector('span').classList.add('opacity-80', 'text-white');
+                    updateMonitoringDisplay(zone);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

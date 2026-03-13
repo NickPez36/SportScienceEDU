@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Performance Physiology & Energy Systems</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chosen Palette: Performance Neutrals with System-Specific Accents (Stone bg, Emerald for Alactic, Rose for Glycolytic, Sky for Aerobic, Amber for Speed) -->
+    
+    <!-- Application Structure Plan: 
+         1. Persistent Navigation: Allows S&C coaches to quickly jump between physiological systems.
+         2. Hero & Executive Summary: Sets the academic and practical context of the SPA.
+         3. The Energy Continuum (Overview): An interactive chart establishing the foundational relationship between time and energy contribution.
+         4. System Deep Dives (Alactic, Glycolytic, Oxidative): 
+            - Uses interactive tabs to break down each system into component parts (e.g., Lactate Production vs. Tolerance).
+            - This tabbed structure prevents cognitive overload while providing fine detail.
+         5. Speed Domains: A dedicated section moving from metabolic to neuromuscular traits (Acceleration -> Max Velocity -> Tolerance), visualized chronologically.
+         6. Practical Programming Summary: A quick-reference grid for field application.
+         Why this structure? It follows a logical flow from macro (continuum) to micro (system components), separating metabolic energy systems from neuromuscular speed traits, making it highly utilitarian for performance staff.
+    -->
+
+    <!-- Visualization & Content Choices: 
+         - Continuum Chart -> Goal: Inform/Compare -> Viz: Multi-line Chart over time -> Interaction: Hover tooltips -> Justification: Best way to show overlapping energy contribution. -> Library: Chart.js
+         - System Tabs -> Goal: Organize/Detail -> Viz: Interactive HTML Tabs -> Interaction: Click to toggle content (e.g., Production vs Tolerance) -> Justification: Allows deep dives into physiological sub-components without cluttering the main read path. -> Method: Vanilla JS + Tailwind.
+         - Training Variables Radar -> Goal: Compare -> Viz: Radar Chart -> Interaction: Hover to see exact programming metrics -> Justification: Excellent for comparing multi-variable training prescriptions (Intensity, Volume, Rest). -> Library: Chart.js
+         - Speed Kinematics Chart -> Goal: Change/Inform -> Viz: Line/Area chart -> Interaction: Hover -> Justification: Illustrates the transition from force-dominant acceleration to velocity-dominant max speed. -> Library: Chart.js
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fafaf9; /* stone-50 */
+            color: #292524; /* stone-800 */
+        }
+        
+        /* Required Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 450px;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        .chart-container-small {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+        }
+
+        /* Custom scrollbar for a polished look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f5f5f4; }
+        ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+        
+        .tab-btn.active-emerald { border-bottom: 4px solid #059669; color: #059669; font-weight: 600; }
+        .tab-btn.active-rose { border-bottom: 4px solid #e11d48; color: #e11d48; font-weight: 600; }
+        .tab-btn.active-sky { border-bottom: 4px solid #0284c7; color: #0284c7; font-weight: 600; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur shadow-sm border-b border-stone-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 gap-4">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold text-stone-900 tracking-tight">🔬 ElitePhysiology<span class="text-emerald-600">.</span></span>
+                </div>
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="#overview" class="text-sm font-medium text-stone-600 hover:text-stone-900 transition">Continuum</a>
+                    <a href="#alactic" class="text-sm font-medium text-stone-600 hover:text-emerald-600 transition">ATP-PCr</a>
+                    <a href="#glycolytic" class="text-sm font-medium text-stone-600 hover:text-rose-600 transition">Glycolytic</a>
+                    <a href="#oxidative" class="text-sm font-medium text-stone-600 hover:text-sky-600 transition">Oxidative</a>
+                    <a href="#speed" class="text-sm font-medium text-stone-600 hover:text-amber-600 transition">Speed Domains</a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="index.html" class="inline-flex items-center gap-2 text-sm font-semibold text-stone-800 hover:text-emerald-700 px-3 py-2 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 transition">
+                        <span aria-hidden="true">←</span> Home
+                    </a>
+                    <a href="../index.html" class="inline-flex items-center gap-2 text-sm font-semibold text-stone-700 hover:text-stone-900 px-3 py-2 rounded-lg border border-stone-300 bg-stone-100 hover:bg-stone-200 transition">
+                        Learning Hub
+                    </a>
+                    <div class="flex items-center md:hidden">
+                        <span class="text-2xl">☰</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="bg-stone-900 text-stone-50 py-20 border-b-8 border-emerald-600">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="inline-block px-3 py-1 bg-stone-800 text-emerald-400 rounded-full text-xs font-bold tracking-wide mb-4">
+                APPLIED SPORTS SCIENCE REPORT
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-6">
+                Developing Energy Systems & Speed for <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-sky-400">Elite Performance</span>
+            </h1>
+            <p class="text-lg md:text-xl text-stone-400 max-w-3xl leading-relaxed mb-8">
+                A comprehensive framework for strength and conditioning coaches and sports scientists. This interactive report synthesizes academic physiological principles to provide actionable, non-sport-specific themes for developing metabolic pathways and neuromuscular speed domains.
+            </p>
+            <div class="flex flex-wrap gap-4">
+                <a href="#overview" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition shadow-lg">
+                    Explore the Data ⬇
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <!-- SECTION: The Energy Continuum -->
+        <section id="overview" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4 flex items-center">
+                    <span class="text-2xl mr-3 p-2 bg-stone-200 rounded-lg">📊</span> 
+                    The Energy Continuum Paradigm
+                </h2>
+                <p class="text-stone-600 text-lg leading-relaxed">
+                    <strong>Section Purpose:</strong> This section establishes the foundational concept that energy systems do not operate in isolation. They function on a sliding continuum based on the <i>intensity</i> and <i>duration</i> of the exercise bout. Understanding this interplay is critical before isolating specific systems for targeted adaptation. 
+                    Interact with the chart below to observe the shifting dominance of ATP-PCr, Glycolysis, and Oxidative Phosphorylation over time during maximal effort.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
+                <h3 class="text-xl font-semibold mb-2 text-center">Relative Energy System Contribution (Maximal Effort)</h3>
+                <p class="text-sm text-stone-500 text-center mb-6">Hover over the chart to see exact contribution percentages at specific timeframes.</p>
+                <div class="chart-container">
+                    <canvas id="continuumChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: ATP-PCr (Alactic) -->
+        <section id="alactic" class="scroll-mt-24">
+            <div class="mb-8 border-l-4 border-emerald-500 pl-6">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4 flex items-center">
+                    <span class="text-2xl mr-3 p-2 bg-emerald-100 text-emerald-800 rounded-lg">⚡</span> 
+                    ATP-PCr (Phosphagen) System
+                </h2>
+                <p class="text-stone-600 text-lg leading-relaxed">
+                    <strong>Section Purpose:</strong> Here we break down the most immediate energy source available to the elite athlete. This section separates the system into its two trainable components: Alactic Power (the peak rate of ATP resynthesis) and Alactic Capacity (the total pool of available phosphocreatine). Understanding this distinction dictates whether you prescribe ultra-short explosive bursts or slightly longer sustained sprints.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                <!-- Tabs -->
+                <div class="flex border-b border-stone-200 bg-stone-50">
+                    <button onclick="switchTab('alactic', 'power', 'emerald')" class="tab-btn alactic-btn active-emerald flex-1 py-4 px-6 text-center font-medium transition focus:outline-none" data-target="alactic-power">
+                        Alactic Power (Peak Output)
+                    </button>
+                    <button onclick="switchTab('alactic', 'capacity', 'emerald')" class="tab-btn alactic-btn flex-1 py-4 px-6 text-center text-stone-500 font-medium transition focus:outline-none hover:bg-stone-100" data-target="alactic-capacity">
+                        Alactic Capacity (Sustainment)
+                    </button>
+                </div>
+
+                <!-- Tab Contents -->
+                <div class="p-8">
+                    <!-- Power Content -->
+                    <div id="alactic-power" class="tab-content block">
+                        <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div>
+                                <h3 class="text-2xl font-bold text-emerald-800 mb-4">Maximal Rate of Energy Release</h3>
+                                <p class="text-stone-600 mb-4">
+                                    Alactic power refers to the absolute maximum rate at which the phosphagen system can split ATP and utilize Phosphocreatine (PCr) to generate force. It dictates an athlete's peak explosiveness in the first 1-3 seconds of movement.
+                                </p>
+                                <ul class="space-y-3 mt-6">
+                                    <li class="flex items-start"><span class="text-emerald-500 mr-2">✔</span> <strong>Goal:</strong> Maximize neural drive, motor unit recruitment, and enzyme kinetics (Creatine Kinase).</li>
+                                    <li class="flex items-start"><span class="text-emerald-500 mr-2">✔</span> <strong>Work Duration:</strong> 1 to 5 seconds.</li>
+                                    <li class="flex items-start"><span class="text-emerald-500 mr-2">✔</span> <strong>Rest Ratio:</strong> 1:15 to 1:20+ (Near complete recovery to prevent glycolytic shift).</li>
+                                    <li class="flex items-start"><span class="text-emerald-500 mr-2">✔</span> <strong>Intensity:</strong> 100% (Maximal Intent).</li>
+                                </ul>
+                            </div>
+                            <div class="bg-emerald-50 p-6 rounded-xl border border-emerald-100">
+                                <h4 class="font-bold text-emerald-900 mb-2">Practical Implementation</h4>
+                                <p class="text-emerald-800 text-sm mb-4">Training must be ceased if output/speed drops by even 3-5%, as this indicates neural fatigue and a shift towards secondary energy systems.</p>
+                                <div class="bg-white p-4 rounded text-center shadow-sm">
+                                    <span class="block text-xs font-bold text-stone-400 uppercase tracking-wider">Example Protocol</span>
+                                    <span class="block text-lg font-bold text-stone-800 mt-1">3 x 4x 15m Max Sprints</span>
+                                    <span class="block text-sm text-stone-500 mt-1">Rest: 2 min b/w reps, 8 min b/w sets</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Capacity Content -->
+                    <div id="alactic-capacity" class="tab-content hidden">
+                        <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div>
+                                <h3 class="text-2xl font-bold text-emerald-800 mb-4">Total Phosphagen Pool</h3>
+                                <p class="text-stone-600 mb-4">
+                                    Alactic capacity focuses on increasing the total muscular stores of ATP and PCr, allowing the athlete to sustain high-power outputs for slightly longer (up to 10-12 seconds) before glycolysis fully dominates.
+                                </p>
+                                <ul class="space-y-3 mt-6">
+                                    <li class="flex items-start"><span class="text-emerald-500 mr-2">✔</span> <strong>Goal:</strong> Increase intramuscular substrate stores and delay the drop-off in power curve.</li>
+                                    <li class="flex items-start"><span class="text-emerald-500 mr-2">✔</span> <strong>Work Duration:</strong> 7 to 12 seconds.</li>
+                                    <li class="flex items-start"><span class="text-emerald-500 mr-2">✔</span> <strong>Rest Ratio:</strong> 1:10 to 1:12.</li>
+                                    <li class="flex items-start"><span class="text-emerald-500 mr-2">✔</span> <strong>Intensity:</strong> 95-100%.</li>
+                                </ul>
+                            </div>
+                            <div class="bg-emerald-50 p-6 rounded-xl border border-emerald-100">
+                                <h4 class="font-bold text-emerald-900 mb-2">Practical Implementation</h4>
+                                <p class="text-emerald-800 text-sm mb-4">Slightly longer efforts push the system to complete depletion. Nutrition (Creatine Monohydrate supplementation) heavily influences this specific trait.</p>
+                                <div class="bg-white p-4 rounded text-center shadow-sm">
+                                    <span class="block text-xs font-bold text-stone-400 uppercase tracking-wider">Example Protocol</span>
+                                    <span class="block text-lg font-bold text-stone-800 mt-1">5 x 8-10 sec Resisted Sprints</span>
+                                    <span class="block text-sm text-stone-500 mt-1">Rest: 2.5 - 3 minutes b/w reps</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Glycolytic System -->
+        <section id="glycolytic" class="scroll-mt-24">
+            <div class="mb-8 border-l-4 border-rose-500 pl-6">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4 flex items-center">
+                    <span class="text-2xl mr-3 p-2 bg-rose-100 text-rose-800 rounded-lg">🩸</span> 
+                    Glycolytic (Lactic) System
+                </h2>
+                <p class="text-stone-600 text-lg leading-relaxed">
+                    <strong>Section Purpose:</strong> Often misunderstood as a single "lactic" bucket, this section delineates the glycolytic system into Production (the speed of glycolysis) and Tolerance (managing the resulting acidosis). Coaches will learn to manipulate work-to-rest ratios to either increase the engine's RPMs (production) or increase the chassis's ability to handle the toxic byproducts (tolerance).
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-5 gap-8">
+                <!-- Left: Tabs and Content -->
+                <div class="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                    <div class="flex border-b border-stone-200 bg-stone-50">
+                        <button onclick="switchTab('glycolytic', 'production', 'rose')" class="tab-btn glycolytic-btn active-rose flex-1 py-4 px-4 text-sm md:text-base text-center font-medium transition focus:outline-none" data-target="glycolytic-production">
+                            Lactate Production (Power)
+                        </button>
+                        <button onclick="switchTab('glycolytic', 'tolerance', 'rose')" class="tab-btn glycolytic-btn flex-1 py-4 px-4 text-sm md:text-base text-center text-stone-500 font-medium transition focus:outline-none hover:bg-stone-100" data-target="glycolytic-tolerance">
+                            Lactate Tolerance (Capacity)
+                        </button>
+                    </div>
+
+                    <div class="p-6">
+                        <!-- Production -->
+                        <div id="glycolytic-production" class="tab-content block">
+                            <h3 class="text-2xl font-bold text-rose-800 mb-3">Maximizing Glycolytic Flux</h3>
+                            <p class="text-stone-600 mb-4 text-sm">
+                                Training the <strong>rate</strong> at which glucose is broken down. The goal is to produce massive amounts of energy (and consequentially, lactate and H+ ions) in a short time. This requires high intensity and full clearance between reps to ensure the enzymes (like PFK) aren't inhibited by prior acidosis.
+                            </p>
+                            <div class="bg-rose-50 border-l-4 border-rose-400 p-4 mb-4">
+                                <p class="text-sm font-semibold text-rose-900">Physiological Target:</p>
+                                <p class="text-sm text-rose-800">Upregulation of glycolytic enzymes (Phosphofructokinase). High CNS output.</p>
+                            </div>
+                            <ul class="text-sm space-y-2 text-stone-700">
+                                <li><strong>Duration:</strong> 15 - 30 seconds</li>
+                                <li><strong>Intensity:</strong> 95 - 100%</li>
+                                <li><strong>Rest:</strong> 1:5 to 1:8 (e.g., 30s work, 3-4 min rest) - allows buffering before next rep.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Tolerance -->
+                        <div id="glycolytic-tolerance" class="tab-content hidden">
+                            <h3 class="text-2xl font-bold text-rose-800 mb-3">Buffering & Clearance</h3>
+                            <p class="text-stone-600 mb-4 text-sm">
+                                Training the body to maintain mechanical output amidst high localized acidosis. This is achieved via incomplete rest periods, forcing the muscle to work while pH is dropping, which upregulates buffering agents and MCT (Monocarboxylate) transporters.
+                            </p>
+                            <div class="bg-rose-50 border-l-4 border-rose-400 p-4 mb-4">
+                                <p class="text-sm font-semibold text-rose-900">Physiological Target:</p>
+                                <p class="text-sm text-rose-800">Intracellular buffering (carnosine, bicarbonate), MCT1/MCT4 transporter density, mental fortitude.</p>
+                            </div>
+                            <ul class="text-sm space-y-2 text-stone-700">
+                                <li><strong>Duration:</strong> 30 - 90 seconds</li>
+                                <li><strong>Intensity:</strong> 85 - 95%</li>
+                                <li><strong>Rest:</strong> 1:1 to 1:3 (e.g., 60s work, 60-120s rest) - incomplete recovery is mandatory.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Radar Chart -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col justify-center">
+                    <h4 class="text-center font-bold text-stone-800 mb-2">Training Parameter Comparison</h4>
+                    <p class="text-xs text-center text-stone-500 mb-4">Relative weighting of variables</p>
+                    <div class="chart-container-small">
+                        <canvas id="glycolyticRadar"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Oxidative System -->
+        <section id="oxidative" class="scroll-mt-24">
+            <div class="mb-8 border-l-4 border-sky-500 pl-6">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4 flex items-center">
+                    <span class="text-2xl mr-3 p-2 bg-sky-100 text-sky-800 rounded-lg">🫀</span> 
+                    Oxidative (Aerobic) System
+                </h2>
+                <p class="text-stone-600 text-lg leading-relaxed">
+                    <strong>Section Purpose:</strong> A robust aerobic system is the foundation of high-performance recovery and sustained output. This interactive breakdown separates cardiovascular delivery (Central adaptations like heart structure) from muscular extraction (Peripheral adaptations like mitochondria and capillaries). Targeting the right component relies heavily on intensity manipulation.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Central Adaptations -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-t-8 border-sky-300 hover:shadow-md transition">
+                    <div class="text-4xl mb-4">🫀</div>
+                    <h3 class="text-2xl font-bold text-stone-900 mb-2">Central Adaptations (Delivery)</h3>
+                    <p class="text-stone-500 mb-6 font-medium">"Building a bigger pump and wider pipes."</p>
+                    
+                    <p class="text-stone-600 text-sm mb-6">
+                        Focuses on the cardiovascular system's ability to deliver oxygenated blood to working tissues. Driven by long-duration, low-to-moderate intensity work that maximizes venous return and cardiac stretch.
+                    </p>
+
+                    <div class="space-y-4">
+                        <div class="bg-sky-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-sky-800 text-sm uppercase tracking-wide">Key Mechanisms</h4>
+                            <ul class="text-sm text-sky-900 mt-2 list-disc list-inside">
+                                <li>Left Ventricular Eccentric Hypertrophy (chamber stretching).</li>
+                                <li>Increased blood plasma volume.</li>
+                                <li>Increased total stroke volume (SV).</li>
+                            </ul>
+                        </div>
+                        <div class="border border-stone-200 p-4 rounded-lg">
+                            <h4 class="font-bold text-stone-800 text-sm uppercase tracking-wide">Training Theme</h4>
+                            <p class="text-sm text-stone-600 mt-1">Cardiac Output Method (LSD): 60-90+ minutes at HR 130-150 bpm (Zone 2). Continuous, cyclical work.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Peripheral Adaptations -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-t-8 border-sky-600 hover:shadow-md transition">
+                    <div class="text-4xl mb-4">🧬</div>
+                    <h3 class="text-2xl font-bold text-stone-900 mb-2">Peripheral Adaptations (Extraction)</h3>
+                    <p class="text-stone-500 mb-6 font-medium">"Building more efficient cellular factories."</p>
+                    
+                    <p class="text-stone-600 text-sm mb-6">
+                        Focuses on the local skeletal muscle's ability to extract and utilize the delivered oxygen. Driven by higher intensity intervals near or slightly above the anaerobic threshold.
+                    </p>
+
+                    <div class="space-y-4">
+                        <div class="bg-sky-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-sky-800 text-sm uppercase tracking-wide">Key Mechanisms</h4>
+                            <ul class="text-sm text-sky-900 mt-2 list-disc list-inside">
+                                <li>Mitochondrial biogenesis (increased size and density).</li>
+                                <li>Capillary network proliferation (angiogenesis).</li>
+                                <li>Increased oxidative enzymes (Succinate dehydrogenase).</li>
+                            </ul>
+                        </div>
+                        <div class="border border-stone-200 p-4 rounded-lg">
+                            <h4 class="font-bold text-stone-800 text-sm uppercase tracking-wide">Training Theme</h4>
+                            <p class="text-sm text-stone-600 mt-1">Aerobic Power/VO2max Intervals: e.g., 4 x 4 minutes at >90% HRmax with 2-3 min active rest.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Speed Domains -->
+        <section id="speed" class="scroll-mt-24">
+            <div class="mb-8 border-l-4 border-amber-500 pl-6">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4 flex items-center">
+                    <span class="text-2xl mr-3 p-2 bg-amber-100 text-amber-800 rounded-lg">🚀</span> 
+                    Neuromuscular Speed Domains
+                </h2>
+                <p class="text-stone-600 text-lg leading-relaxed">
+                    <strong>Section Purpose:</strong> Shifting from metabolic energy systems to neuromuscular capabilities, this section maps the kinematics of a sprint. Elite performance requires specific training for each distinct phase: overcoming inertia (Acceleration), achieving peak velocity (Max V), and minimizing deceleration (Speed Tolerance). The graph visually plots this velocity curve over distance.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 mb-8">
+                <h3 class="text-xl font-semibold mb-2 text-center">Velocity over Distance: The Sprint Curve</h3>
+                <div class="chart-container">
+                    <canvas id="speedChart"></canvas>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Acceleration -->
+                <div class="bg-stone-50 border border-stone-200 p-6 rounded-xl relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-2 h-full bg-amber-400"></div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-2 pl-4">1. Acceleration</h3>
+                    <p class="text-sm text-amber-700 font-medium mb-3 pl-4">0 to ~20/30 meters</p>
+                    <p class="text-sm text-stone-600 pl-4 mb-4">Physics: Overcoming inertia. Requires high concentric force production and longer ground contact times to push horizontally.</p>
+                    <div class="pl-4 mt-auto">
+                        <span class="text-xs font-bold uppercase text-stone-400">Training Themes</span>
+                        <ul class="text-sm text-stone-700 mt-1">
+                            <li>• Heavy sled pushes/pulls</li>
+                            <li>• Hill sprints (short, steep)</li>
+                            <li>• Broad jumps / Med ball throws</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Max Velocity -->
+                <div class="bg-stone-50 border border-stone-200 p-6 rounded-xl relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-2 h-full bg-amber-500"></div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-2 pl-4">2. Max Velocity</h3>
+                    <p class="text-sm text-amber-700 font-medium mb-3 pl-4">30 to ~60 meters</p>
+                    <p class="text-sm text-stone-600 pl-4 mb-4">Physics: Maintaining momentum. Dominated by vertical force, minimal ground contact time, and high CNS elasticity (SSC).</p>
+                    <div class="pl-4 mt-auto">
+                        <span class="text-xs font-bold uppercase text-stone-400">Training Themes</span>
+                        <ul class="text-sm text-stone-700 mt-1">
+                            <li>• Flying 10s/20s (Fly-ins)</li>
+                            <li>• Over-speed / Assisted towing</li>
+                            <li>• Intensive plyometrics (Bounds)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Speed Tolerance -->
+                <div class="bg-stone-50 border border-stone-200 p-6 rounded-xl relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-2 h-full bg-amber-600"></div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-2 pl-4">3. Speed Tolerance</h3>
+                    <p class="text-sm text-amber-700 font-medium mb-3 pl-4">60+ meters</p>
+                    <p class="text-sm text-stone-600 pl-4 mb-4">Physics: Delaying deceleration. The ability to maintain optimal mechanics and velocity despite CNS and metabolic fatigue.</p>
+                    <div class="pl-4 mt-auto">
+                        <span class="text-xs font-bold uppercase text-stone-400">Training Themes</span>
+                        <ul class="text-sm text-stone-700 mt-1">
+                            <li>• Intensive tempo runs (80-90%)</li>
+                            <li>• Repeated Sprint Ability (RSA)</li>
+                            <li>• 150m - 300m interval repeats</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Summary -->
+    <footer class="bg-stone-900 py-12 border-t border-stone-800 mt-12">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <h2 class="text-2xl font-bold text-stone-100 mb-6">Programming Quick Reference Guide</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-stone-800 text-stone-300 text-sm uppercase tracking-wider">
+                            <th class="p-4 border-b border-stone-700">Trait</th>
+                            <th class="p-4 border-b border-stone-700">Duration</th>
+                            <th class="p-4 border-b border-stone-700">Intensity</th>
+                            <th class="p-4 border-b border-stone-700">Rest Ratio</th>
+                            <th class="p-4 border-b border-stone-700">Primary Goal</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-stone-400 text-sm">
+                        <tr class="border-b border-stone-800 hover:bg-stone-800/50">
+                            <td class="p-4 font-bold text-emerald-400">Alactic Power</td>
+                            <td class="p-4">1-5s</td>
+                            <td class="p-4">100%</td>
+                            <td class="p-4">1:20+</td>
+                            <td class="p-4">Peak enzyme turnover & CNS drive</td>
+                        </tr>
+                        <tr class="border-b border-stone-800 hover:bg-stone-800/50">
+                            <td class="p-4 font-bold text-rose-400">Glycolytic Prod.</td>
+                            <td class="p-4">15-30s</td>
+                            <td class="p-4">95-100%</td>
+                            <td class="p-4">1:5 - 1:8</td>
+                            <td class="p-4">Maximal lactate/energy generation</td>
+                        </tr>
+                        <tr class="border-b border-stone-800 hover:bg-stone-800/50">
+                            <td class="p-4 font-bold text-rose-500">Glycolytic Tol.</td>
+                            <td class="p-4">30-90s</td>
+                            <td class="p-4">85-95%</td>
+                            <td class="p-4">1:1 - 1:3</td>
+                            <td class="p-4">H+ Buffering & Transporter density</td>
+                        </tr>
+                        <tr class="border-b border-stone-800 hover:bg-stone-800/50">
+                            <td class="p-4 font-bold text-sky-400">Aerobic Power</td>
+                            <td class="p-4">3-8 min</td>
+                            <td class="p-4">90-100% VO2</td>
+                            <td class="p-4">1:1</td>
+                            <td class="p-4">Peripheral extraction, mitochondria</td>
+                        </tr>
+                        <tr class="hover:bg-stone-800/50">
+                            <td class="p-4 font-bold text-sky-500">Aerobic Capacity</td>
+                            <td class="p-4">45-90+ min</td>
+                            <td class="p-4">60-75% HR</td>
+                            <td class="p-4">Continuous</td>
+                            <td class="p-4">Central delivery, Left Ventricle volume</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-stone-600 mt-8 text-sm">Generated for Elite Sport Science Application</p>
+        </div>
+    </footer>
+
+    <!-- Interactive Logic & Chart Instances -->
+    <script>
+        // 1. Tab Switching Logic
+        function switchTab(section, target, color) {
+            // Hide all contents in the section
+            const contents = document.querySelectorAll(`[id^="${section}-"]`);
+            contents.forEach(c => {
+                if(c.classList.contains('tab-content')) {
+                    c.classList.add('hidden');
+                    c.classList.remove('block');
+                }
+            });
+
+            // Remove active classes from all buttons in the section
+            const buttons = document.querySelectorAll(`.${section}-btn`);
+            buttons.forEach(b => {
+                b.classList.remove(`active-${color}`, 'text-emerald-600', 'text-rose-600', 'text-sky-600');
+                b.classList.add('text-stone-500', 'hover:bg-stone-100');
+                b.style.fontWeight = '500';
+            });
+
+            // Show target content
+            document.getElementById(`${section}-${target}`).classList.remove('hidden');
+            document.getElementById(`${section}-${target}`).classList.add('block');
+
+            // Set active styles on clicked button
+            const activeBtn = document.querySelector(`[data-target="${section}-${target}"]`);
+            activeBtn.classList.remove('text-stone-500', 'hover:bg-stone-100');
+            activeBtn.classList.add(`active-${color}`);
+            activeBtn.style.fontWeight = '600';
+        }
+
+        // 2. Chart Configurations
+        document.addEventListener("DOMContentLoaded", function() {
+            // Global Chart Defaults
+            Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            Chart.defaults.color = '#78716c'; // stone-500
+
+            // --- Chart 1: The Energy Continuum ---
+            const ctxContinuum = document.getElementById('continuumChart').getContext('2d');
+            new Chart(ctxContinuum, {
+                type: 'line',
+                data: {
+                    labels: ['0s', '10s', '30s', '60s', '90s', '2m', '3m+'],
+                    datasets: [
+                        {
+                            label: 'ATP-PCr (Alactic)',
+                            data: [100, 20, 5, 1, 0, 0, 0],
+                            borderColor: '#059669', // emerald-600
+                            backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Glycolytic (Lactic)',
+                            data: [0, 40, 80, 50, 20, 10, 5],
+                            borderColor: '#e11d48', // rose-600
+                            backgroundColor: 'rgba(225, 29, 72, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Oxidative (Aerobic)',
+                            data: [0, 5, 15, 49, 80, 90, 95],
+                            borderColor: '#0284c7', // sky-600
+                            backgroundColor: 'rgba(2, 132, 199, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, padding: 20 } },
+                        tooltip: {
+                            backgroundColor: 'rgba(28, 25, 23, 0.9)', // stone-900
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 13 },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y + '%'; } }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            max: 100, 
+                            title: { display: true, text: '% Energy Contribution' },
+                            grid: { color: '#f5f5f4' }
+                        },
+                        x: { 
+                            title: { display: true, text: 'Duration of Maximal Effort' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // --- Chart 2: Glycolytic Radar (Production vs Tolerance) ---
+            const ctxRadar = document.getElementById('glycolyticRadar').getContext('2d');
+            new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Intensity', 'Work Duration', 'Rest Duration', 'Lactate Peak', 'Total Vol/Session'],
+                    datasets: [
+                        {
+                            label: 'Production (Power)',
+                            data: [100, 30, 90, 100, 40],
+                            backgroundColor: 'rgba(251, 113, 133, 0.4)', // rose-400
+                            borderColor: '#e11d48', // rose-600
+                            pointBackgroundColor: '#e11d48',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Tolerance (Capacity)',
+                            data: [85, 70, 30, 80, 85],
+                            backgroundColor: 'rgba(168, 162, 158, 0.3)', // stone-400
+                            borderColor: '#78716c', // stone-500
+                            pointBackgroundColor: '#78716c',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: '#e7e5e4' },
+                            grid: { color: '#e7e5e4' },
+                            pointLabels: { font: { size: 11 }, color: '#44403c' },
+                            ticks: { display: false } // Hide numbers on radar rings
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: { label: function(context) { return context.dataset.label + ': Relative ' + context.parsed.r; } }
+                        }
+                    }
+                }
+            });
+
+            // --- Chart 3: Speed Domains Line Chart ---
+            const ctxSpeed = document.getElementById('speedChart').getContext('2d');
+            // Mock data representing a 100m sprint velocity curve
+            const distances = Array.from({length: 11}, (_, i) => i * 10); // 0 to 100m
+            const velocities = [0, 5.5, 8.2, 10.1, 11.2, 11.8, 12.0, 11.7, 11.3, 10.8, 10.2]; // m/s approximation
+            
+            new Chart(ctxSpeed, {
+                type: 'line',
+                data: {
+                    labels: distances.map(d => d + 'm'),
+                    datasets: [{
+                        label: 'Velocity (m/s)',
+                        data: velocities,
+                        borderColor: '#d97706', // amber-600
+                        backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#b45309',
+                        pointRadius: 4,
+                        fill: true,
+                        tension: 0.3,
+                        segment: {
+                            borderColor: ctx => {
+                                // Color segments based on domain
+                                const index = ctx.p1DataIndex;
+                                if(index <= 3) return '#fbbf24'; // amber-400 (Accel)
+                                if(index <= 6) return '#f59e0b'; // amber-500 (Max V)
+                                return '#d97706'; // amber-600 (Tolerance)
+                            }
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(28, 25, 23, 0.9)',
+                            displayColors: false,
+                            callbacks: {
+                                title: context => 'Distance: ' + context[0].label,
+                                label: context => {
+                                    let v = context.parsed.y + ' m/s';
+                                    let phase = '';
+                                    if(context.dataIndex <= 3) phase = '(Acceleration)';
+                                    else if(context.dataIndex <= 6) phase = '(Max Velocity)';
+                                    else phase = '(Speed Tolerance)';
+                                    return `${v} ${phase}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { title: { display: true, text: 'Velocity (m/s)' }, grid: { color: '#f5f5f4' } },
+                        x: { title: { display: true, text: 'Distance (meters)' }, grid: { display: false } }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

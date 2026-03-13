@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>French Contrast Training: Elite Performance Methodology</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chosen Palette: Warm Neutrals with Slate and Emerald Accents -->
+    <!-- Application Structure Plan: The SPA is structured logically for learning and application. 
+         1. Hero/Intro: Establishes what FCT is and the underlying mechanism (PAP). 
+         2. The Core Methodology: An interactive sequence diagram (built with CSS grid, avoiding SVG) allowing users to click through the 4 defining steps of an FCT block. 
+         3. Sport Applications: A tabbed interface tailored to the user's specific coaching domain (Power, Middle Distance, Endurance), dynamically updating content and a Radar chart. 
+         4. Logistics & Evidence: Accordions for practical gym integration and a Bar chart showing representative academic data on RFD improvements. 
+         This non-linear, exploratory structure allows coaches to grasp the theory and immediately jump to the application relevant to their athletes. -->
+    <!-- Visualization & Content Choices: 
+         - Interactive Sequence (HTML/CSS/JS): Goal: Explain the 4-step process. Justification: Better than a static list; forces user to engage with each phase. Method: DOM manipulation. 
+         - Radar Chart (Chart.js): Goal: Compare physiological adaptations across sports. Justification: Shows multidimensional athlete profiles clearly. Method: Chart.js Canvas. 
+         - Bar Chart (Chart.js): Goal: Display theoretical academic data (Control vs FCT). Justification: Quantifies the "why" for elite coaches. Method: Chart.js Canvas.
+         - NO SVG/Mermaid used. All visuals rely on Canvas or styled HTML layout. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        /* Mandatory Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Smooth scrolling and base typography */
+        html { scroll-behavior: smooth; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        
+        /* Custom UI element transitions */
+        .step-card { transition: all 0.2s ease-in-out; }
+        .step-card.active { border-color: #059669; background-color: #ecfdf5; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="bg-stone-50 text-slate-800 antialiased">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-stone-200 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <a href="../index.html" class="md:hidden inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-stone-100 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-200 transition-colors">
+                        <span aria-hidden="true">←</span> Learning Hub
+                    </a>
+                    <span class="font-bold text-xl text-slate-900 tracking-tight">FCT <span class="text-emerald-600">Protocol</span></span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-600">
+                    <a href="#overview" class="hover:text-emerald-600 transition">Overview</a>
+                    <a href="#methodology" class="hover:text-emerald-600 transition">The Method</a>
+                    <a href="#applications" class="hover:text-emerald-600 transition">Applications</a>
+                    <a href="#evidence" class="hover:text-emerald-600 transition">Evidence & Logistics</a>
+                    <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-stone-100 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-200 transition-colors">
+                        <span aria-hidden="true">←</span> Learning Hub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <!-- Section 1: Overview -->
+        <section id="overview" class="mb-20">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <p class="text-emerald-600 font-semibold tracking-wide uppercase text-sm mb-2">Performance Report</p>
+                <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">French Contrast Training (FCT)</h1>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    A hyper-concentrated method of complex training designed to maximize the physiological phenomenon of Post-Activation Potentiation (PAP). FCT aims to push the boundaries of an athlete's Rate of Force Development (RFD) and explosive power by contrasting heavy resistance with high-velocity plyometrics.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-white p-8 rounded-2xl shadow-sm border border-stone-100">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 mb-4">The Physiology of PAP</h2>
+                    <p class="text-slate-600 mb-4">
+                        The core premise relies on heavily loading the neuromuscular system to increase neural drive and motor unit recruitment. Before the body succumbs to fatigue, the heavy load is removed, and high-velocity movements are performed. 
+                    </p>
+                    <p class="text-slate-600">
+                        The nervous system remains highly "excited" from the heavy lift, allowing the subsequent plyometric movements to be executed with greater force and velocity than if performed in isolation.
+                    </p>
+                </div>
+                <div class="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase mb-3">Key Outcome Metrics</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-center text-slate-700">
+                            <span class="text-emerald-500 mr-2 font-bold">&#10003;</span> Increased Rate of Force Development (RFD)
+                        </li>
+                        <li class="flex items-center text-slate-700">
+                            <span class="text-emerald-500 mr-2 font-bold">&#10003;</span> Enhanced Reactive Strength Index (RSI)
+                        </li>
+                        <li class="flex items-center text-slate-700">
+                            <span class="text-emerald-500 mr-2 font-bold">&#10003;</span> Increased Motor Unit Synchronization
+                        </li>
+                        <li class="flex items-center text-slate-700">
+                            <span class="text-emerald-500 mr-2 font-bold">&#10003;</span> Shift in the Force-Velocity Curve
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: The Methodology (Interactive) -->
+        <section id="methodology" class="mb-20">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-3">The 4-Step Methodology</h2>
+                <p class="text-slate-600 max-w-2xl">
+                    Interact with the sequence below to understand the specific role of each exercise within a single French Contrast set. A typical block consists of 3-4 sets of this sequence with 3-5 minutes of rest between sets.
+                </p>
+            </div>
+
+            <!-- Interactive Sequence UI -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
+                <!-- Step Buttons -->
+                <button onclick="updateMethod(1)" id="btn-step-1" class="step-card active text-left p-5 border-2 border-stone-200 rounded-xl bg-white cursor-pointer hover:border-emerald-300">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Exercise 1</div>
+                    <div class="font-bold text-slate-900">Heavy Compound</div>
+                </button>
+                <button onclick="updateMethod(2)" id="btn-step-2" class="step-card text-left p-5 border-2 border-stone-200 rounded-xl bg-white cursor-pointer hover:border-emerald-300">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Exercise 2</div>
+                    <div class="font-bold text-slate-900">Force Plyometric</div>
+                </button>
+                <button onclick="updateMethod(3)" id="btn-step-3" class="step-card text-left p-5 border-2 border-stone-200 rounded-xl bg-white cursor-pointer hover:border-emerald-300">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Exercise 3</div>
+                    <div class="font-bold text-slate-900">Speed-Strength Load</div>
+                </button>
+                <button onclick="updateMethod(4)" id="btn-step-4" class="step-card text-left p-5 border-2 border-stone-200 rounded-xl bg-white cursor-pointer hover:border-emerald-300">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Exercise 4</div>
+                    <div class="font-bold text-slate-900">Accelerated Plyo</div>
+                </button>
+            </div>
+
+            <!-- Dynamic Content Display -->
+            <div class="bg-slate-900 text-white p-8 rounded-2xl shadow-lg relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
+                
+                <div class="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="md:col-span-2">
+                        <h3 id="method-title" class="text-2xl font-bold text-emerald-400 mb-2">1. Heavy Compound Movement</h3>
+                        <p id="method-desc" class="text-slate-300 text-lg mb-6">
+                            Performed at 80-95% of 1RM for 1-3 repetitions. The goal is maximal motor unit recruitment and to induce the PAP effect without causing excessive neuromuscular fatigue.
+                        </p>
+                        <div class="flex items-start space-x-4 bg-slate-800 p-4 rounded-lg border border-slate-700">
+                            <div class="text-emerald-500 text-2xl font-bold">&#9889;</div>
+                            <div>
+                                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Practical Examples</div>
+                                <div id="method-examples" class="text-white font-medium">Back Squat, Trap Bar Deadlift, Heavy Sled Push.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center bg-slate-800 p-6 rounded-xl text-center border border-slate-700">
+                        <div class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Rest Parameter</div>
+                        <div id="method-rest" class="text-3xl font-bold text-white mb-2">15-20s</div>
+                        <div class="text-xs text-slate-400">Transition time to next exercise</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Sport Applications (Tabs & Radar Chart) -->
+        <section id="applications" class="mb-20">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-3">Sport Specific Application</h2>
+                <p class="text-slate-600 max-w-2xl">
+                    While born in track and field and power sports, FCT principles can be adapted. Select a sporting domain below to view targeted programming strategies and physiological profiles.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                <!-- Tabs -->
+                <div class="flex border-b border-stone-200 bg-stone-50 overflow-x-auto">
+                    <button onclick="changeSportTab('power')" id="tab-power" class="px-6 py-4 text-sm font-bold uppercase tracking-wider text-emerald-700 border-b-2 border-emerald-600 bg-white focus:outline-none whitespace-nowrap">Sprints / Power</button>
+                    <button onclick="changeSportTab('middle')" id="tab-middle" class="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500 hover:text-slate-700 focus:outline-none whitespace-nowrap">Middle Distance</button>
+                    <button onclick="changeSportTab('endurance')" id="tab-endurance" class="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500 hover:text-slate-700 focus:outline-none whitespace-nowrap">Endurance</button>
+                </div>
+
+                <div class="p-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <!-- Tab Content -->
+                    <div id="sport-content">
+                        <h3 class="text-2xl font-bold text-slate-900 mb-4">Maximal Force & Velocity</h3>
+                        <p class="text-slate-600 mb-4">
+                            In sprint and power sports (e.g., 100m sprint, Rugby, Weightlifting), FCT is used in its purest form during late pre-season or peaking phases. The goal is to move the heavy load as fast as possible, and maximize ground reaction forces during plyometrics.
+                        </p>
+                        <ul class="space-y-2 mb-6 text-slate-700 text-sm">
+                            <li><strong>Focus:</strong> Absolute speed, vertical/horizontal projection.</li>
+                            <li><strong>Example Ex 1:</strong> Heavy Quarter Squat (90% 1RM)</li>
+                            <li><strong>Example Ex 4:</strong> Band-Assisted Vertical Jumps</li>
+                            <li><strong>Frequency:</strong> 1-2x per microcycle, strictly monitored.</li>
+                        </ul>
+                        <div class="bg-emerald-50 text-emerald-800 p-4 rounded-lg border border-emerald-100 text-sm">
+                            <strong>Coach's Note:</strong> Central Nervous System (CNS) fatigue is exceptionally high. Ensure 48-72 hours recovery before high-intensity sport practice.
+                        </div>
+                    </div>
+
+                    <!-- Radar Chart Container -->
+                    <div class="w-full">
+                        <div class="text-center mb-2 text-sm font-bold text-slate-500 uppercase">Target Adaptation Profile</div>
+                        <div class="chart-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Evidence & Logistics -->
+        <section id="evidence" class="mb-12">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                
+                <!-- Data Visualization -->
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-900 mb-3">Academic Efficacy</h2>
+                    <p class="text-slate-600 mb-8">
+                        Research indicates that Complex Training methods like FCT yield superior chronic adaptations in Rate of Force Development compared to traditional resistance training or plyometrics performed in isolation over an 8-week block.
+                    </p>
+                    <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
+                        <div class="text-center mb-2 text-sm font-bold text-slate-500 uppercase">Average Improvement: Peak Power (Watts)</div>
+                        <div class="chart-container">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                        <p class="text-xs text-center text-slate-400 mt-4">*Representative data based on aggregate findings from complex training literature (e.g., Cormier et al., 2020).</p>
+                    </div>
+                </div>
+
+                <!-- Accordions for Logistics -->
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-900 mb-3">Practical Application</h2>
+                    <p class="text-slate-600 mb-8">
+                        Implementing FCT in a real-world setting requires careful planning, athlete screening, and logistical management.
+                    </p>
+
+                    <div class="space-y-4">
+                        <!-- Accordion 1 -->
+                        <div class="bg-white border border-stone-200 rounded-xl overflow-hidden">
+                            <button onclick="toggleAccordion('acc1')" class="w-full px-6 py-4 text-left font-bold text-slate-900 bg-stone-50 hover:bg-stone-100 flex justify-between items-center focus:outline-none">
+                                <span>Athlete Prerequisites</span>
+                                <span id="acc1-icon" class="text-slate-400 font-normal transition-transform duration-200">&#9660;</span>
+                            </button>
+                            <div id="acc1-content" class="px-6 py-4 text-slate-600 border-t border-stone-200">
+                                FCT is an advanced method. Athletes should ideally possess:
+                                <ul class="list-disc ml-5 mt-2 space-y-1 text-sm">
+                                    <li>A minimum relative strength baseline (e.g., Squat 1.5x to 2x Bodyweight).</li>
+                                    <li>Extensive prior experience with heavy lifting and high-impact plyometrics.</li>
+                                    <li>Excellent tissue tolerance in tendons (patellar, Achilles) due to the severe eccentric forces.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Accordion 2 -->
+                        <div class="bg-white border border-stone-200 rounded-xl overflow-hidden">
+                            <button onclick="toggleAccordion('acc2')" class="w-full px-6 py-4 text-left font-bold text-slate-900 bg-stone-50 hover:bg-stone-100 flex justify-between items-center focus:outline-none">
+                                <span>Logistical Gym Challenges</span>
+                                <span id="acc2-icon" class="text-slate-400 font-normal transition-transform duration-200 transform -rotate-90">&#9660;</span>
+                            </button>
+                            <div id="acc2-content" class="hidden px-6 py-4 text-slate-600 border-t border-stone-200">
+                                The strict rest parameters (15-20s between exercises) require athletes to have their stations set up perfectly before the set begins. In a crowded weight room, monopolizing a squat rack, a plyo box area, kettlebells, and a band rig simultaneously can be impossible. Coaches often need to adapt by using dumbbells instead of barbells to save space, or running athletes in highly orchestrated pods.
+                            </div>
+                        </div>
+
+                        <!-- Accordion 3 -->
+                        <div class="bg-white border border-stone-200 rounded-xl overflow-hidden">
+                            <button onclick="toggleAccordion('acc3')" class="w-full px-6 py-4 text-left font-bold text-slate-900 bg-stone-50 hover:bg-stone-100 flex justify-between items-center focus:outline-none">
+                                <span>Pros vs. Cons Summary</span>
+                                <span id="acc3-icon" class="text-slate-400 font-normal transition-transform duration-200 transform -rotate-90">&#9660;</span>
+                            </button>
+                            <div id="acc3-content" class="hidden px-6 py-4 text-slate-600 border-t border-stone-200">
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <div class="font-bold text-emerald-600 mb-1">Positives</div>
+                                        <ul class="list-disc ml-4 space-y-1">
+                                            <li>Massive RFD & Power gains</li>
+                                            <li>Time-efficient (combines strength/speed)</li>
+                                            <li>Breaks performance plateaus</li>
+                                            <li>Highly specific to dynamic sport</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-rose-600 mb-1">Negatives</div>
+                                        <ul class="list-disc ml-4 space-y-1">
+                                            <li>Extreme CNS fatigue</li>
+                                            <li>High injury risk if ill-prepared</li>
+                                            <li>Difficult to program in team settings</li>
+                                            <li>Requires high baseline strength</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-8 text-center text-sm">
+        <div class="max-w-6xl mx-auto px-4">
+            <p>Report compiled for Elite Performance & Conditioning parameters.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- 1. Methodology Sequence Logic ---
+        const methodData = {
+            1: {
+                title: "1. Heavy Compound Movement",
+                desc: "Performed at 80-95% of 1RM for 1-3 repetitions. The goal is maximal motor unit recruitment and to induce the PAP effect without causing excessive neuromuscular fatigue.",
+                examples: "Back Squat, Trap Bar Deadlift, Heavy Sled Push.",
+                rest: "15-20s"
+            },
+            2: {
+                title: "2. Force-Oriented Plyometric",
+                desc: "An explosive, unweighted movement capitalizing on the neural drive from exercise 1. Focus is on maximum effort and displacement (height or distance).",
+                examples: "Hurdle Jumps, Broad Jumps, Repeated Tuck Jumps.",
+                rest: "15-20s"
+            },
+            3: {
+                title: "3. Speed-Strength Load",
+                desc: "A lightly weighted explosive movement (often 20-30% of 1RM or specific implement weight). Introduces a rapid eccentric-concentric transition under moderate load.",
+                examples: "Weighted Squat Jumps, Kettlebell Swings, DB Split Jumps.",
+                rest: "15-20s"
+            },
+            4: {
+                title: "4. Accelerated Plyometric",
+                desc: "An over-speed movement. Utilizing bands or slight declines to move the athlete faster than they can voluntarily move, training the nervous system to fire at higher velocities.",
+                examples: "Band-Assisted Vertical Jumps, Downhill Sprints (subtle grade).",
+                rest: "3-5 mins"
+            }
+        };
+
+        function updateMethod(step) {
+            // Update UI styling
+            for(let i=1; i<=4; i++) {
+                document.getElementById(`btn-step-${i}`).classList.remove('active', 'border-emerald-500', 'bg-emerald-50');
+            }
+            document.getElementById(`btn-step-${step}`).classList.add('active');
+
+            // Update content with slight fade effect
+            const titleEl = document.getElementById('method-title');
+            const descEl = document.getElementById('method-desc');
+            const exEl = document.getElementById('method-examples');
+            const restEl = document.getElementById('method-rest');
+
+            titleEl.style.opacity = 0; descEl.style.opacity = 0; exEl.style.opacity = 0; restEl.style.opacity = 0;
+            
+            setTimeout(() => {
+                titleEl.textContent = methodData[step].title;
+                descEl.textContent = methodData[step].desc;
+                exEl.textContent = methodData[step].examples;
+                restEl.textContent = methodData[step].rest;
+                
+                titleEl.style.opacity = 1; descEl.style.opacity = 1; exEl.style.opacity = 1; restEl.style.opacity = 1;
+                titleEl.style.transition = "opacity 0.3s"; descEl.style.transition = "opacity 0.3s"; 
+                exEl.style.transition = "opacity 0.3s"; restEl.style.transition = "opacity 0.3s";
+            }, 150);
+        }
+
+        // --- 2. Sport Application Tabs & Radar Chart Logic ---
+        
+        // Data for Radar Chart based on Sport Profile
+        const sportProfiles = {
+            power: {
+                data: [95, 90, 40, 95, 80],
+                content: `
+                    <h3 class="text-2xl font-bold text-slate-900 mb-4">Maximal Force & Velocity</h3>
+                    <p class="text-slate-600 mb-4">In sprint and power sports (e.g., 100m sprint, Rugby, Weightlifting), FCT is used in its purest form during late pre-season or peaking phases. The goal is to move the heavy load as fast as possible, and maximize ground reaction forces during plyometrics.</p>
+                    <ul class="space-y-2 mb-6 text-slate-700 text-sm">
+                        <li><strong>Focus:</strong> Absolute speed, vertical/horizontal projection.</li>
+                        <li><strong>Example Ex 1:</strong> Heavy Quarter Squat (90% 1RM)</li>
+                        <li><strong>Example Ex 4:</strong> Band-Assisted Vertical Jumps</li>
+                        <li><strong>Frequency:</strong> 1-2x per microcycle, strictly monitored.</li>
+                    </ul>
+                    <div class="bg-emerald-50 text-emerald-800 p-4 rounded-lg border border-emerald-100 text-sm">
+                        <strong>Coach's Note:</strong> Central Nervous System (CNS) fatigue is exceptionally high. Ensure 48-72 hours recovery before high-intensity sport practice.
+                    </div>`
+            },
+            middle: {
+                data: [70, 80, 75, 85, 90],
+                content: `
+                    <h3 class="text-2xl font-bold text-slate-900 mb-4">Elasticity & Running Economy</h3>
+                    <p class="text-slate-600 mb-4">For middle-distance runners (800m - 5k), absolute maximal strength is less critical than reactive strength. FCT is modified to emphasize shorter ground contact times and tendon stiffness, which translates directly to running economy.</p>
+                    <ul class="space-y-2 mb-6 text-slate-700 text-sm">
+                        <li><strong>Focus:</strong> Reactive Strength Index (RSI), tendon stiffness.</li>
+                        <li><strong>Example Ex 1:</strong> Hex Bar Deadlift (80% 1RM) - Fast concentric.</li>
+                        <li><strong>Example Ex 4:</strong> Assisted Pogo Jumps.</li>
+                        <li><strong>Frequency:</strong> 1x per microcycle in specific preparation phase.</li>
+                    </ul>
+                    <div class="bg-blue-50 text-blue-800 p-4 rounded-lg border border-blue-100 text-sm">
+                        <strong>Coach's Note:</strong> Keep total volume low. The goal is a neural stimulus to improve the "spring" mechanism without adding muscle mass that would hinder endurance.
+                    </div>`
+            },
+            endurance: {
+                data: [50, 60, 95, 60, 85],
+                content: `
+                    <h3 class="text-2xl font-bold text-slate-900 mb-4">Terminal Sprint & Efficiency</h3>
+                    <p class="text-slate-600 mb-4">Traditional FCT is rare in pure endurance, but modified, lighter contrast sets can be highly beneficial. The aim is to recruit fast-twitch fibers that are otherwise dormant during steady-state aerobic work, preserving top-end speed for finishing kicks.</p>
+                    <ul class="space-y-2 mb-6 text-slate-700 text-sm">
+                        <li><strong>Focus:</strong> Neuromuscular efficiency, delaying fatigue of type II fibers.</li>
+                        <li><strong>Example Ex 1:</strong> Bulgarian Split Squats (Moderate-Heavy).</li>
+                        <li><strong>Example Ex 4:</strong> Short, steep hill sprints (5-10m).</li>
+                        <li><strong>Frequency:</strong> Used sparingly; often replaced by simpler complex training (1 heavy + 1 plyo).</li>
+                    </ul>
+                    <div class="bg-stone-100 text-stone-800 p-4 rounded-lg border border-stone-200 text-sm">
+                        <strong>Coach's Note:</strong> Be wary of mechanical damage. Endurance athletes are already under high volume stress; adding extreme eccentric loads (like depth jumps) can easily cause tendinopathy.
+                    </div>`
+            }
+        };
+
+        let radarChartInstance;
+
+        function initRadarChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
+            // Global defaults for better styling
+            Chart.defaults.font.family = 'Inter, -apple-system, sans-serif';
+            Chart.defaults.color = '#64748b';
+
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Absolute Force', 'Velocity/Speed', 'Aerobic Endur.', 'Rate of Force Dev.', 'Elastic/Reactive'],
+                    datasets: [{
+                        label: 'Target Focus Area',
+                        data: sportProfiles.power.data,
+                        backgroundColor: 'rgba(5, 150, 105, 0.2)', // Emerald
+                        borderColor: 'rgba(5, 150, 105, 1)',
+                        pointBackgroundColor: 'rgba(5, 150, 105, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(5, 150, 105, 1)',
+                        borderWidth: 2,
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.05)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                            pointLabels: { font: { size: 11, weight: 'bold' }, color: '#475569' },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function changeSportTab(sport) {
+            // Update Tab UI
+            const tabs = ['power', 'middle', 'endurance'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                if(t === sport) {
+                    el.classList.add('text-emerald-700', 'border-b-2', 'border-emerald-600', 'bg-white');
+                    el.classList.remove('text-slate-500');
+                } else {
+                    el.classList.remove('text-emerald-700', 'border-b-2', 'border-emerald-600', 'bg-white');
+                    el.classList.add('text-slate-500');
+                }
+            });
+
+            // Update Content HTML
+            const contentEl = document.getElementById('sport-content');
+            contentEl.style.opacity = 0;
+            setTimeout(() => {
+                contentEl.innerHTML = sportProfiles[sport].content;
+                contentEl.style.opacity = 1;
+                contentEl.style.transition = "opacity 0.3s";
+            }, 150);
+
+            // Update Chart Data
+            radarChartInstance.data.datasets[0].data = sportProfiles[sport].data;
+            
+            // Adjust colors slightly based on tab for visual distinction
+            let colorStr = '5, 150, 105'; // Emerald (default/power)
+            if(sport === 'middle') colorStr = '37, 99, 235'; // Blue
+            if(sport === 'endurance') colorStr = '71, 85, 105'; // Slate
+            
+            radarChartInstance.data.datasets[0].backgroundColor = `rgba(${colorStr}, 0.2)`;
+            radarChartInstance.data.datasets[0].borderColor = `rgba(${colorStr}, 1)`;
+            radarChartInstance.data.datasets[0].pointBackgroundColor = `rgba(${colorStr}, 1)`;
+            
+            radarChartInstance.update();
+        }
+
+        // --- 3. Accordion Logic ---
+        function toggleAccordion(id) {
+            const content = document.getElementById(`${id}-content`);
+            const icon = document.getElementById(`${id}-icon`);
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.classList.remove('-rotate-90');
+            } else {
+                content.classList.add('hidden');
+                icon.classList.add('-rotate-90');
+            }
+        }
+
+        // --- 4. Bar Chart (Evidence) Logic ---
+        function initBarChart() {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Week 0 (Baseline)', 'Week 4', 'Week 8 (Post-Block)'],
+                    datasets: [
+                        {
+                            label: 'Traditional Resistance',
+                            data: [3200, 3250, 3310],
+                            backgroundColor: 'rgba(148, 163, 184, 0.5)', // Slate
+                            borderColor: 'rgba(148, 163, 184, 1)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'French Contrast Protocol',
+                            data: [3200, 3380, 3550],
+                            backgroundColor: 'rgba(5, 150, 105, 0.8)', // Emerald
+                            borderColor: 'rgba(5, 150, 105, 1)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 3000,
+                            title: { display: true, text: 'Peak Power (Watts)', font: { size: 11 } },
+                            grid: { color: 'rgba(0,0,0,0.05)' }
+                        },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleFont: { size: 13 },
+                            bodyFont: { size: 13 },
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + ' W';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Initialization ---
+        window.onload = function() {
+            initRadarChart();
+            initBarChart();
+        };
+    </script>
+</body>
+</html>

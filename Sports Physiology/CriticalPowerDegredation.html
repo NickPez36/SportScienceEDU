@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Bioenergetics: CP, W', and Degradation Dynamics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Slate & Crimson (Neutral slate background #f8fafc, deep slate text #0f172a, primary data blue #0369a1, fatigue/degradation crimson #be123c, recovery teal #0f766e). -->
+    <!-- Application Structure Plan: A centralized, dashboard-style interactive report designed for high-performance coaches and sports scientists. It uses a top-down logical flow: starting from fundamental bioenergetic modeling (CP/W'), moving to real-world degradation (Durability), exploring mathematical limitations in real-time ($W'_{bal}$ algorithm), and concluding with actionable training and monitoring interventions. This single-page scrolling structure with fixed navigation ensures seamless cross-referencing between theory and application without breaking the analytical focus. -->
+    <!-- Visualization & Content Choices: 
+        1. Metabolic Modeling: Power-Duration Curve (Chart.js Line) -> To establish the mathematical relationship between CP and W'. Interactive tooltip allows inspection of power outputs at specific durations. Justification: Standard physiological representation, dynamically rendered without SVG.
+        2. Degradation Dynamics: CP Decay over Work Done (Chart.js Line with Toggles) -> To compare Slow-Twitch vs Mixed-Fiber durability. Users toggle fiber types to see the 'ceiling lowering' effect. Justification: Clearly illustrates fatigue resistance post-2000kJ. 
+        3. W'bal Algorithm: Real-time Depletion Simulation (Chart.js Mixed Chart) -> To highlight limitations in $\tau$ (tau) reconstitution kinetics during intervals. Justification: Visualizes the integral model's lag.
+        4. NIRS & Training: HTML/Tailwind Data Cards -> To present SmO2 decision matrices and interval protocols. Justification: Clean, structured layout for text-heavy coaching applications without relying on complex external diagrams.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 45vh;
+            max-height: 450px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+        .nav-link.active {
+            border-left-width: 4px;
+            border-color: #0369a1;
+            background-color: #e2e8f0;
+            color: #0369a1;
+            font-weight: 600;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row h-screen overflow-hidden">
+
+    <nav class="w-full md:w-64 bg-slate-900 text-slate-300 flex flex-col shadow-xl z-20 md:h-full flex-shrink-0">
+        <div class="p-6 bg-slate-950">
+            <h1 class="text-xl font-bold text-slate-100 tracking-tight">HPS Analytics</h1>
+            <p class="text-xs mt-1 text-slate-400 font-mono">Metabolic Modeling V2.4</p>
+            <a href="../index.html" class="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition-colors w-full justify-center">
+                <span aria-hidden="true">←</span> Learning Hub
+            </a>
+        </div>
+        <div class="flex-1 overflow-y-auto py-4">
+            <a href="#overview" class="nav-link block px-6 py-3 text-sm hover:bg-slate-800 hover:text-white transition-colors active" data-target="overview">Executive Overview</a>
+            <a href="#modeling" class="nav-link block px-6 py-3 text-sm hover:bg-slate-800 hover:text-white transition-colors" data-target="modeling">Metabolic Modeling</a>
+            <a href="#degradation" class="nav-link block px-6 py-3 text-sm hover:bg-slate-800 hover:text-white transition-colors" data-target="degradation">CP Degradation (Durability)</a>
+            <a href="#wbal" class="nav-link block px-6 py-3 text-sm hover:bg-slate-800 hover:text-white transition-colors" data-target="wbal">W'bal Kinetics</a>
+            <a href="#interventions" class="nav-link block px-6 py-3 text-sm hover:bg-slate-800 hover:text-white transition-colors" data-target="interventions">Training Interventions</a>
+            <a href="#monitoring" class="nav-link block px-6 py-3 text-sm hover:bg-slate-800 hover:text-white transition-colors" data-target="monitoring">NIRS Integration</a>
+        </div>
+    </nav>
+
+    <main class="flex-1 overflow-y-auto bg-slate-50 relative scroll-smooth" id="main-content">
+        <div class="max-w-5xl mx-auto p-6 md:p-10 space-y-16 pb-32">
+            
+            <header class="border-b border-slate-200 pb-8" id="overview">
+                <div class="inline-block bg-sky-100 text-sky-800 text-xs px-2 py-1 rounded-sm font-semibold tracking-wider mb-4 uppercase">Research Report</div>
+                <h2 class="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-6">Critical Power, W', and Degradation Dynamics in Elite Endurance</h2>
+                <p class="text-lg text-slate-600 font-medium leading-relaxed">
+                    This interactive module explores the physiological underpinnings of the Critical Power (CP) model, real-time W' kinetics, and the emerging paradigm of fatigue resistance. Designed for elite practitioners, this interface translates complex mathematical metabolic models into actionable training and monitoring heuristics.
+                </p>
+            </header>
+
+            <section id="modeling" class="scroll-mt-10">
+                <div class="mb-6">
+                    <h3 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <span class="text-sky-600">&#9632;</span> Metabolic Modeling & Bioenergetics
+                    </h3>
+                    <p class="text-slate-600 mt-2 leading-relaxed">
+                        This section visualizes the two-parameter CP model ($P = W'/t + CP$). Here, we explore the mathematical relationship between V̇O₂ kinetics and power output. CP represents the asymptote of the power-duration relationship (anchored tightly, though not identically, to Maximal Lactate Steady State). W' represents the finite work capacity above CP, dictated by phosphocreatine (PCr) depletion and the accumulation of fatigue-inducing metabolites (H⁺, Pi). Interact with the curve to observe the hyperbolic relationship between sustainable power and time to exhaustion.
+                    </p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <div class="mb-4 flex justify-between items-end">
+                        <div>
+                            <h4 class="text-lg font-semibold text-slate-800">Power-Duration Relationship</h4>
+                            <p class="text-sm text-slate-500">Theoretical athlete profile: CP = 360W, W' = 22,000J</p>
+                        </div>
+                        <div class="text-right hidden sm:block">
+                            <div class="text-xs font-mono text-slate-400">EQUATION</div>
+                            <div class="text-sm font-mono font-bold text-slate-700">P(t) = (W' / t) + CP</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="cpChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="degradation" class="scroll-mt-10">
+                <div class="mb-6">
+                    <h3 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <span class="text-rose-600">&#9650;</span> Critical Power Degradation (Durability)
+                    </h3>
+                    <p class="text-slate-600 mt-2 leading-relaxed">
+                        This section analyzes "Durability"—the capacity to resist the deterioration of the bioenergetic profile over time. Research confirms CP is not static; after significant work expenditure (e.g., 2,000–3,000 kJ), the "ceiling lowers." This section contrasts this degradation between Slow-Twitch (ST) dominant and Mixed-Fiber (MF) athletes. ST athletes preserve CP longer due to superior calcium handling and reliance on fat oxidation, whereas MF athletes experience a sharper drop due to accelerated glycogen depletion and greater peripheral fatigue accumulation. Toggle the phenotypes below to analyze the degradation curves.
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                        <div>
+                            <h4 class="text-lg font-semibold text-slate-800">CP Shift post-Work Expenditure</h4>
+                            <p class="text-sm text-slate-500">Modeled CP decay across total kJ accumulated.</p>
+                        </div>
+                        <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                            <button id="btn-st" class="px-4 py-1.5 text-sm font-semibold rounded-md bg-white shadow-sm text-sky-700 transition-all">Slow-Twitch Dominant</button>
+                            <button id="btn-mf" class="px-4 py-1.5 text-sm font-semibold rounded-md text-slate-500 hover:text-slate-700 transition-all">Mixed-Fiber</button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
+                        <div class="lg:col-span-2">
+                            <div class="chart-container">
+                                <canvas id="degChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-100 flex flex-col justify-center">
+                            <h5 class="font-bold text-slate-800 mb-2 border-b border-slate-200 pb-2" id="phenotype-title">Slow-Twitch Profile</h5>
+                            <ul class="text-sm space-y-3 text-slate-600" id="phenotype-desc">
+                                <li><strong>Onset of Decay:</strong> ~2,500 kJ</li>
+                                <li><strong>Mechanism:</strong> Spares muscle glycogen, robust Ca²⁺ sensitivity maintenance.</li>
+                                <li><strong>Race Implication:</strong> High late-race capability; minimal lowering of the metabolic ceiling.</li>
+                            </ul>
+                            <div class="mt-6 pt-4 border-t border-slate-200">
+                                <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">Delta at 4000kJ</div>
+                                <div class="text-2xl font-black text-rose-600" id="phenotype-delta">-4.2%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="wbal" class="scroll-mt-10">
+                <div class="mb-6">
+                    <h3 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <span class="text-teal-600">&#9660;</span> The W'bal Algorithm & Limitations
+                    </h3>
+                    <p class="text-slate-600 mt-2 leading-relaxed">
+                        This section examines the real-time application of the Skiba Integral model for tracking W' balance ($W'_{bal}$). While effective for predicting exhaustion during steady severe-intensity exercise, the model often fails in stochastic racing. The primary limitation is the static modeling of recovery kinetics ($\tau$, tau). $\tau$ is non-linear and context-dependent. The visualization below simulates a 3-minute interval block, demonstrating how varying $\tau$ drastically alters predicted W' recovery, often overestimating readiness in real-world scenarios.
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                        <div>
+                            <h4 class="text-lg font-semibold text-slate-800">W' Reconstitution Kinetics ($\tau$)</h4>
+                            <p class="text-sm text-slate-500">Stochastic interval simulation: 60s ON (450W), 60s OFF (200W), 60s ON (450W).</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <label for="tau-select" class="text-sm font-semibold text-slate-700">Set Recovery $\tau$:</label>
+                            <select id="tau-select" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block p-2">
+                                <option value="fast">Fast Recovery ($\tau$ = 300s)</option>
+                                <option value="slow">Slow Recovery ($\tau$ = 550s)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="wbalChart"></canvas>
+                    </div>
+                    <div class="mt-4 p-4 bg-yellow-50 text-yellow-800 rounded-lg text-sm border border-yellow-200">
+                        <strong>Practical Limitation:</strong> The integral model assumes $\tau$ is constant. In reality, as $D_{CP}$ (Difference between recovery power and CP) narrows, or as systemic fatigue accumulates, $\tau$ exponentially increases. Elite monitoring must account for dynamic reconstitution rates.
+                    </div>
+                </div>
+            </section>
+
+            <section id="interventions" class="scroll-mt-10">
+                <div class="mb-6">
+                    <h3 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <span class="text-slate-600">&#9670;</span> Training Interventions
+                    </h3>
+                    <p class="text-slate-600 mt-2 leading-relaxed">
+                        This section outlines specific programming strategies derived from the modeling data above. It provides actionable protocols designed to target specific physiological limiters: raising the metabolic ceiling (CP) without compromising anaerobic capacity ($VLa_{max}$), expanding the anaerobic work capacity (W') for repeated sprints, and directly addressing durability through fatigued-state conditioning.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white border border-slate-200 rounded-xl p-6 hover:shadow-md transition-shadow relative overflow-hidden group">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-sky-600"></div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-2">Increase CP (Protect $VLa_{max}$)</h4>
+                        <p class="text-sm text-slate-600 mb-4">For middle-distance athletes requiring high CP without blunting glycolytic power.</p>
+                        <div class="space-y-2 text-sm">
+                            <div class="bg-slate-50 p-2 rounded border border-slate-100"><span class="font-semibold">Protocol:</span> Short-work/Short-rest intervals.</div>
+                            <div class="bg-slate-50 p-2 rounded border border-slate-100"><span class="font-semibold">Execution:</span> 30s @ 110% CP / 15s @ 50% CP.</div>
+                            <div class="bg-slate-50 p-2 rounded border border-slate-100"><span class="font-semibold">Physiology:</span> Maximizes time near V̇O₂max while keeping intramuscular pH relatively stable, preventing the complete suppression of glycolytic enzymes.</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 rounded-xl p-6 hover:shadow-md transition-shadow relative overflow-hidden group">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-teal-600"></div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-2">Increase W' Capacity</h4>
+                        <p class="text-sm text-slate-600 mb-4">For punchy, repeated-sprint performance in criteriums or breakaways.</p>
+                        <div class="space-y-2 text-sm">
+                            <div class="bg-slate-50 p-2 rounded border border-slate-100"><span class="font-semibold">Protocol:</span> Severe domain depletion bouts.</div>
+                            <div class="bg-slate-50 p-2 rounded border border-slate-100"><span class="font-semibold">Execution:</span> 4 x 2-3 min @ maximal sustainable power (Zone 6), full recovery.</div>
+                            <div class="bg-slate-50 p-2 rounded border border-slate-100"><span class="font-semibold">Physiology:</span> Drives severe PCr depletion and high lactate accumulation, forcing adaptation in buffering capacity and upregulating MCT-1/MCT-4 transporters.</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 rounded-xl p-6 hover:shadow-md transition-shadow relative overflow-hidden group">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-rose-600"></div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-2">Minimize CP Degradation</h4>
+                        <p class="text-sm text-slate-600 mb-4">To improve "Durability" and prevent the ceiling from lowering late in a race.</p>
+                        <div class="space-y-2 text-sm">
+                            <div class="bg-slate-50 p-2 rounded border border-slate-100"><span class="font-semibold">Protocol:</span> Fatigued-State Intervals.</div>
+                            <div class="bg-slate-50 p-2 rounded border border-slate-100"><span class="font-semibold">Execution:</span> 2,500 kJ of Zone 2 work, immediately followed by 4 x 8 min @ 95-100% CP.</div>
+                            <div class="bg-slate-50 p-2 rounded border border-slate-100"><span class="font-semibold">Physiology:</span> Forces recruitment of fast-twitch fibers at sub-maximal intensities due to slow-twitch fatigue, improving their oxidative capacity.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="monitoring" class="scroll-mt-10">
+                <div class="mb-6">
+                    <h3 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <span class="text-indigo-600">&#9673;</span> Monitoring & Tech: NIRS Integration
+                    </h3>
+                    <p class="text-slate-600 mt-2 leading-relaxed">
+                        This section details advanced real-time monitoring. By combining external mechanical data (W'bal) with internal metabolic data (NIRS / Muscle Oxygen Saturation - SmO₂), coaches can pinpoint the exact cause of exhaustion. It distinguishes whether a zeroing of W' is caused by an inability to deliver oxygen to the working muscle, or an inability of the muscle to utilize the oxygen provided. 
+                    </p>
+                </div>
+
+                <div class="bg-slate-900 text-slate-200 rounded-xl overflow-hidden shadow-lg border border-slate-800">
+                    <div class="p-6 border-b border-slate-800 bg-slate-950">
+                        <h4 class="text-lg font-bold text-white">Diagnostic Matrix: W' Exhaustion vs SmO₂ Kinetics</h4>
+                        <p class="text-sm text-slate-400 mt-1">Analyzing muscle oxygenation trends as W' approaches 0 J.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-800">
+                        <div class="p-8 hover:bg-slate-800/50 transition-colors">
+                            <div class="text-rose-400 text-3xl font-bold mb-2">&#8600;</div>
+                            <h5 class="text-xl font-bold text-white mb-2">Delivery Limited</h5>
+                            <div class="mb-4 inline-flex items-center gap-2 bg-slate-800 px-3 py-1 rounded-full text-xs font-mono">
+                                <span class="text-rose-400 font-bold">W' &rarr; 0</span>
+                                <span class="text-slate-400">AND</span>
+                                <span class="text-rose-400 font-bold">SmO₂ Continues Falling</span>
+                            </div>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                The muscle continues to extract O₂, but the cardiovascular system cannot match the demand. Exhaustion is driven by a failure of central delivery.
+                            </p>
+                            <div class="mt-4 pt-4 border-t border-slate-700">
+                                <span class="text-xs text-slate-500 uppercase">Coaching Action:</span>
+                                <div class="text-sm font-semibold text-sky-400 mt-1">Focus on Central Adaptations (V̇O₂max intervals, cardiac output development).</div>
+                            </div>
+                        </div>
+                        <div class="p-8 hover:bg-slate-800/50 transition-colors">
+                            <div class="text-teal-400 text-3xl font-bold mb-2">&#8594;</div>
+                            <h5 class="text-xl font-bold text-white mb-2">Utilization Limited</h5>
+                            <div class="mb-4 inline-flex items-center gap-2 bg-slate-800 px-3 py-1 rounded-full text-xs font-mono">
+                                <span class="text-rose-400 font-bold">W' &rarr; 0</span>
+                                <span class="text-slate-400">AND</span>
+                                <span class="text-teal-400 font-bold">SmO₂ Plateaus or Rises</span>
+                            </div>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                O₂ is present, but local muscular factors (H⁺ accumulation, failure of excitation-contraction coupling) prevent further work. Exhaustion is peripheral.
+                            </p>
+                            <div class="mt-4 pt-4 border-t border-slate-700">
+                                <span class="text-xs text-slate-500 uppercase">Coaching Action:</span>
+                                <div class="text-sm font-semibold text-sky-400 mt-1">Focus on Peripheral Adaptations (Buffering capacity, severe domain depletion).</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const mainContent = document.getElementById('main-content');
+            const sections = document.querySelectorAll('section, header');
+
+            const observerOptions = {
+                root: mainContent,
+                rootMargin: '0px',
+                threshold: 0.3
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            if (link.getAttribute('data-target') === entry.target.id) {
+                                link.classList.add('active', 'border-sky-600', 'bg-slate-200', 'text-sky-700');
+                                link.classList.remove('hover:bg-slate-800', 'hover:text-white', 'border-transparent');
+                            } else {
+                                link.classList.remove('active', 'border-sky-600', 'bg-slate-200', 'text-sky-700');
+                                link.classList.add('hover:bg-slate-800', 'hover:text-white', 'border-transparent');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => observer.observe(section));
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('data-target');
+                    const targetSection = document.getElementById(targetId);
+                    targetSection.scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+
+            Chart.defaults.font.family = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+            Chart.defaults.color = '#64748b';
+
+            const cpCtx = document.getElementById('cpChart').getContext('2d');
+            const cpVal = 360;
+            const wPrime = 22000;
+            const timeData = Array.from({length: 30}, (_, i) => (i + 1) * 30); 
+            const powerData = timeData.map(t => (wPrime / t) + cpVal);
+
+            new Chart(cpCtx, {
+                type: 'line',
+                data: {
+                    labels: timeData,
+                    datasets: [
+                        {
+                            label: 'Power Output (W)',
+                            data: powerData,
+                            borderColor: '#0284c7',
+                            backgroundColor: 'rgba(2, 132, 199, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Critical Power (Asymptote)',
+                            data: Array(timeData.length).fill(cpVal),
+                            borderColor: '#cbd5e1',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                title: (context) => `Time: ${context[0].label}s`,
+                                label: (context) => `${context.dataset.label}: ${Math.round(context.raw)} W`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Time to Exhaustion (Seconds)', font: { weight: 'bold' } } },
+                        y: { title: { display: true, text: 'Power (Watts)', font: { weight: 'bold' } }, min: 300 }
+                    }
+                }
+            });
+
+            const degCtx = document.getElementById('degChart').getContext('2d');
+            const kjData = [0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000];
+            const stData = [360, 360, 360, 360, 360, 358, 354, 349, 345];
+            const mfData = [360, 360, 360, 355, 345, 332, 320, 310, 302];
+
+            const degChart = new Chart(degCtx, {
+                type: 'line',
+                data: {
+                    labels: kjData,
+                    datasets: [{
+                        label: 'CP Value (W)',
+                        data: stData,
+                        borderColor: '#0284c7',
+                        backgroundColor: 'rgba(2, 132, 199, 0.2)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: (context) => `Work Done: ${context[0].label} kJ`,
+                                label: (context) => `Critical Power: ${context.raw} W`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Work Expended (kJ)', font: { weight: 'bold' } } },
+                        y: { title: { display: true, text: 'Critical Power (W)', font: { weight: 'bold' } }, min: 280, max: 370 }
+                    }
+                }
+            });
+
+            const btnSt = document.getElementById('btn-st');
+            const btnMf = document.getElementById('btn-mf');
+            const phenoTitle = document.getElementById('phenotype-title');
+            const phenoDesc = document.getElementById('phenotype-desc');
+            const phenoDelta = document.getElementById('phenotype-delta');
+
+            btnSt.addEventListener('click', () => {
+                btnSt.classList.replace('text-slate-500', 'text-sky-700');
+                btnSt.classList.add('bg-white', 'shadow-sm');
+                btnMf.classList.remove('bg-white', 'shadow-sm', 'text-rose-700');
+                btnMf.classList.add('text-slate-500');
+                
+                degChart.data.datasets[0].data = stData;
+                degChart.data.datasets[0].borderColor = '#0284c7';
+                degChart.data.datasets[0].backgroundColor = 'rgba(2, 132, 199, 0.2)';
+                degChart.update();
+
+                phenoTitle.innerText = 'Slow-Twitch Profile';
+                phenoDesc.innerHTML = `
+                    <li><strong>Onset of Decay:</strong> ~2,500 kJ</li>
+                    <li><strong>Mechanism:</strong> Spares muscle glycogen, robust Ca²⁺ sensitivity maintenance.</li>
+                    <li><strong>Race Implication:</strong> High late-race capability; minimal lowering of the metabolic ceiling.</li>
+                `;
+                phenoDelta.innerText = '-4.2%';
+                phenoDelta.className = 'text-2xl font-black text-sky-600';
+            });
+
+            btnMf.addEventListener('click', () => {
+                btnMf.classList.replace('text-slate-500', 'text-rose-700');
+                btnMf.classList.add('bg-white', 'shadow-sm');
+                btnSt.classList.remove('bg-white', 'shadow-sm', 'text-sky-700');
+                btnSt.classList.add('text-slate-500');
+
+                degChart.data.datasets[0].data = mfData;
+                degChart.data.datasets[0].borderColor = '#be123c';
+                degChart.data.datasets[0].backgroundColor = 'rgba(190, 18, 60, 0.2)';
+                degChart.update();
+
+                phenoTitle.innerText = 'Mixed-Fiber Profile';
+                phenoDesc.innerHTML = `
+                    <li><strong>Onset of Decay:</strong> ~1,500 kJ</li>
+                    <li><strong>Mechanism:</strong> Accelerated glycogen depletion, greater peripheral fatigue accumulation.</li>
+                    <li><strong>Race Implication:</strong> Vulnerable in deep late-race scenarios; requires protection of W'.</li>
+                `;
+                phenoDelta.innerText = '-16.1%';
+                phenoDelta.className = 'text-2xl font-black text-rose-600';
+            });
+
+            const wbalCtx = document.getElementById('wbalChart').getContext('2d');
+            const wTime = Array.from({length: 19}, (_, i) => i * 10);
+            
+            const powerProfile = wTime.map(t => {
+                if (t >= 0 && t <= 60) return 450;
+                if (t > 60 && t <= 120) return 200;
+                if (t > 120 && t <= 180) return 450;
+                return 0;
+            });
+
+            const calcWbal = (tauValue) => {
+                let currentWbal = 22000;
+                let wbalArray = [];
+                for (let i = 0; i < wTime.length; i++) {
+                    const p = powerProfile[i];
+                    if (p > cpVal) {
+                        currentWbal = currentWbal - ((p - cpVal) * 10);
+                    } else {
+                        const recoveryPower = cpVal - p;
+                        currentWbal = currentWbal + (22000 - currentWbal) * (1 - Math.exp(-10 / tauValue));
+                    }
+                    if(currentWbal > 22000) currentWbal = 22000;
+                    if(currentWbal < 0) currentWbal = 0;
+                    wbalArray.push(currentWbal);
+                }
+                return wbalArray;
+            };
+
+            const wbalFast = calcWbal(300);
+            const wbalSlow = calcWbal(550);
+
+            const wbalChart = new Chart(wbalCtx, {
+                type: 'line',
+                data: {
+                    labels: wTime,
+                    datasets: [
+                        {
+                            label: 'Power (W)',
+                            type: 'bar',
+                            data: powerProfile,
+                            backgroundColor: '#94a3b8',
+                            yAxisID: 'y1',
+                            barPercentage: 1.0,
+                            categoryPercentage: 1.0
+                        },
+                        {
+                            label: "W' Remaining (Joules)",
+                            type: 'line',
+                            data: wbalFast,
+                            borderColor: '#0f766e',
+                            borderWidth: 3,
+                            yAxisID: 'y',
+                            tension: 0.1,
+                            pointRadius: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { title: { display: true, text: 'Time (s)', font: { weight: 'bold' } } },
+                        y: { 
+                            type: 'linear', 
+                            display: true, 
+                            position: 'left',
+                            title: { display: true, text: "W' (Joules)", color: '#0f766e', font: { weight: 'bold' } },
+                            min: 0, max: 25000
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Power (Watts)', color: '#94a3b8', font: { weight: 'bold' } },
+                            min: 0, max: 600,
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('tau-select').addEventListener('change', (e) => {
+                if(e.target.value === 'fast') {
+                    wbalChart.data.datasets[1].data = wbalFast;
+                    wbalChart.data.datasets[1].borderColor = '#0f766e';
+                } else {
+                    wbalChart.data.datasets[1].data = wbalSlow;
+                    wbalChart.data.datasets[1].borderColor = '#be123c';
+                }
+                wbalChart.update();
+            });
+        });
+    </script>
+</body>
+</html>

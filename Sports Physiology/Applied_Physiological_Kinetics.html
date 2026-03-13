@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High Performance Athletics: Kinetics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chosen Palette: Slate & Indigo (Slate-50 background, Indigo-600 primary accents, Emerald-600 secondary highlights, Rose-600 for warnings) -->
+    <!-- Application Structure Plan: The application utilizes a responsive, fixed-sidebar dashboard architecture. This structure was chosen because it facilitates a linear, narrative "deep dive" learning experience while providing persistent structural context and immediate jump-navigation. Interactive components (tabs, hoverable charts) are embedded sequentially to prevent cognitive overload and encourage targeted exploration of physiological data specific to the user's coaching or athletic discipline. -->
+    <!-- Visualization & Content Choices: 
+         1. O2 Deficit Concept -> Goal: Inform -> Viz: Dual Line Chart (Chart.js) -> Interaction: Hover tooltips -> Justification: Line charts best illustrate the rate of change over time (kinetics), clearly defining the physiological deficit area. NO SVG/Mermaid. 
+         2. Athlete Profiles -> Goal: Organize/Compare -> Viz: Interactive Tabbed Interface (HTML/JS) -> Interaction: Click tabs to update content -> Justification: Condenses complex, discipline-specific demands into a clean UI, allowing direct comparison. NO SVG/Mermaid. 
+         3. Training Interventions -> Goal: Compare/Change -> Viz: Grouped Bar Chart (Chart.js) -> Interaction: Hover for exact metric changes -> Justification: Directly compares the efficacy of different training modalities on the two main kinetic parameters (Phase II speed and Slow Component). NO SVG/Mermaid.
+         4. Priming Effects -> Goal: Change/Inform -> Viz: Line Chart with Fill (Chart.js) -> Interaction: Hover to see exact VO2 differences -> Justification: Visually demonstrates the metabolic 'head start' provided by specific warm-up protocols. NO SVG/Mermaid. 
+         5. System Integration -> Goal: Relationships -> Viz: Radar Chart (Chart.js) -> Interaction: Hover for multivariate metrics -> Justification: Effectively shows the multi-dimensional impact of kinetics across various physiological traits (Lactate, W', VO2 max) simultaneously. NO SVG/Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f8fafc; /* Slate 50 */
+            color: #0f172a; /* Slate 900 */
+        }
+        
+        /* CRITICAL: Chart Container Styling for Responsive Constraints */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        
+        /* Navigation and Interaction Styling */
+        .nav-link.active {
+            background-color: #4f46e5; /* Indigo 600 */
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+        }
+
+        .tab-button {
+            transition: all 0.2s ease;
+        }
+
+        .tab-button.active {
+            border-bottom-width: 4px;
+            border-color: #4f46e5;
+            color: #4f46e5;
+            font-weight: 700;
+            background-color: #e0e7ff; /* Indigo 100 */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid #e2e8f0; /* Slate 200 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Hide scrollbar for nav but keep functionality */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Simple fade animation for tab content */
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-indigo-200 selection:text-indigo-900">
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+        
+        <!-- Sidebar Navigation -->
+        <nav class="md:w-72 bg-white border-r border-slate-200 p-6 md:sticky md:top-0 md:h-screen overflow-y-auto flex-shrink-0 z-20 shadow-md md:shadow-none">
+            <div class="mb-8">
+                <div class="text-4xl mb-3 text-indigo-600 font-bold">&#8607;</div>
+                <h1 class="text-2xl font-black text-slate-900 leading-tight">Applied Kinetics</h1>
+                <p class="text-xs text-slate-500 mt-2 uppercase tracking-widest font-bold">High Performance Guide</p>
+            </div>
+            <div class="mb-6 space-y-2">
+                <a href="index.html" class="inline-flex items-center gap-2 w-full justify-center px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold transition">
+                    <span aria-hidden="true">←</span> Home
+                </a>
+                <a href="../index.html" class="inline-flex items-center gap-2 w-full justify-center px-4 py-2 rounded-xl border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition">
+                    Learning Hub
+                </a>
+            </div>
+            <ul class="space-y-2 text-sm flex flex-row md:flex-col overflow-x-auto md:overflow-visible pb-4 md:pb-0 scrollbar-hide">
+                <li><a href="#fundamentals" class="nav-link block px-4 py-3 rounded-xl transition-colors hover:bg-slate-100 whitespace-nowrap active" data-target="fundamentals">&#10102; The O2 Deficit</a></li>
+                <li><a href="#profiles" class="nav-link block px-4 py-3 rounded-xl transition-colors hover:bg-slate-100 whitespace-nowrap" data-target="profiles">&#10103; Discipline Demands</a></li>
+                <li><a href="#training" class="nav-link block px-4 py-3 rounded-xl transition-colors hover:bg-slate-100 whitespace-nowrap" data-target="training">&#10104; Training Interventions</a></li>
+                <li><a href="#priming" class="nav-link block px-4 py-3 rounded-xl transition-colors hover:bg-slate-100 whitespace-nowrap" data-target="priming">&#10105; Race Day Priming</a></li>
+                <li><a href="#integration" class="nav-link block px-4 py-3 rounded-xl transition-colors hover:bg-slate-100 whitespace-nowrap" data-target="integration">&#10106; System Integration</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 p-6 md:p-10 lg:p-16 overflow-y-auto w-full relative">
+            <div class="max-w-5xl mx-auto space-y-32">
+
+                <!-- Header / Intro -->
+                <header class="mb-16">
+                    <h2 class="text-5xl font-black text-slate-900 mb-6 tracking-tight">Mastering Physiological Transitions</h2>
+                    <p class="text-xl text-slate-600 leading-relaxed border-l-4 border-indigo-500 pl-6">
+                        In elite sport, winning often isn't determined by absolute maximums (like VO2 Max), but by the <strong>rate of adjustment</strong> to metabolic demand. This deep-dive report analyzes VO2 and Heart Rate (HR) kinetics, providing practitioners with actionable frameworks to improve training effectiveness, optimize race-day priming, and deeply understand performance limiters.
+                    </p>
+                </header>
+
+                <!-- 1. Fundamentals Section -->
+                <section id="fundamentals" class="scroll-mt-24">
+                    <div class="mb-10">
+                        <h3 class="text-3xl font-extrabold text-slate-900 mb-4 flex items-center">
+                            <span class="text-indigo-600 mr-3">&#9889;</span> The Fundamentals & The O2 Deficit
+                        </h3>
+                        <p class="text-lg text-slate-600">
+                            This section defines the core principles. When an athlete transitions from rest to exercise (or from moderate to severe intensity), oxygen delivery does not instantly meet the demand. This lag creates the "Oxygen Deficit," requiring anaerobic energy contribution. <strong>Faster kinetics mean a smaller deficit.</strong>
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
+                        <!-- Text Cards -->
+                        <div class="lg:col-span-5 space-y-6">
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-indigo-500">
+                                <h4 class="text-xl font-bold text-slate-800 mb-2">VO2 Kinetics (On-Kinetics)</h4>
+                                <p class="text-slate-600 text-sm mb-4">
+                                    The speed at which pulmonary oxygen uptake increases. Characterized primarily by the <strong>Phase II Time Constant (&tau;)</strong>. A shorter &tau; (e.g., 20s vs 40s) indicates elite metabolic flexibility and rapid mitochondrial activation.
+                                </p>
+                                <ul class="text-sm text-slate-700 space-y-2">
+                                    <li class="flex items-center"><span class="text-emerald-500 mr-2">&#10003;</span> Spares Glycogen early in the race.</li>
+                                    <li class="flex items-center"><span class="text-emerald-500 mr-2">&#10003;</span> Delays Lactate and H+ accumulation.</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-rose-500">
+                                <h4 class="text-xl font-bold text-slate-800 mb-2">Heart Rate Kinetics (Off-Kinetics)</h4>
+                                <p class="text-slate-600 text-sm mb-4">
+                                    The rate of HR and VO2 recovery post-exercise. Crucial for team sports and interval training. Tracking the uncoupling of HR and VO2 recovery provides a window into autonomic fatigue and overtraining.
+                                </p>
+                                <ul class="text-sm text-slate-700 space-y-2">
+                                    <li class="flex items-center"><span class="text-rose-500 mr-2">&#9888;</span> Slow recovery indicates parasympathetic suppression.</li>
+                                    <li class="flex items-center"><span class="text-rose-500 mr-2">&#9888;</span> Limits repeated sprint ability.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Chart -->
+                        <div class="lg:col-span-7 glass-card p-6 rounded-2xl flex flex-col justify-center">
+                            <div class="mb-4">
+                                <h4 class="text-lg font-bold text-slate-800 text-center">Impact of Fast vs. Slow Kinetics on O2 Deficit</h4>
+                                <p class="text-xs text-slate-500 text-center mt-1">Simulated step-transition to severe intensity exercise. Area between demand and response is the deficit.</p>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="deficitChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. Athlete Profiles Section -->
+                <section id="profiles" class="scroll-mt-24">
+                    <div class="mb-10">
+                        <h3 class="text-3xl font-extrabold text-slate-900 mb-4 flex items-center">
+                            <span class="text-indigo-600 mr-3">&#128101;</span> Discipline-Specific Demands
+                        </h3>
+                        <p class="text-lg text-slate-600">
+                            The importance of kinetic phases varies drastically by sport. This interactive section allows practitioners to explore how kinetic profiles influence performance outcomes in Endurance, Middle Distance, and Sprint/Team disciplines.
+                        </p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                        <!-- Tabs -->
+                        <div class="flex border-b border-slate-200 bg-slate-50 overflow-x-auto scrollbar-hide" id="profile-tabs">
+                            <button class="tab-button active flex-1 min-w-[120px] py-4 px-4 text-sm md:text-base text-slate-600 font-medium" data-target="middle">Middle Distance</button>
+                            <button class="tab-button flex-1 min-w-[120px] py-4 px-4 text-sm md:text-base text-slate-600 font-medium" data-target="endurance">Endurance</button>
+                            <button class="tab-button flex-1 min-w-[120px] py-4 px-4 text-sm md:text-base text-slate-600 font-medium" data-target="sprint">Sprint / Team</button>
+                        </div>
+                        
+                        <!-- Dynamic Content Area -->
+                        <div class="p-6 md:p-8 min-h-[350px]" id="profile-content">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Training Interventions Section -->
+                <section id="training" class="scroll-mt-24">
+                    <div class="mb-10">
+                        <h3 class="text-3xl font-extrabold text-slate-900 mb-4 flex items-center">
+                            <span class="text-indigo-600 mr-3">&#9874;</span> Training Interventions to Alter Kinetics
+                        </h3>
+                        <p class="text-lg text-slate-600">
+                            Understanding kinetics is academic until applied to training. How do we make training sessions better? By targeting specific kinetic adaptations. This section compares how different training modalities impact the speed of adjustment (&tau;) and the efficiency-destroying "Slow Component".
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                        <div class="glass-card p-6 rounded-2xl">
+                            <h4 class="text-lg font-bold text-slate-800 text-center mb-2">Effect of Modalities on Kinetic Parameters</h4>
+                            <p class="text-xs text-slate-500 text-center mb-6">Percentage improvement (reduction) after 6-week intervention. Higher bars indicate better adaptation.</p>
+                            <div class="chart-container">
+                                <canvas id="trainingChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <!-- Intervention 1 -->
+                            <div class="p-5 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-indigo-400 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h5 class="font-bold text-indigo-700 text-lg">Sprint Interval Training (SIT)</h5>
+                                    <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded font-bold">Best for Speeding &tau;</span>
+                                </div>
+                                <p class="text-sm text-slate-600 mb-2">E.g., 4-6 x 30s "all-out" with 4m rest.</p>
+                                <p class="text-sm text-slate-700 font-medium">Mechanism: Rapidly upregulates PDH activity and central cardiovascular O2 delivery. Drastically shortens the Phase II time constant, improving the initial sprint response.</p>
+                            </div>
+                            
+                            <!-- Intervention 2 -->
+                            <div class="p-5 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-emerald-400 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h5 class="font-bold text-emerald-700 text-lg">Severe Domain HIIT</h5>
+                                    <span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded font-bold">Best for Slow Component</span>
+                                </div>
+                                <p class="text-sm text-slate-600 mb-2">E.g., 4 x 4 mins @ 95% VO2max.</p>
+                                <p class="text-sm text-slate-700 font-medium">Mechanism: Forces the body to sustain high O2 flux. Primarily responsible for blunting the Phase III "Slow Component", ensuring the athlete doesn't lose mechanical efficiency late in a race.</p>
+                            </div>
+
+                            <!-- Intervention 3 -->
+                            <div class="p-5 bg-slate-50 rounded-xl border border-slate-200">
+                                <h5 class="font-bold text-slate-700 text-lg mb-2">Heavy Domain Continuous (Tempo)</h5>
+                                <p class="text-sm text-slate-600 mb-2">E.g., 30-40 mins at Lactate Threshold.</p>
+                                <p class="text-sm text-slate-700">Mechanism: Builds structural foundation (capillary density, mitochondrial volume). Necessary prerequisite, but less effective *acutely* at altering kinetic speed compared to SIT/HIIT.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. Performance Priming Section -->
+                <section id="priming" class="scroll-mt-24">
+                    <div class="mb-10">
+                        <h3 class="text-3xl font-extrabold text-slate-900 mb-4 flex items-center">
+                            <span class="text-indigo-600 mr-3">&#128640;</span> Race Day Priming
+                        </h3>
+                        <p class="text-lg text-slate-600">
+                            "Priming" uses specific heavy-intensity warm-ups to acutely alter physiology before the gun goes off. This section visualizes how prior exercise 'tricks' the body into faster kinetics, minimizing the O2 deficit during the actual event.
+                        </p>
+                    </div>
+
+                    <div class="bg-indigo-900 text-white rounded-2xl p-8 shadow-xl">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                            <div>
+                                <h4 class="text-2xl font-bold mb-6 text-indigo-100">The Priming Protocol</h4>
+                                <ul class="space-y-6">
+                                    <li class="flex">
+                                        <div class="flex-shrink-0 mr-4">
+                                            <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center font-bold">1</div>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-bold text-lg">The Stimulus</h5>
+                                            <p class="text-indigo-200 text-sm mt-1">5-6 minutes of heavy exercise (above lactate threshold, below critical power).</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex">
+                                        <div class="flex-shrink-0 mr-4">
+                                            <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center font-bold">2</div>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-bold text-lg">The Recovery Window</h5>
+                                            <p class="text-indigo-200 text-sm mt-1">10-20 minutes of complete or active rest before the race start. This allows lactate to clear while maintaining enzymatic activation.</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex">
+                                        <div class="flex-shrink-0 mr-4">
+                                            <div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center font-bold text-white">&#10003;</div>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-bold text-emerald-300 text-lg">The Physiological Outcome</h5>
+                                            <p class="text-indigo-200 text-sm mt-1">Elevated baseline muscle temperature, pre-vasodilation, and 'switched on' oxidative enzymes (PDH). Results in a visually steeper VO2 curve at race start.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-white p-4 rounded-xl">
+                                <h4 class="text-center font-bold text-slate-800 text-sm mb-2">Effect of Priming on Race Start VO2 Trajectory</h4>
+                                <div class="chart-container">
+                                    <canvas id="primingChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. System Integration Section -->
+                <section id="integration" class="scroll-mt-24 mb-24">
+                    <div class="mb-10">
+                        <h3 class="text-3xl font-extrabold text-slate-900 mb-4 flex items-center">
+                            <span class="text-indigo-600 mr-3">&#128279;</span> Integration with Key Training Principles
+                        </h3>
+                        <p class="text-lg text-slate-600">
+                            Kinetics do not exist in a vacuum. Fast VO2 and HR kinetics act as a force multiplier for other physiological traits like absolute Aerobic Power (VO2 Max), Lactate Tolerance, and Anaerobic Capacity (W'). This radar chart compares holistic athletic profiles based on kinetic efficiency.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                        <div class="lg:col-span-5 space-y-8 flex flex-col justify-center">
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-lg flex items-center"><span class="text-indigo-500 mr-2">&#9654;</span> Kinetics vs. Lactate Tolerance</h4>
+                                <p class="text-sm text-slate-600 mt-2">Fast kinetics delay the onset of heavy anaerobic reliance. By producing less lactate initially, the athlete has a longer runway before reaching critical accumulation thresholds, effectively improving "tolerance" without needing to buffer more acid.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-lg flex items-center"><span class="text-indigo-500 mr-2">&#9654;</span> Kinetics vs. VO2 Max Outcome</h4>
+                                <p class="text-sm text-slate-600 mt-2">An athlete can possess a massive VO2 Max, but if kinetics are slow, they accrue a massive oxygen deficit reaching it. Fast kinetics allow an athlete to utilize their absolute VO2 Max earlier and more efficiently in the race profile.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-lg flex items-center"><span class="text-indigo-500 mr-2">&#9654;</span> Kinetics vs. W' (Anaerobic Reserve)</h4>
+                                <p class="text-sm text-slate-600 mt-2">The O2 deficit is paid directly from the anaerobic reserve (W'). Faster kinetics = smaller deficit = more W' saved for mid-race surges or the final sprint to the line.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="lg:col-span-7 flex flex-col justify-center items-center relative">
+                            <h4 class="font-bold text-slate-800 text-center mb-1">Physiological Trait Synergy Profile</h4>
+                            <p class="text-xs text-slate-500 text-center mb-4">Comparing athletes with identical VO2 Max but different Kinetic profiles.</p>
+                            <div class="chart-container" style="height: 380px;">
+                                <canvas id="radarChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Application Logic & Visualization Rendering -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 1. Functional Navigation & Scroll Spy ---
+            const sections = document.querySelectorAll("section");
+            const navLinks = document.querySelectorAll(".nav-link");
+
+            const observerOptions = {
+                root: null,
+                rootMargin: "-20% 0px -60% 0px", // Trigger when section is nicely in view
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove("active", "bg-indigo-600", "text-white");
+                            link.classList.add("text-slate-600");
+                            if (link.getAttribute("data-target") === entry.target.id) {
+                                link.classList.add("active", "bg-indigo-600", "text-white");
+                                link.classList.remove("text-slate-600", "hover:bg-slate-100");
+                            } else {
+                                link.classList.add("hover:bg-slate-100");
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => observer.observe(section));
+
+            // --- 2. Interactive Athlete Profiles Data Storage & Logic ---
+            const profileData = {
+                middle: {
+                    title: "Middle Distance (800m - 3000m)",
+                    icon: "&#8986;",
+                    focus: "Critical. The highest priority.",
+                    description: "Middle distance events are run at or significantly above Critical Power. The transition from rest to extreme demand is instantaneous, placing massive strain on immediate energy systems.",
+                    benefits: [
+                        "Dramatically reduces early-race O2 deficit.",
+                        "Delays the accumulation of blood lactate and H+ ions.",
+                        "Preserves W' (anaerobic capacity) strictly for the final 200m kick."
+                    ],
+                    risks: [
+                        "Slow Phase II kinetics guarantee early reliance on anaerobic glycolysis.",
+                        "Rapid peripheral fatigue accumulation leading to premature pace breakdown ('hitting the wall')."
+                    ],
+                    stats: [
+                        { label: "Importance of Phase II Speed (On-Kinetics)", value: 98, color: "bg-indigo-500" },
+                        { label: "Importance of Phase III Blunting", value: 60, color: "bg-slate-400" },
+                        { label: "Importance of Recovery (Off-Kinetics)", value: 40, color: "bg-slate-400" }
+                    ]
+                },
+                endurance: {
+                    title: "Endurance (5k - Marathon)",
+                    icon: "&#127939;",
+                    focus: "Efficiency & Surge capacity.",
+                    description: "While the initial sprint isn't as critical, endurance athletes need fast kinetics to hit steady-state quickly, saving glycogen. Crucially, they must minimize the Phase III 'slow component' to maintain efficiency over hours.",
+                    benefits: [
+                        "Saves precious muscle glycogen in the opening minutes.",
+                        "Fast kinetics strongly correlate with a blunted 'slow component', meaning better mechanical efficiency late in the race.",
+                        "Allows for rapid physiological adjustment to mid-race pace surges or hills without going into debt."
+                    ],
+                    risks: [
+                        "A prominent Phase III slow component means the athlete will consume progressively more oxygen to maintain the exact same pace, leading to inevitable exhaustion."
+                    ],
+                    stats: [
+                        { label: "Importance of Phase II Speed (On-Kinetics)", value: 70, color: "bg-indigo-400" },
+                        { label: "Importance of Phase III Blunting", value: 100, color: "bg-indigo-600" },
+                        { label: "Importance of Recovery (Off-Kinetics)", value: 30, color: "bg-slate-400" }
+                    ]
+                },
+                sprint: {
+                    title: "Sprint & Team Sports (Repeated Bouts)",
+                    icon: "&#9917;",
+                    focus: "Off-kinetics (Recovery) dominate.",
+                    description: "For repeated sprints (rugby, soccer, track intervals), the absolute VO2 Max is less important than how fast the HR and VO2 drop between bouts to resynthesize immediate energy stores.",
+                    benefits: [
+                        "Fast off-kinetics allow rapid resynthesis of Phosphocreatine (PCr) between sprints.",
+                        "Clearance of intramuscular metabolites is accelerated during brief rest periods.",
+                        "Maintains peak power output across multiple successive sprint efforts late in the game."
+                    ],
+                    risks: [
+                        "Poor recovery kinetics lead to a cumulative oxygen deficit over halves/quarters.",
+                        "Progressive decline in sprint speed as the match goes on due to incomplete PCr restoration."
+                    ],
+                    stats: [
+                        { label: "Importance of Phase II Speed (On-Kinetics)", value: 65, color: "bg-indigo-400" },
+                        { label: "Importance of Phase III Blunting", value: 30, color: "bg-slate-400" },
+                        { label: "Importance of Recovery (Off-Kinetics)", value: 95, color: "bg-indigo-600" }
+                    ]
+                }
+            };
+
+            const profileContent = document.getElementById('profile-content');
+            const tabButtons = document.querySelectorAll('.tab-button');
+
+            function renderProfile(type) {
+                const data = profileData[type];
+                
+                // Build Progress Bars
+                let statsHtml = data.stats.map(stat => `
+                    <div class="mb-4">
+                        <div class="flex justify-between text-xs font-bold mb-1 text-slate-700">
+                            <span>${stat.label}</span>
+                            <span>${stat.value}%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5">
+                            <div class="${stat.color} h-2.5 rounded-full transition-all duration-1000 ease-out" style="width: 0%" data-target-width="${stat.value}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Build Lists
+                let benefitsHtml = data.benefits.map(b => `<li class="flex items-start mb-3"><span class="text-emerald-500 font-bold mr-2 text-lg leading-none">&#10003;</span> <span class="text-sm text-slate-700">${b}</span></li>`).join('');
+                let risksHtml = data.risks.map(r => `<li class="flex items-start mb-3"><span class="text-rose-500 font-bold mr-2 text-lg leading-none">&#10005;</span> <span class="text-sm text-slate-700">${r}</span></li>`).join('');
+
+                profileContent.innerHTML = `
+                    <div class="flex flex-col lg:flex-row gap-8 fade-in">
+                        <div class="flex-1 pr-0 lg:pr-6 border-r-0 lg:border-r border-slate-200">
+                            <h3 class="text-2xl font-black text-slate-900 mb-2">${data.icon} ${data.title}</h3>
+                            <p class="text-indigo-700 font-bold text-sm mb-4 uppercase tracking-wide">Focus: ${data.focus}</p>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-6">${data.description}</p>
+                            
+                            <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-inner">
+                                <h4 class="font-bold text-slate-800 text-sm mb-4 uppercase tracking-wider">Kinetic Priority Weighting</h4>
+                                ${statsHtml}
+                            </div>
+                        </div>
+                        <div class="flex-1 flex flex-col gap-6">
+                            <div class="bg-emerald-50/50 p-5 rounded-xl border border-emerald-100 relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-emerald-400"></div>
+                                <h4 class="font-bold text-emerald-900 mb-3 text-lg">Performance Benefits</h4>
+                                <ul class="pl-2">${benefitsHtml}</ul>
+                            </div>
+                            <div class="bg-rose-50/50 p-5 rounded-xl border border-rose-100 relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-rose-400"></div>
+                                <h4 class="font-bold text-rose-900 mb-3 text-lg">Performance Risks</h4>
+                                <ul class="pl-2">${risksHtml}</ul>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Trigger progress bar animations after render
+                setTimeout(() => {
+                    const bars = profileContent.querySelectorAll('.bg-slate-200 > div');
+                    bars.forEach(bar => {
+                        bar.style.width = bar.getAttribute('data-target-width');
+                    });
+                }, 50);
+            }
+
+            // Tab Event Listeners
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // Reset styling
+                    tabButtons.forEach(b => {
+                        b.classList.remove('active', 'bg-indigo-100');
+                        b.classList.add('bg-slate-50');
+                    });
+                    // Apply active styling
+                    const targetBtn = e.currentTarget;
+                    targetBtn.classList.add('active', 'bg-indigo-100');
+                    targetBtn.classList.remove('bg-slate-50');
+                    
+                    // Render Content
+                    renderProfile(targetBtn.getAttribute('data-target'));
+                });
+            });
+
+            // Init first tab
+            renderProfile('middle'); 
+
+            // --- 3. Global Chart.js Configuration ---
+            Chart.defaults.font.family = 'system-ui, -apple-system, sans-serif';
+            Chart.defaults.color = '#475569'; // slate-600
+            
+            // Common Tooltip Config to wrap text and improve look
+            const commonTooltip = {
+                backgroundColor: 'rgba(15, 23, 42, 0.9)', // slate-900
+                titleFont: { size: 13, weight: 'bold' },
+                bodyFont: { size: 12 },
+                padding: 10,
+                cornerRadius: 8,
+                displayColors: true
+            };
+
+            // --- Chart 1: The O2 Deficit (Dual Line) ---
+            const ctxDeficit = document.getElementById('deficitChart').getContext('2d');
+            const timeLabels = Array.from({length: 21}, (_, i) => i * 10); // 0 to 200 seconds
+            
+            // Generate exponential curve data
+            const demandData = Array(21).fill(90); // Step demand to 90% VO2 max
+            demandData[0] = 0; // Start at 0
+            
+            // Formula: Base + Amplitude * (1 - e^-(t/tau))
+            const fastTau = 15; // Elite
+            const slowTau = 45; // Amateur
+            const fastData = timeLabels.map(t => t===0 ? 0 : 90 * (1 - Math.exp(-t/fastTau)));
+            const slowData = timeLabels.map(t => t===0 ? 0 : 90 * (1 - Math.exp(-t/slowTau)));
+
+            new Chart(ctxDeficit, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [
+                        {
+                            label: 'Energy Demand (Step)',
+                            data: demandData,
+                            borderColor: '#334155', // slate-700
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false,
+                            stepped: 'before'
+                        },
+                        {
+                            label: 'Elite Profile (Fast Kinetics)',
+                            data: fastData,
+                            borderColor: '#10b981', // emerald-500
+                            backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            fill: '-1', // Fill to the demand line to show deficit area
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Amateur Profile (Slow Kinetics)',
+                            data: slowData,
+                            borderColor: '#f43f5e', // rose-500
+                            backgroundColor: 'rgba(244, 63, 94, 0.15)',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            fill: '-1', // Fill to demand line
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } },
+                        tooltip: {
+                            ...commonTooltip,
+                            callbacks: {
+                                title: (items) => `Time: ${items[0].label}s`,
+                                label: (context) => {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) { label += Math.round(context.parsed.y) + '% VO2 Max'; }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Time (seconds)', font: {weight: 'bold'} }, grid: {display: false} },
+                        y: { title: { display: true, text: '% of VO2 Max', font: {weight: 'bold'} }, min: 0, max: 100 }
+                    }
+                }
+            });
+
+            // --- Chart 2: Training Interventions (Grouped Bar) ---
+            const ctxTraining = document.getElementById('trainingChart').getContext('2d');
+            new Chart(ctxTraining, {
+                type: 'bar',
+                data: {
+                    labels: ['SIT (Sprints)', 'HIIT (Severe)', 'Continuous (Heavy)'],
+                    datasets: [
+                        {
+                            label: 'Reduction in Phase II τ (%)',
+                            data: [35, 15, 5],
+                            backgroundColor: '#4f46e5', // indigo-600
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Reduction in Slow Component (%)',
+                            data: [10, 45, 20],
+                            backgroundColor: '#10b981', // emerald-500
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } },
+                        tooltip: {
+                            ...commonTooltip,
+                            callbacks: {
+                                label: (context) => `${context.dataset.label}: ${context.parsed.y}% Improvement`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            title: { display: true, text: 'Improvement (%)', font: {weight: 'bold'} },
+                            beginAtZero: true,
+                            max: 50
+                        },
+                        x: { grid: {display: false} }
+                    }
+                }
+            });
+
+            // --- Chart 3: Priming Effects (Line with Fill) ---
+            const ctxPriming = document.getElementById('primingChart').getContext('2d');
+            const primeTime = Array.from({length: 13}, (_, i) => i * 10); // 0-120s
+            
+            // Primed starts higher (baseline shifted due to prior exercise) and rises faster
+            const primedData = primeTime.map(t => 25 + 75 * (1 - Math.exp(-t/12))); 
+            // Unprimed starts at normal rest baseline and rises slower
+            const unprimedData = primeTime.map(t => 5 + 95 * (1 - Math.exp(-t/28)));
+
+            new Chart(ctxPriming, {
+                type: 'line',
+                data: {
+                    labels: primeTime,
+                    datasets: [
+                        {
+                            label: 'Primed (Pre-Warmup)',
+                            data: primedData,
+                            borderColor: '#10b981', // Emerald
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Unprimed (Cold Start)',
+                            data: unprimedData,
+                            borderColor: '#cbd5e1', // slate-300
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } },
+                        tooltip: commonTooltip
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Race Time (s)' }, grid: {display: false} },
+                        y: { title: { display: true, text: 'VO2 Response' }, min: 0, max: 110 }
+                    }
+                }
+            });
+
+            // --- Chart 4: System Integration (Radar) ---
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: [
+                        ['Lactate', 'Tolerance'], 
+                        ['W\' (Anaerobic', 'Capacity Sparing)'], 
+                        ['Repeated Sprint', 'Recovery'], 
+                        ['VO2 Max', 'Early Utilization'], 
+                        ['Late Race', 'Efficiency']
+                    ],
+                    datasets: [
+                        {
+                            label: 'Fast Kinetics Profile',
+                            data: [90, 85, 95, 90, 80],
+                            fill: true,
+                            backgroundColor: 'rgba(79, 70, 229, 0.2)', // Indigo
+                            borderColor: '#4f46e5',
+                            pointBackgroundColor: '#4f46e5',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#4f46e5',
+                            borderWidth: 2
+                        }, 
+                        {
+                            label: 'Slow Kinetics Profile',
+                            data: [50, 40, 45, 60, 50],
+                            fill: true,
+                            backgroundColor: 'rgba(244, 63, 94, 0.2)', // Rose
+                            borderColor: '#f43f5e',
+                            pointBackgroundColor: '#f43f5e',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#f43f5e',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.05)' },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            pointLabels: {
+                                font: { size: 12, family: 'system-ui', weight: 'bold' },
+                                color: '#334155'
+                            },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 20 } },
+                        tooltip: commonTooltip
+                    }
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>

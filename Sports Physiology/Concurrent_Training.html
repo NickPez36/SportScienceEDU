@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concurrent Training Masterclass: Elite Adaptations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Warm Stone Harmony (Stone-50 background, Stone-800 text, Teal-700 optimal, Rose-700 danger, Amber-600 caution) -->
+    <!-- Application Structure Plan: The SPA is structured as an interactive, linear dashboard. It uses a top-down logical flow: Abstract -> Biological Mechanism -> Interactive Compatibility Matrix (Core Tool) -> Recovery Optimization Chart. This structure moves the user from understanding the 'Why' (molecular interference) to the 'What' (matrix of pairings) to the 'How' (scheduling and recovery timelines), ensuring actionable synthesis of the sports science data. -->
+    <!-- Visualization & Content Choices: 1. Mechanism: HTML/CSS Flexbox blocks (Goal: Organize/Inform) - Visualizes the pathways without SVG. 2. Compatibility Matrix: Interactive HTML Grid (Goal: Compare) - Allows exploration of 9 specific training combinations with dynamic text updates. 3. Recovery Timeline: Chart.js Line/Area Chart (Goal: Change) - Shows adaptation potential recovery over a 24-hour period, dynamically adjustable based on session intensity. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .matrix-btn { transition: all 0.2s ease-in-out; }
+        .matrix-btn:hover { transform: translateY(-2px); shadow: lg; }
+        .matrix-active { ring: 4px; ring-offset: 2px; }
+        
+        .fade-in { animation: fadeIn 0.4s ease-in; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans tracking-wide leading-relaxed antialiased">
+
+    <nav class="bg-stone-900 text-stone-100 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 gap-4">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">&#x26F3;</span>
+                    <span class="font-bold text-lg tracking-wider uppercase">Elite S&C Science</span>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="#abstract" class="text-sm font-medium hover:text-teal-400 transition">Abstract</a>
+                    <a href="#mechanism" class="text-sm font-medium hover:text-teal-400 transition">Molecular Pathways</a>
+                    <a href="#matrix" class="text-sm font-medium hover:text-teal-400 transition">Compatibility Matrix</a>
+                    <a href="#recovery" class="text-sm font-medium hover:text-teal-400 transition">Scheduling</a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="index.html" class="inline-flex items-center gap-2 text-sm font-bold px-3 py-2 rounded-lg border border-stone-600 bg-stone-800 hover:bg-stone-700 transition">
+                        <span aria-hidden="true">←</span> Home
+                    </a>
+                    <a href="../index.html" class="inline-flex items-center gap-2 text-sm font-bold px-3 py-2 rounded-lg border border-stone-500 bg-stone-700 hover:bg-stone-600 text-stone-100 transition">
+                        Learning Hub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-20">
+
+        <section id="abstract" class="bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-stone-200">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-stone-900 mb-6 leading-tight">
+                Navigating the Interference Effect in <span class="text-teal-700">Concurrent Training</span>
+            </h1>
+            <p class="text-xl text-stone-600 mb-8 max-w-4xl">
+                Elite slalom and cyclical athletes face a critical programming challenge: developing massive aerobic/anaerobic engine capacity while simultaneously maximizing neurological power output. This dashboard synthesizes current sports science literature to provide actionable guidelines for pairing gym modalities with high-intensity water sessions.
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-stone-100 p-6 rounded-xl border-l-4 border-stone-400">
+                    <div class="text-3xl mb-3">&#x1F4CA;</div>
+                    <h3 class="font-bold text-stone-900 mb-2">The Core Problem</h3>
+                    <p class="text-sm text-stone-700">High metabolic stress (lactate, VO2 blocks) actively inhibits the body's ability to synthesize new muscle tissue and build explosive power if programmed incorrectly.</p>
+                </div>
+                <div class="bg-teal-50 p-6 rounded-xl border-l-4 border-teal-600">
+                    <div class="text-3xl mb-3">&#x1F3CB;&#xFE0F;</div>
+                    <h3 class="font-bold text-teal-900 mb-2">The Optimal Gym Focus</h3>
+                    <p class="text-sm text-teal-800">During intense metabolic water blocks, gym sessions must prioritize low-volume, high-load <strong>Maximal Strength</strong> or high-velocity <strong>Power Development</strong> to rely purely on neural drive.</p>
+                </div>
+                <div class="bg-rose-50 p-6 rounded-xl border-l-4 border-rose-600">
+                    <div class="text-3xl mb-3">&#x26A0;&#xFE0F;</div>
+                    <h3 class="font-bold text-rose-900 mb-2">The Danger Zone</h3>
+                    <p class="text-sm text-rose-800">Pairing high-lactate water sessions with high-repetition <strong>Power Endurance</strong> in the gym creates overlapping peripheral fatigue, ensuring severe overtraining and blunted adaptations.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="mechanism" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 border-b-2 border-stone-200 pb-3">The Biological Roadblock: mTOR vs. AMPK</h2>
+                <p class="mt-4 text-lg text-stone-600">
+                    To understand how to program concurrently, one must visualize the conflicting cellular signals. The diagram below illustrates how endurance stimuli (AMPK) act as a molecular handbrake on strength adaptations (mTOR).
+                </p>
+            </div>
+            
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-stone-200 flex flex-col lg:flex-row items-center justify-between gap-6">
+                <div class="flex-1 w-full bg-stone-50 p-6 rounded-xl border border-stone-200 text-center">
+                    <h4 class="font-black text-stone-800 text-xl mb-4 tracking-wide">STRENGTH / POWER</h4>
+                    <div class="inline-block bg-stone-200 text-stone-700 px-4 py-2 rounded-full font-semibold mb-2 text-sm">High Mechanical Tension</div>
+                    <div class="text-2xl text-stone-400 my-1">&#x2B07;</div>
+                    <div class="inline-block bg-teal-600 text-white px-6 py-3 rounded-lg font-bold shadow-md my-2 text-lg">mTOR Pathway Activation</div>
+                    <div class="text-2xl text-stone-400 my-1">&#x2B07;</div>
+                    <div class="font-bold text-stone-800 mt-2">Protein Synthesis & Neural Drive</div>
+                </div>
+
+                <div class="flex flex-col items-center justify-center py-6 lg:py-0 w-full lg:w-auto">
+                    <div class="bg-rose-100 text-rose-800 border-2 border-rose-500 font-bold px-6 py-3 rounded-xl shadow-sm flex flex-col items-center">
+                        <span class="text-xl mb-1">&#x26D4;</span>
+                        <span>AMPK INHIBITS mTOR</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 w-full bg-stone-50 p-6 rounded-xl border border-stone-200 text-center">
+                    <h4 class="font-black text-stone-800 text-xl mb-4 tracking-wide">METABOLIC / ENDURANCE</h4>
+                    <div class="inline-block bg-stone-200 text-stone-700 px-4 py-2 rounded-full font-semibold mb-2 text-sm">Metabolic Stress (High AMP/ATP ratio)</div>
+                    <div class="text-2xl text-stone-400 my-1">&#x2B07;</div>
+                    <div class="inline-block bg-amber-600 text-white px-6 py-3 rounded-lg font-bold shadow-md my-2 text-lg">AMPK Pathway Activation</div>
+                    <div class="text-2xl text-stone-400 my-1">&#x2B07;</div>
+                    <div class="font-bold text-stone-800 mt-2">Mitochondrial Biogenesis</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="matrix" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 border-b-2 border-stone-200 pb-3">The Modality Compatibility Matrix</h2>
+                <p class="mt-4 text-lg text-stone-600">
+                    This interactive matrix outlines the synergistic or interfering effects of combining specific water sessions with gym targets on the same day. <strong>Click any cell in the grid to view the physiological rationale and programming recommendations.</strong>
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-stone-200 overflow-x-auto">
+                    <div class="min-w-[500px]">
+                        <div class="grid grid-cols-4 gap-3 text-center mb-3">
+                            <div class="p-2 flex items-end justify-end text-sm font-bold text-stone-400">Gym &#x27A1;<br>Water &#x2B07;</div>
+                            <div class="bg-stone-800 text-white p-3 rounded-lg font-bold text-sm flex flex-col justify-center leading-tight">Max Strength<br><span class="text-xs font-normal text-stone-300 mt-1">1-5 RM / Neural</span></div>
+                            <div class="bg-stone-800 text-white p-3 rounded-lg font-bold text-sm flex flex-col justify-center leading-tight">Power Dev.<br><span class="text-xs font-normal text-stone-300 mt-1">High Vel. / Low Vol.</span></div>
+                            <div class="bg-stone-800 text-white p-3 rounded-lg font-bold text-sm flex flex-col justify-center leading-tight">Power Endur.<br><span class="text-xs font-normal text-stone-300 mt-1">Mod Reps / Acidic</span></div>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-3 mb-3">
+                            <div class="bg-stone-200 text-stone-800 p-3 rounded-lg font-bold text-sm flex items-center justify-center leading-tight text-center">VO2 Max Intervals</div>
+                            <button onclick="updateMatrix('vo2_str', this)" class="matrix-btn bg-teal-100 border-2 border-teal-500 text-teal-900 font-bold rounded-lg p-3 hover:bg-teal-200 ring-teal-500 focus:outline-none">Optimal</button>
+                            <button onclick="updateMatrix('vo2_pow', this)" class="matrix-btn bg-teal-100 border-2 border-teal-500 text-teal-900 font-bold rounded-lg p-3 hover:bg-teal-200 ring-teal-500 focus:outline-none">Optimal</button>
+                            <button onclick="updateMatrix('vo2_pe', this)" class="matrix-btn bg-amber-100 border-2 border-amber-500 text-amber-900 font-bold rounded-lg p-3 hover:bg-amber-200 ring-amber-500 focus:outline-none">Caution</button>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-3 mb-3">
+                            <div class="bg-stone-200 text-stone-800 p-3 rounded-lg font-bold text-sm flex items-center justify-center leading-tight text-center">Lactate Production</div>
+                            <button onclick="updateMatrix('lacp_str', this)" class="matrix-btn bg-teal-100 border-2 border-teal-500 text-teal-900 font-bold rounded-lg p-3 hover:bg-teal-200 ring-teal-500 focus:outline-none">Optimal</button>
+                            <button onclick="updateMatrix('lacp_pow', this)" class="matrix-btn bg-teal-100 border-2 border-teal-500 text-teal-900 font-bold rounded-lg p-3 hover:bg-teal-200 ring-teal-500 focus:outline-none">Optimal</button>
+                            <button onclick="updateMatrix('lacp_pe', this)" class="matrix-btn bg-rose-100 border-2 border-rose-500 text-rose-900 font-bold rounded-lg p-3 hover:bg-rose-200 ring-rose-500 focus:outline-none">Interference</button>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-3">
+                            <div class="bg-stone-200 text-stone-800 p-3 rounded-lg font-bold text-sm flex items-center justify-center leading-tight text-center">Lactate Tolerance</div>
+                            <button onclick="updateMatrix('lact_str', this)" class="matrix-btn bg-amber-100 border-2 border-amber-500 text-amber-900 font-bold rounded-lg p-3 hover:bg-amber-200 ring-amber-500 focus:outline-none">Caution</button>
+                            <button onclick="updateMatrix('lact_pow', this)" class="matrix-btn bg-teal-100 border-2 border-teal-500 text-teal-900 font-bold rounded-lg p-3 hover:bg-teal-200 ring-teal-500 focus:outline-none">Optimal</button>
+                            <button onclick="updateMatrix('lact_pe', this)" class="matrix-btn bg-rose-200 border-2 border-rose-600 text-rose-950 font-bold rounded-lg p-3 hover:bg-rose-300 ring-rose-600 focus:outline-none">Severe</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 flex flex-col h-full">
+                    <div id="matrix-detail-panel" class="bg-white p-8 rounded-2xl shadow-md border-t-8 border-stone-300 flex-grow flex flex-col justify-center items-center text-center transition-all duration-300">
+                        <div class="text-6xl mb-4">&#x1F448;</div>
+                        <h3 class="text-2xl font-bold text-stone-800 mb-2">Select a Modality Pairing</h3>
+                        <p class="text-stone-500">Click a cell in the matrix to view detailed physiological insights, interference risks, and elite programming recommendations.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="recovery" class="scroll-mt-24">
+            <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div class="max-w-3xl">
+                    <h2 class="text-3xl font-bold text-stone-900 border-b-2 border-stone-200 pb-3">Scheduling Optimization: The Recovery Timeline</h2>
+                    <p class="mt-4 text-lg text-stone-600">
+                        When conflicting stimuli are unavoidable, the <strong>intra-session rest period</strong> is the primary modifier of the interference effect. The chart below models the restoration of strength/power adaptation potential over time following an endurance session.
+                    </p>
+                </div>
+                <div class="flex gap-2">
+                    <button id="btn-mod" class="px-4 py-2 bg-stone-800 text-white rounded font-bold text-sm hover:bg-stone-700 transition" onclick="updateChartData('moderate')">VO2 / Mod Intensity</button>
+                    <button id="btn-sev" class="px-4 py-2 bg-white text-stone-800 border border-stone-300 rounded font-bold text-sm hover:bg-stone-100 transition" onclick="updateChartData('severe')">Lactate / Severe Intensity</button>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-stone-200">
+                <div class="chart-container mb-8">
+                    <canvas id="recoveryChart"></canvas>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-stone-100">
+                    <div class="bg-stone-50 p-5 rounded-xl border border-stone-200">
+                        <h4 class="font-bold text-stone-900 mb-2 flex items-center gap-2"><span>&#x1F504;</span> Rule 1: Sequence</h4>
+                        <p class="text-sm text-stone-600">If same-day training is required, perform Gym (Strength/Power) <strong>first</strong>. Neural fatigue from water sessions severely blunts force production.</p>
+                    </div>
+                    <div class="bg-stone-50 p-5 rounded-xl border border-stone-200">
+                        <h4 class="font-bold text-stone-900 mb-2 flex items-center gap-2"><span>&#x23F1;&#xFE0F;</span> Rule 2: The 6-Hour Rule</h4>
+                        <p class="text-sm text-stone-600">AMPK activity remains elevated for several hours. A minimum of 6 hours of passive recovery and fueling is required to restore mTOR sensitivity.</p>
+                    </div>
+                    <div class="bg-stone-50 p-5 rounded-xl border border-stone-200">
+                        <h4 class="font-bold text-stone-900 mb-2 flex items-center gap-2"><span>&#x1F3AF;</span> Rule 3: Microdosing</h4>
+                        <p class="text-sm text-stone-600">During intense lactate phases, limit gym work to 20-30 minute "microdoses" of pure neural stimulation (e.g., 3x3 max strength) to maintain tissue quality.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-900 text-stone-400 py-12 text-center text-sm mt-12">
+        <div class="max-w-7xl mx-auto px-4">
+            <p class="font-bold text-stone-300 mb-2 uppercase tracking-widest">Interactive Sports Science Dashboard</p>
+            <p>Synthesized from literature regarding concurrent training, AMPK/mTOR pathways, and elite cyclical sports performance.</p>
+        </div>
+    </footer>
+
+    <script>
+        const matrixContent = {
+            'vo2_str': {
+                title: 'VO2 Max + Max Strength',
+                status: 'Optimal Synergy',
+                colorClass: 'border-teal-500',
+                bgClass: 'bg-teal-50',
+                textClass: 'text-teal-900',
+                desc: 'Highly compatible. VO2 intervals place massive stress on central cardiovascular systems. Max strength (1-5 reps, heavy load, full rest) relies purely on the ATP-PC system. Because max strength generates almost no peripheral acidity, metabolic pathways do not conflict.'
+            },
+            'vo2_pow': {
+                title: 'VO2 Max + Power Development',
+                status: 'Optimal Synergy',
+                colorClass: 'border-teal-500',
+                bgClass: 'bg-teal-50',
+                textClass: 'text-teal-900',
+                desc: 'Excellent pairing. Explosive movements (jumps, med ball throws, olympic derivatives) require high rate of force development (RFD) without accumulating hydrogen ions. Complements the aerobic block without blunting adaptations.'
+            },
+            'vo2_pe': {
+                title: 'VO2 Max + Power Endurance',
+                status: 'Use Caution',
+                colorClass: 'border-amber-500',
+                bgClass: 'bg-amber-50',
+                textClass: 'text-amber-900',
+                desc: 'Moderate interference. While VO2 max is central, it pushes into anaerobic glycolysis. Adding Power Endurance (high reps/acidity) in the gym creates overlapping peripheral fatigue, risking overreaching.'
+            },
+            'lacp_str': {
+                title: 'Lactate Prod. + Max Strength',
+                status: 'Optimal Synergy',
+                colorClass: 'border-teal-500',
+                bgClass: 'bg-teal-50',
+                textClass: 'text-teal-900',
+                desc: 'Highly productive. Lactate production (30-40s maximal efforts) floods the system with metabolites. Because max strength sets are short (<10s), they rely entirely on neural drive and do not add to the glycolytic load. <strong>Must perform Gym BEFORE Water.</strong>'
+            },
+            'lacp_pow': {
+                title: 'Lactate Prod. + Power Dev.',
+                status: 'Optimal Synergy',
+                colorClass: 'border-teal-500',
+                bgClass: 'bg-teal-50',
+                textClass: 'text-teal-900',
+                desc: 'Ideal pairing. You train the nervous system to recruit motor units rapidly in the gym, and train the metabolic system to generate high ATP via glycolysis on the water. Distinct physiological targets.'
+            },
+            'lacp_pe': {
+                title: 'Lactate Prod. + Power Endur.',
+                status: 'High Interference Risk',
+                colorClass: 'border-rose-500',
+                bgClass: 'bg-rose-50',
+                textClass: 'text-rose-900',
+                desc: 'Poor pairing. Both modalities heavily tax anaerobic glycolysis. Doing both concurrently leads to extreme systemic acidity, delayed recovery, and severe dampening of the mTOR (strength) pathway.'
+            },
+            'lact_str': {
+                title: 'Lactate Tolerance + Max Strength',
+                status: 'Use Caution',
+                colorClass: 'border-amber-500',
+                bgClass: 'bg-amber-50',
+                textClass: 'text-amber-900',
+                desc: 'Caution required. Lactate tolerance (buffering) sessions are massively taxing on the CNS. While metabolic pathways don\'t directly overlap, immense residual CNS fatigue from buffering blocks will severely limit force production in heavy lifts.'
+            },
+            'lact_pow': {
+                title: 'Lactate Tolerance + Power Dev.',
+                status: 'Optimal Synergy',
+                colorClass: 'border-teal-500',
+                bgClass: 'bg-teal-50',
+                textClass: 'text-teal-900',
+                desc: 'Good pairing if volume is strictly controlled. Focus on low-volume, high-velocity movements (e.g., 3x3 jumps) to maintain fast-twitch readiness without adding to the massive fatigue of the tolerance block.'
+            },
+            'lact_pe': {
+                title: 'Lactate Tol. + Power Endur.',
+                status: 'Severe Interference - AVOID',
+                colorClass: 'border-rose-600',
+                bgClass: 'bg-rose-100',
+                textClass: 'text-rose-950',
+                desc: '<strong>AVOID.</strong> The definition of the interference effect. Combining highly acidic gym work with highly acidic water work signals massive stress. The body defaults to endurance adaptations (AMPK), completely shutting down strength stimulus and risking severe overtraining.'
+            }
+        };
+
+        let currentActiveBtn = null;
+
+        function updateMatrix(key, btnElement) {
+            if (currentActiveBtn) {
+                currentActiveBtn.classList.remove('ring-4', 'ring-offset-2');
+            }
+            btnElement.classList.add('ring-4', 'ring-offset-2');
+            currentActiveBtn = btnElement;
+
+            const data = matrixContent[key];
+            const panel = document.getElementById('matrix-detail-panel');
+            
+            panel.classList.remove('fade-in');
+            void panel.offsetWidth; 
+            
+            panel.className = `bg-white p-8 rounded-2xl shadow-lg border-t-8 ${data.colorClass} flex-grow flex flex-col justify-start text-left fade-in transition-all duration-300 min-h-[250px]`;
+            
+            let statusBadge = '';
+            if(data.status.includes('Optimal')) statusBadge = `<span class="inline-block bg-teal-100 text-teal-800 border border-teal-300 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wide">${data.status}</span>`;
+            else if(data.status.includes('Caution')) statusBadge = `<span class="inline-block bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wide">${data.status}</span>`;
+            else statusBadge = `<span class="inline-block bg-rose-100 text-rose-800 border border-rose-300 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wide">${data.status}</span>`;
+
+            panel.innerHTML = `
+                <div>${statusBadge}</div>
+                <h3 class="text-3xl font-extrabold ${data.textClass} mb-4">${data.title}</h3>
+                <p class="text-stone-700 text-lg leading-relaxed">${data.desc}</p>
+            `;
+        }
+
+        const chartDataModerate = [45, 60, 80, 92, 98, 100];
+        const chartDataSevere = [20, 35, 55, 75, 90, 95];
+        const chartLabels = ['0 Hrs (Back-to-Back)', '2 Hours', '6 Hours', '12 Hours', '24 Hours', '48 Hours'];
+
+        const ctx = document.getElementById('recoveryChart').getContext('2d');
+        let recoveryChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Adaptation Potential (%)',
+                    data: chartDataModerate,
+                    borderColor: '#0f766e', 
+                    backgroundColor: 'rgba(15, 118, 110, 0.15)', 
+                    borderWidth: 4,
+                    pointBackgroundColor: '#0f766e',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(28, 25, 23, 0.9)', 
+                        titleFont: { size: 14, family: 'sans-serif' },
+                        bodyFont: { size: 14, weight: 'bold' },
+                        padding: 12,
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                let label = item.chart.data.labels[item.dataIndex];
+                                if (Array.isArray(label)) {
+                                    return label.join(' ');
+                                } else {
+                                    return label;
+                                }
+                            },
+                            label: function(context) {
+                                return `Restoration: ${context.parsed.y}%`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'mTOR Adaptation Potential (%)',
+                            font: { weight: 'bold', size: 14 },
+                            color: '#57534e' 
+                        },
+                        grid: { color: '#f5f5f4' } 
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#78716c', font: { weight: '500' } }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
+                },
+            }
+        });
+
+        function updateChartData(intensity) {
+            const btnMod = document.getElementById('btn-mod');
+            const btnSev = document.getElementById('btn-sev');
+
+            if (intensity === 'moderate') {
+                recoveryChart.data.datasets[0].data = chartDataModerate;
+                recoveryChart.data.datasets[0].borderColor = '#0f766e'; 
+                recoveryChart.data.datasets[0].backgroundColor = 'rgba(15, 118, 110, 0.15)'; 
+                recoveryChart.data.datasets[0].pointBackgroundColor = '#0f766e';
+                
+                btnMod.classList.replace('bg-white', 'bg-stone-800');
+                btnMod.classList.replace('text-stone-800', 'text-white');
+                btnMod.classList.remove('border', 'border-stone-300');
+                
+                btnSev.classList.replace('bg-stone-800', 'bg-white');
+                btnSev.classList.replace('text-white', 'text-stone-800');
+                btnSev.classList.add('border', 'border-stone-300');
+                
+            } else {
+                recoveryChart.data.datasets[0].data = chartDataSevere;
+                recoveryChart.data.datasets[0].borderColor = '#be123c'; 
+                recoveryChart.data.datasets[0].backgroundColor = 'rgba(190, 18, 60, 0.15)'; 
+                recoveryChart.data.datasets[0].pointBackgroundColor = '#be123c';
+                
+                btnSev.classList.replace('bg-white', 'bg-stone-800');
+                btnSev.classList.replace('text-stone-800', 'text-white');
+                btnSev.classList.remove('border', 'border-stone-300');
+                
+                btnMod.classList.replace('bg-stone-800', 'bg-white');
+                btnMod.classList.replace('text-white', 'text-stone-800');
+                btnMod.classList.add('border', 'border-stone-300');
+            }
+            recoveryChart.update();
+        }
+    </script>
+</body>
+</html>

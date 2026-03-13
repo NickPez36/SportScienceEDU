@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Athlete Recovery: Canoe Slalom Performance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Slate & Teal (Professional, scientific, calm) -->
+    <!-- Application Structure Plan: 
+         1. Hero/Intro: Contextualize the report for Canoe Slalom & S&C.
+         2. Theoretical Models (Skiba vs Bartram): Interactive toggle to compare W' recovery mathematics. Essential for understanding dynamic energy expenditure.
+         3. Session Demands & Recovery (Lactate/VO2): Interactive selector to view specific training stimuli, physiological tolls, and recovery timelines. Allows coaches to isolate specific session types.
+         4. Practical Application: Actionable frameworks for prescription based on the models and session data.
+         Reasoning: Moves from theoretical foundation -> specific session analysis -> practical coaching application, creating a logical learning flow for an S&C coach.
+    -->
+    <!-- Visualization & Content Choices: 
+         - W' Balance Chart (Goal: Compare models): Line chart (Chart.js/Canvas) showing battery drain/recharge. Interactive toggle between Skiba (standard) and Bartram (intensity-adjusted) shows mathematical differences clearly. NO SVG.
+         - Session Recovery Chart (Goal: Inform timeline): Line chart showing recovery % over time (0-72h) for CNS, Glycogen, and Acid-Base balance. Updates based on session selection. NO SVG.
+         - Physiological Toll Bars (Goal: Compare intensity): HTML/Tailwind progress bars. Simple, highly readable visual indicators of stress. NO SVG/Mermaid.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 900px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 60vh; 
+            max-height: 450px; 
+        }
+        @media (max-width: 768px) { .chart-container { height: 40vh; max-height: 350px; } }
+        .tab-btn.active { border-bottom: 3px solid #0f766e; color: #0f766e; font-weight: 600; }
+        .tab-btn { border-bottom: 3px solid transparent; color: #64748b; transition: all 0.2s; }
+        
+        /* Custom scrollbar for clean UI */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center gap-4">
+                <div class="flex-shrink-0 flex items-center font-bold text-teal-800 text-xl">
+                    🛶 Slalom Sci-Performance
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#models" class="text-slate-600 hover:text-teal-700 font-medium">Recovery Models</a>
+                    <a href="#sessions" class="text-slate-600 hover:text-teal-700 font-medium">Session Analysis</a>
+                    <a href="#application" class="text-slate-600 hover:text-teal-700 font-medium">S&C Prescription</a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="index.html" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-teal-800 px-3 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition">
+                        <span aria-hidden="true">←</span> Home
+                    </a>
+                    <a href="../index.html" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-800 px-3 py-2 rounded-lg border border-slate-300 bg-slate-100 hover:bg-slate-200 transition">
+                        Learning Hub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="bg-teal-900 text-slate-50 py-20">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6">Physiological Recovery in Elite Canoe Slalom</h1>
+            <p class="text-xl text-teal-100 max-w-3xl mx-auto mb-8">
+                An interactive framework for Strength & Conditioning coaches. Explore mathematical recovery models ($W'$ balance) and physiological timelines for high-performance training sessions to optimize training prescription and competitive peaking.
+            </p>
+            <div class="flex justify-center gap-4">
+                <a href="#models" class="bg-teal-500 hover:bg-teal-400 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg">Explore Models 📉</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <!-- SECTION 1: Recovery Models -->
+        <section id="models" class="scroll-mt-20">
+            <div class="mb-10 text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Bio-Mathematical Recovery Models</h2>
+                <p class="text-slate-600">
+                    Understanding how an athlete depletes and restores their anaerobic work capacity ($W'$) is critical for a sport like Canoe Slalom, characterized by 90-110 second maximal efforts with highly variable power outputs. This section contrasts the standard Skiba model with the Bartram modification.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="grid md:grid-cols-3 gap-0">
+                    <!-- Controls -->
+                    <div class="p-6 md:border-r border-slate-200 bg-slate-50">
+                        <h3 class="font-bold text-lg mb-4 text-slate-800">Select Model Context</h3>
+                        <div class="flex flex-col space-y-2">
+                            <button onclick="updateModel('skiba')" id="btn-skiba" class="w-full text-left px-4 py-3 rounded-lg bg-teal-100 text-teal-800 border border-teal-200 font-semibold transition-all">
+                                🔋 Skiba $W'_{bal}$ Model
+                            </button>
+                            <button onclick="updateModel('bartram')" id="btn-bartram" class="w-full text-left px-4 py-3 rounded-lg bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 font-medium transition-all">
+                                ⏱️ Bartram Modification
+                            </button>
+                        </div>
+                        
+                        <div class="mt-8 space-y-4">
+                            <h4 class="font-bold text-sm text-slate-500 uppercase tracking-wider" id="model-title">The Skiba Approach</h4>
+                            <p class="text-sm text-slate-700" id="model-desc">
+                                The original Skiba model assumes $W'$ (anaerobic work capacity) reconstitutes exponentially during recovery periods below Critical Power (CP). It suggests a relatively constant time constant ($\tau_W$) regardless of the preceding work's intensity, treating the body like a simple battery.
+                            </p>
+                            <div class="bg-white p-3 rounded border border-slate-200 text-xs text-slate-600">
+                                <strong class="text-slate-800 block mb-1">Slalom Implication:</strong>
+                                <span id="model-implication">Useful for general steady-state paddling, but may overestimate recovery speed during the intense, stochastic sprint blocks seen in upstream gate combinations.</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chart -->
+                    <div class="col-span-2 p-6 flex flex-col justify-center bg-white">
+                        <div class="chart-container">
+                            <canvas id="wPrimeChart"></canvas>
+                        </div>
+                        <p class="text-center text-xs text-slate-500 mt-4">
+                            Simulated: 60s maximal effort (gate sequence) followed by active recovery below CP.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SECTION 2: Session Demands & Recovery -->
+        <section id="sessions" class="scroll-mt-20">
+            <div class="mb-10 text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Session Typologies & Recovery Timelines</h2>
+                <p class="text-slate-600">
+                    Different training stimuli generate distinct fatigue profiles. A Lactate Tolerance session creates massive peripheral fatigue, while Alactic Production stresses the CNS. Select a session type below to view its physiological toll and required recovery curve.
+                </p>
+            </div>
+
+            <!-- Tabbed Interface -->
+            <div class="flex justify-center mb-8 border-b border-slate-200">
+                <button onclick="updateSession('tolerance')" id="tab-tolerance" class="tab-btn active px-6 py-3 text-sm md:text-base font-medium">Lactate Tolerance</button>
+                <button onclick="updateSession('production')" id="tab-production" class="tab-btn px-6 py-3 text-sm md:text-base font-medium">Lactate Production</button>
+                <button onclick="updateSession('vo2')" id="tab-vo2" class="tab-btn px-6 py-3 text-sm md:text-base font-medium">VO2 Max</button>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8 items-start">
+                <!-- Info Panel -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-2" id="session-name">Lactate Tolerance (Glycolytic Capacity)</h3>
+                    <p class="text-slate-500 font-medium mb-6">⏱️ E.g., 4-6 x 90s full course runs (1:3 Work:Rest)</p>
+                    
+                    <p class="text-slate-700 mb-8 leading-relaxed" id="session-desc">
+                        Designed to mimic the exact duration and physiological demands of a competitive slalom run. Causes extreme hydrogen ion ($H^+$) accumulation and rapid drop in muscle pH. Drives massive metabolic fatigue and severely depletes localized glycogen stores in the upper body musculature.
+                    </p>
+
+                    <h4 class="font-bold text-slate-800 mb-4">Physiological Toll</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-slate-600">Metabolic / Acid-Base ($H^+$)</span>
+                                <span class="font-bold text-red-600" id="toll-metabolic-val">Extreme</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div class="bg-red-500 h-2 rounded-full transition-all duration-500" id="toll-metabolic" style="width: 95%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-slate-600">Central Nervous System (CNS)</span>
+                                <span class="font-bold text-amber-600" id="toll-cns-val">High</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div class="bg-amber-500 h-2 rounded-full transition-all duration-500" id="toll-cns" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-slate-600">Muscle Damage / Mechanics</span>
+                                <span class="font-bold text-teal-600" id="toll-muscle-val">Moderate</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div class="bg-teal-500 h-2 rounded-full transition-all duration-500" id="toll-muscle" style="width: 50%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recovery Chart Panel -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-lg text-slate-800 mb-6">Expected Recovery Timeline (Hours)</h3>
+                    <div class="chart-container">
+                        <canvas id="recoveryTimelineChart"></canvas>
+                    </div>
+                    <div class="mt-6 bg-amber-50 p-4 rounded-lg border border-amber-100">
+                        <strong class="text-amber-800 block mb-1">Coach's Prescription Note:</strong>
+                        <p class="text-sm text-amber-700" id="session-prescription">
+                            Requires 48-72 hours for full pH buffer restoration. Next 24 hours should be limited to Zone 1 active recovery or technical skill work (Class 2 water) to clear metabolites without adding sympathetic stress.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SECTION 3: Application Framework -->
+        <section id="application" class="scroll-mt-20">
+            <div class="bg-slate-800 rounded-3xl p-8 md:p-12 text-slate-50 shadow-xl">
+                <div class="max-w-3xl mx-auto text-center mb-12">
+                    <h2 class="text-3xl font-bold mb-4">Practical Application Matrix</h2>
+                    <p class="text-slate-300">
+                        Synthesizing theoretical models (Bartram/Skiba) and session fatigue profiles into a weekly microcycle planning framework for Canoe Slalom.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- Step 1 -->
+                    <div class="bg-slate-700 p-6 rounded-xl border border-slate-600">
+                        <div class="text-3xl mb-3">🧠</div>
+                        <h3 class="text-xl font-bold mb-2 text-white">1. Assess the Drain</h3>
+                        <p class="text-sm text-slate-300">
+                            Apply the <strong>Bartram modification</strong> when planning intervals. If prescribing Severe intensity (>CP), recognize that $W'$ reconstitution will be up to <strong>30% slower</strong> than standard mathematical models predict. Do not prescribe rest purely on a 1:1 ratio if the effort is maximal.
+                        </p>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div class="bg-slate-700 p-6 rounded-xl border border-slate-600">
+                        <div class="text-3xl mb-3">🩸</div>
+                        <h3 class="text-xl font-bold mb-2 text-white">2. Target the Modality</h3>
+                        <p class="text-sm text-slate-300">
+                            Match recovery strategy to the primary physiological toll. 
+                            <br><br><strong>Metabolic fatigue</strong> (Lactate Tolerance) requires active flush (light spinning/paddling). 
+                            <br><strong>CNS fatigue</strong> (Lactate Production/Sprints) requires absolute passive rest and sleep optimization.
+                        </p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="bg-slate-700 p-6 rounded-xl border border-slate-600">
+                        <div class="text-3xl mb-3">📅</div>
+                        <h3 class="text-xl font-bold mb-2 text-white">3. Structure the Microcycle</h3>
+                        <p class="text-sm text-slate-300">
+                            Never stack severe $W'$ depleting sessions (like full 90s race simulations) back-to-back. Ensure a minimum of <strong>48 hours</strong> between Lactate Tolerance blocks. Insert technical/tactical sessions (below CP) on intermediate days to allow slow-phase exponential recovery.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 mt-20 py-8 text-center text-slate-500 text-sm">
+        <p>&copy; 2026 Canoe Slalom Sci-Performance. Developed for Elite S&C Coaching.</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- 1. DATA STRUCTURES ---
+
+        // Data for W' Balance Models
+        const timeData = Array.from({length: 60}, (_, i) => i * 5); // 0 to 300 seconds (5 min total)
+        const wPrimeModels = {
+            skiba: {
+                title: "The Skiba Approach",
+                desc: "The original Skiba model assumes W' (anaerobic work capacity) reconstitutes exponentially during recovery periods below Critical Power (CP). It assumes a relatively constant recovery rate mathematically.",
+                implication: "Useful for general steady-state paddling, but significantly overestimates recovery speed between intense, stochastic sprint blocks seen in upstream gate combinations.",
+                data: [
+                    // Simulated drain during 60s effort, then exponential recovery
+                    100, 80, 60, 40, 20, 5, 2, 0, // Drain (0-40s)
+                    5, 12, 25, 40, 55, 68, 78, 85, 90, 93, 95, 97, 98, 99, 99.5, 99.8, 100 // Recharge
+                ]
+            },
+            bartram: {
+                title: "The Bartram Modification",
+                desc: "Research (Bartram et al.) highlights that W' reconstitution is highly dependent on the intensity of the preceding work and the recovery intensity. After severe exhaustion, the recovery trajectory is blunted and slower.",
+                implication: "Crucial for Elite Slalom: Coaches must extend rest periods longer than classical models suggest after severe lactate/maximal power intervals to ensure the athlete is genuinely ready for the next bout.",
+                data: [
+                    // Same drain, slower, blunted recovery curve
+                    100, 80, 60, 40, 20, 5, 2, 0, // Drain (0-40s)
+                    1, 3, 8, 15, 24, 34, 45, 55, 63, 70, 75, 79, 82, 85, 87, 89, 90, 91, 92 // Slower Recharge
+                ]
+            }
+        };
+        // Pad arrays to match timeData length for graphing
+        while(wPrimeModels.skiba.data.length < timeData.length) wPrimeModels.skiba.data.push(100);
+        while(wPrimeModels.bartram.data.length < timeData.length) wPrimeModels.bartram.data.push(wPrimeModels.bartram.data[wPrimeModels.bartram.data.length-1]);
+
+
+        // Data for Session Demands
+        const sessionData = {
+            tolerance: {
+                name: "Lactate Tolerance (Glycolytic Capacity)",
+                subtitle: "⏱️ E.g., 4-6 x 90s full course runs (1:3 Work:Rest)",
+                desc: "Designed to mimic the exact duration and physiological demands of a competitive slalom run. Causes extreme hydrogen ion (H+) accumulation and rapid drop in muscle pH. Drives massive metabolic fatigue.",
+                tolls: { metabolic: {val: "Extreme", pct: 95, color: "bg-red-500", textCol: "text-red-600"}, cns: {val: "High", pct: 75, color: "bg-amber-500", textCol: "text-amber-600"}, muscle: {val: "Moderate", pct: 50, color: "bg-teal-500", textCol: "text-teal-600"} },
+                prescription: "Requires 48-72 hours for full pH buffer restoration. Next 24 hours should be limited to Zone 1 active recovery or technical skill work (Class 2 water) to clear metabolites without adding sympathetic stress.",
+                recoveryCurves: {
+                    hours: [0, 12, 24, 36, 48, 60, 72],
+                    cns: [25, 60, 85, 95, 100, 100, 100],
+                    metabolic: [5, 30, 60, 85, 95, 100, 100],
+                    glycogen: [40, 50, 70, 90, 100, 100, 100]
+                }
+            },
+            production: {
+                name: "Lactate Production (Alactic/Lactic Power)",
+                subtitle: "⏱️ E.g., 8-10 x 15s maximal upstream sprints (1:6+ Work:Rest)",
+                desc: "Focuses on peak power output and rate of force development. Heavily relies on ATP-PCr stores and initiates rapid glycolysis. Triggers immense neural drive and neuromuscular fatigue rather than sustained acidic build-up.",
+                tolls: { metabolic: {val: "Moderate", pct: 40, color: "bg-teal-500", textCol: "text-teal-600"}, cns: {val: "Extreme", pct: 95, color: "bg-red-500", textCol: "text-red-600"}, muscle: {val: "High", pct: 80, color: "bg-amber-500", textCol: "text-amber-600"} },
+                prescription: "CNS recovery takes priority. Allow 48 hours before another maximal neuromuscular demand. Metabolic recovery is fast, but neural drive will remain depressed. Utilize passive rest rather than active recovery.",
+                recoveryCurves: {
+                    hours: [0, 12, 24, 36, 48, 60, 72],
+                    cns: [5, 40, 70, 90, 100, 100, 100],
+                    metabolic: [60, 90, 100, 100, 100, 100, 100],
+                    glycogen: [80, 90, 100, 100, 100, 100, 100]
+                }
+            },
+            vo2: {
+                name: "Aerobic Power (VO2 Max)",
+                subtitle: "⏱️ E.g., 5 x 4min flatwater threshold efforts (1:1 Work:Rest)",
+                desc: "Maximizes cardiac output and oxygen utilization. Results in significant total energy expenditure and glycogen depletion. Less acute muscular damage compared to sprints, but high central fatigue.",
+                tolls: { metabolic: {val: "High", pct: 70, color: "bg-amber-500", textCol: "text-amber-600"}, cns: {val: "Moderate", pct: 50, color: "bg-teal-500", textCol: "text-teal-600"}, muscle: {val: "Low", pct: 25, color: "bg-slate-400", textCol: "text-slate-500"} },
+                prescription: "Glycogen replenishment is the primary limiting factor for recovery here. Emphasize post-session carbohydrate intake. Can typically perform another high-quality session within 24-36 hours if nutrition is optimal.",
+                recoveryCurves: {
+                    hours: [0, 12, 24, 36, 48, 60, 72],
+                    cns: [50, 80, 95, 100, 100, 100, 100],
+                    metabolic: [30, 70, 95, 100, 100, 100, 100],
+                    glycogen: [10, 40, 80, 100, 100, 100, 100]
+                }
+            }
+        };
+
+        // --- 2. CHART INITIALIZATION ---
+        
+        // Common Chart Defaults
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748b';
+
+        // W' Balance Chart Instance
+        const ctxWPrime = document.getElementById('wPrimeChart').getContext('2d');
+        let wPrimeChart = new Chart(ctxWPrime, {
+            type: 'line',
+            data: {
+                labels: timeData,
+                datasets: [{
+                    label: "W' Remaining (%)",
+                    data: wPrimeModels.skiba.data,
+                    borderColor: '#0f766e',
+                    backgroundColor: 'rgba(15, 118, 110, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Time (Seconds)' }, grid: { display: false } },
+                    y: { title: { display: true, text: "W' Battery (%)" }, min: 0, max: 105 }
+                }
+            }
+        });
+
+        // Recovery Timeline Chart Instance
+        const ctxRec = document.getElementById('recoveryTimelineChart').getContext('2d');
+        let recoveryChart = new Chart(ctxRec, {
+            type: 'line',
+            data: {
+                labels: sessionData.tolerance.recoveryCurves.hours,
+                datasets: [
+                    {
+                        label: 'Acid-Base Recovery',
+                        data: sessionData.tolerance.recoveryCurves.metabolic,
+                        borderColor: '#ef4444', // Red
+                        tension: 0.3,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'CNS Recovery',
+                        data: sessionData.tolerance.recoveryCurves.cns,
+                        borderColor: '#f59e0b', // Amber
+                        tension: 0.3,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Glycogen Replenishment',
+                        data: sessionData.tolerance.recoveryCurves.glycogen,
+                        borderColor: '#0ea5e9', // Sky blue
+                        borderDash: [5, 5],
+                        tension: 0.3,
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { position: 'bottom' } },
+                scales: {
+                    x: { title: { display: true, text: 'Hours Post-Session' } },
+                    y: { title: { display: true, text: 'Recovery State (%)' }, min: 0, max: 105 }
+                }
+            }
+        });
+
+
+        // --- 3. INTERACTION LOGIC ---
+
+        // Update Model Function
+        function updateModel(modelKey) {
+            // Update UI buttons
+            document.getElementById('btn-skiba').className = modelKey === 'skiba' 
+                ? 'w-full text-left px-4 py-3 rounded-lg bg-teal-100 text-teal-800 border border-teal-200 font-semibold transition-all'
+                : 'w-full text-left px-4 py-3 rounded-lg bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 font-medium transition-all';
+            
+            document.getElementById('btn-bartram').className = modelKey === 'bartram'
+                ? 'w-full text-left px-4 py-3 rounded-lg bg-teal-100 text-teal-800 border border-teal-200 font-semibold transition-all'
+                : 'w-full text-left px-4 py-3 rounded-lg bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 font-medium transition-all';
+
+            // Update Text
+            const data = wPrimeModels[modelKey];
+            document.getElementById('model-title').textContent = data.title;
+            document.getElementById('model-desc').textContent = data.desc;
+            document.getElementById('model-implication').textContent = data.implication;
+
+            // Update Chart Data & Colors
+            wPrimeChart.data.datasets[0].data = data.data;
+            if(modelKey === 'bartram') {
+                wPrimeChart.data.datasets[0].borderColor = '#b45309'; // Amber/Orange warning
+                wPrimeChart.data.datasets[0].backgroundColor = 'rgba(180, 83, 9, 0.1)';
+            } else {
+                wPrimeChart.data.datasets[0].borderColor = '#0f766e'; // Standard Teal
+                wPrimeChart.data.datasets[0].backgroundColor = 'rgba(15, 118, 110, 0.1)';
+            }
+            wPrimeChart.update();
+        }
+
+        // Update Session Function
+        function updateSession(sessionKey) {
+            // Update Tabs UI
+            ['tolerance', 'production', 'vo2'].forEach(key => {
+                const btn = document.getElementById(`tab-${key}`);
+                if (key === sessionKey) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            const data = sessionData[sessionKey];
+
+            // Update Text Content
+            document.getElementById('session-name').textContent = data.name;
+            document.getElementById('session-name').nextElementSibling.textContent = data.subtitle;
+            document.getElementById('session-desc').textContent = data.desc;
+            document.getElementById('session-prescription').textContent = data.prescription;
+
+            // Update Progress Bars UI Helper
+            const updateBar = (id, obj) => {
+                const el = document.getElementById(`toll-${id}`);
+                const valEl = document.getElementById(`toll-${id}-val`);
+                
+                // Reset classes
+                el.className = `h-2 rounded-full transition-all duration-500 ${obj.color}`;
+                valEl.className = `font-bold ${obj.textCol}`;
+                
+                // Update Values
+                el.style.width = `${obj.pct}%`;
+                valEl.textContent = obj.val;
+            };
+
+            updateBar('metabolic', data.tolls.metabolic);
+            updateBar('cns', data.tolls.cns);
+            updateBar('muscle', data.tolls.muscle);
+
+            // Update Chart
+            recoveryChart.data.datasets[0].data = data.recoveryCurves.metabolic;
+            recoveryChart.data.datasets[1].data = data.recoveryCurves.cns;
+            recoveryChart.data.datasets[2].data = data.recoveryCurves.glycogen;
+            recoveryChart.update();
+        }
+    </script>
+</body>
+</html>

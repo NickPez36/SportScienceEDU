@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 Timing & Broadcast Tech Deep Dive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;700;900&display=swap');
+        
+        body {
+            font-family: 'Titillium Web', sans-serif;
+            background-color: #0b0b0b;
+            color: #e0e0e0;
+        }
+
+        .f1-red { color: #e10600; }
+        .f1-bg-red { background-color: #e10600; }
+        .f1-border-red { border-color: #e10600; }
+        
+        .card-gradient {
+            background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
+            border: 1px solid #333;
+        }
+
+        .sector-purple { color: #b131ff; }
+        .sector-green { color: #00d200; }
+        .sector-yellow { color: #fff200; }
+
+        .tab-active {
+            border-bottom: 4px solid #e10600;
+            color: white;
+        }
+
+        .track-svg {
+            filter: drop-shadow(0 0 8px rgba(225, 6, 0, 0.4));
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0b0b0b; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #e10600; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Header -->
+    <header class="border-b border-zinc-800 bg-zinc-900 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <a href="../index.html" class="inline-flex items-center gap-1.5 rounded border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-xs font-semibold text-zinc-200 hover:bg-zinc-700 transition-colors flex-shrink-0">
+                    <span aria-hidden="true">←</span> Learning Hub
+                </a>
+                <div class="f1-bg-red p-2 rounded-sm font-black text-white italic tracking-tighter text-xl">F1</div>
+                <h1 class="text-xl font-bold uppercase tracking-widest">Broadcast Data Architecture</h1>
+            </div>
+            <nav class="flex gap-6 text-sm font-bold uppercase tracking-tighter">
+                <button onclick="showTab('collection')" id="tab-collection" class="tab-btn pb-1 border-b-4 border-transparent hover:text-white transition-all">Data Collection</button>
+                <button onclick="showTab('processing')" id="tab-processing" class="tab-btn pb-1 border-b-4 border-transparent hover:text-white transition-all">The Pipeline</button>
+                <button onclick="showTab('visuals')" id="tab-visuals" class="tab-btn pb-1 border-b-4 border-transparent hover:text-white transition-all">Broadcast Viz</button>
+                <button onclick="showTab('sectors')" id="tab-sectors" class="tab-btn pb-1 border-b-4 border-transparent hover:text-white transition-all">Sector Logic</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        
+        <!-- Tab: Data Collection -->
+        <section id="content-collection" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h2 class="text-3xl font-black italic mb-6 uppercase">Capturing the Pulse of the Track</h2>
+                    <p class="text-zinc-400 mb-6 leading-relaxed">Timing in F1 is handled by <b>Rolex</b> (official timekeeper) in partnership with <b>MST (Motorsport Timing)</b>. The system relies on redundant hardware to ensure 1/1000th of a second accuracy.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="card-gradient p-5 rounded-lg">
+                            <h3 class="font-bold text-white flex items-center gap-2 mb-2">
+                                <i class="fas fa-microchip f1-red"></i> Car Transponders
+                            </h3>
+                            <p class="text-sm text-zinc-400">Two active transponders are mounted on every chassis (Primary and Secondary for redundancy). They emit a unique ID signal that is picked up as the car crosses specific points on the track.</p>
+                        </div>
+                        <div class="card-gradient p-5 rounded-lg">
+                            <h3 class="font-bold text-white flex items-center gap-2 mb-2">
+                                <i class="fas fa-ring f1-red"></i> Inductive Loops
+                            </h3>
+                            <p class="text-sm text-zinc-400">The track surface contains buried wire loops at the Finish Line, Pit Entry/Exit, and the three main sector points. When a transponder passes over, it triggers a time-stamped event in the trackside server.</p>
+                        </div>
+                        <div class="card-gradient p-5 rounded-lg">
+                            <h3 class="font-bold text-white flex items-center gap-2 mb-2">
+                                <i class="fas fa-satellite f1-red"></i> GPS & Telemetry
+                            </h3>
+                            <p class="text-sm text-zinc-400">High-accuracy GPS (differential GPS) provides the position data between timing loops, allowing the system to know where the car is even when it hasn't crossed a physical wire.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center bg-zinc-900 rounded-xl border border-zinc-800 p-8">
+                    <div class="text-center">
+                        <svg class="w-full max-w-md mx-auto mb-6 track-svg" viewBox="0 0 200 100">
+                            <path d="M20,50 Q20,10 60,10 L140,10 Q180,10 180,50 Q180,90 140,90 L60,90 Q20,90 20,50" fill="none" stroke="#333" stroke-width="4"/>
+                            <circle cx="20" cy="50" r="4" fill="#e10600" /> <!-- Start Line -->
+                            <circle cx="100" cy="10" r="3" fill="#00d200" /> <!-- Sector 1 -->
+                            <circle cx="180" cy="50" r="3" fill="#00d200" /> <!-- Sector 2 -->
+                        </svg>
+                        <span class="text-xs uppercase tracking-tighter text-zinc-500">Visualization of physical timing loop placement</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab: Processing Pipeline -->
+        <section id="content-processing" class="tab-content hidden">
+            <h2 class="text-3xl font-black italic mb-6 uppercase">The Data Pipeline</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="card-gradient p-6 rounded-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl font-black">01</div>
+                    <h3 class="text-xl font-bold mb-4">Ingestion</h3>
+                    <p class="text-zinc-400 text-sm">Raw signals from trackside loops are sent via fiber-optic cables to the Event Technical Centre (ETC) located in the paddock. Latency here is measured in microseconds.</p>
+                </div>
+                <div class="card-gradient p-6 rounded-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl font-black">02</div>
+                    <h3 class="text-xl font-bold mb-4">Calculation</h3>
+                    <p class="text-zinc-400 text-sm">The "Official Timing System" compares current timestamps against the "Fastest Lap" database. It determines if a sector is Purple (Overall Best), Green (Personal Best), or Yellow (Slower).</p>
+                </div>
+                <div class="card-gradient p-6 rounded-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl font-black">03</div>
+                    <h3 class="text-xl font-bold mb-4">Distribution</h3>
+                    <p class="text-zinc-400 text-sm">Data is packaged into a "World Feed" stream. This is sent to Biggin Hill (UK) for broadcast production and simultaneously to team pits for their strategy software.</p>
+                </div>
+            </div>
+
+            <div class="mt-12 bg-zinc-900 border border-zinc-800 rounded-xl p-8">
+                <h4 class="font-bold mb-4 flex items-center gap-2 italic uppercase">
+                    <i class="fas fa-bolt f1-red"></i> Real-time Logic Example
+                </h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="text-zinc-500 border-b border-zinc-800">
+                            <tr>
+                                <th class="pb-2">Driver</th>
+                                <th class="pb-2">Sector 1</th>
+                                <th class="pb-2">Sector 2</th>
+                                <th class="pb-2">Sector 3</th>
+                                <th class="pb-2">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-white">
+                            <tr class="border-b border-zinc-800/50">
+                                <td class="py-4">VER</td>
+                                <td class="py-4 sector-purple">28.102</td>
+                                <td class="py-4 sector-green">34.550</td>
+                                <td class="py-4 italic text-zinc-500">In Progress...</td>
+                                <td class="py-4"><span class="bg-purple-900/30 text-purple-400 px-2 py-1 rounded text-xs">ON POLE PACE</span></td>
+                            </tr>
+                            <tr>
+                                <td class="py-4">HAM</td>
+                                <td class="py-4 sector-green">28.155</td>
+                                <td class="py-4 sector-yellow">35.012</td>
+                                <td class="py-4 italic text-zinc-500">In Progress...</td>
+                                <td class="py-4"><span class="bg-yellow-900/30 text-yellow-400 px-2 py-1 rounded text-xs">LOSING TIME</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab: Broadcast Visualization -->
+        <section id="content-visuals" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div>
+                    <h2 class="text-3xl font-black italic mb-6 uppercase">The 3D Broadcast Layer</h2>
+                    <p class="text-zinc-400 mb-6">F1 uses **SMT (Sports Management Technology)** to power the dynamic graphics. They bridge the gap between raw data and the 3D augmented reality (AR) seen on screen.</p>
+                    
+                    <ul class="space-y-6">
+                        <li class="flex gap-4">
+                            <div class="f1-bg-red w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-bold">1</div>
+                            <div>
+                                <h4 class="font-bold text-white">Track Digitization</h4>
+                                <p class="text-sm text-zinc-400">Every circuit is LiDAR scanned to millimeter precision. This allows the broadcast software (usually Vizrt) to have a perfect 3D model of the track that stays locked to the camera's perspective.</p>
+                            </div>
+                        </li>
+                        <li class="flex gap-4">
+                            <div class="f1-bg-red w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-bold">2</div>
+                            <div>
+                                <h4 class="font-bold text-white">Camera Tracking</h4>
+                                <p class="text-sm text-zinc-400">Broadcasting cameras use "Encoders" on the pan/tilt/zoom heads. This telemetry allows the graphics computer to know exactly where the camera is looking so the 3D elements don't "slide" around the track.</p>
+                            </div>
+                        </li>
+                        <li class="flex gap-4">
+                            <div class="f1-bg-red w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-bold">3</div>
+                            <div>
+                                <h4 class="font-bold text-white">The "Ghost" Data</h4>
+                                <p class="text-sm text-zinc-400">Data from the SMT server triggers the rendering of the color-coded track segments. If a car's mini-sector is faster than the reference, the 3D segment turns purple instantly.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="relative">
+                    <div class="card-gradient rounded-xl p-1 aspect-video flex items-center justify-center relative group overflow-hidden">
+                        <!-- Mock 3D Viz UI -->
+                        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1541447270888-83e8494f9c03?auto=format&fit=crop&q=80&w=1000')] bg-cover opacity-20"></div>
+                        <div class="z-10 text-center">
+                            <div class="mb-4 inline-block bg-black/80 px-4 py-2 rounded-full border border-zinc-700">
+                                <span class="text-purple-400 font-bold">FASTEST SECTOR: LEC 1:22.341</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-64 h-32 border-4 border-dashed border-purple-500 rounded-lg flex items-center justify-center bg-purple-500/10 mb-2">
+                                    <span class="text-xs font-bold uppercase">AR Graphics Overlay Area</span>
+                                </div>
+                                <div class="w-48 h-1 bg-zinc-700 relative">
+                                    <div class="absolute inset-0 bg-purple-500 w-2/3 shadow-[0_0_15px_rgba(177,49,255,0.8)]"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="absolute bottom-4 left-4 text-xs font-mono text-zinc-500">
+                            COORD: X:142.2 Y:-43.1 Z:10.5<br>
+                            CAM: HELI_01 (TRACKING)
+                        </div>
+                    </div>
+                    <div class="mt-4 p-4 bg-zinc-900 border-l-4 f1-border-red">
+                        <p class="text-xs italic text-zinc-400">"The 3D course highlight is updated via a 5Hz (5 times per second) data stream from SMT, ensuring the visual syncs with the car's physical position on screen."</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab: Sector Logic -->
+        <section id="content-sectors" class="tab-content hidden">
+            <h2 class="text-3xl font-black italic mb-6 uppercase text-center">Mini-Sectors & Color Coding</h2>
+            
+            <div class="max-w-4xl mx-auto">
+                <p class="text-zinc-400 text-center mb-10">While the broadcast shows 3 main sectors, the actual timing system uses up to **20-30 Mini-Sectors** per lap to provide the granular "Live Delta" you see on the driver's steering wheel and the TV screen.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-purple-600/20 border-2 border-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-crown text-purple-600 text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold text-purple-500 mb-2">PURPLE</h4>
+                        <p class="text-xs text-zinc-500">Overall fastest mini-sector across all drivers during the session. Represents the absolute limit.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-600/20 border-2 border-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-arrow-up text-green-600 text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold text-green-500 mb-2">GREEN</h4>
+                        <p class="text-xs text-zinc-500">Personal best mini-sector for that specific driver. Better than their previous best, but not the fastest overall.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-yellow-600/20 border-2 border-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-minus text-yellow-600 text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold text-yellow-500 mb-2">YELLOW</h4>
+                        <p class="text-xs text-zinc-500">Slower than the driver's previous best. Indicates time lost due to tires, traffic, or driver error.</p>
+                    </div>
+                </div>
+
+                <div class="mt-16 card-gradient p-8 rounded-xl">
+                    <h3 class="text-xl font-bold mb-6 italic underline decoration-red-600">The "Live Delta" Calculation</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <p class="text-sm text-zinc-400 leading-relaxed">
+                                How does the broadcast know to highlight the track <i>before</i> the car finishes the sector? <br><br>
+                                <b>Micro-loop interpolation:</b> The SMT system holds a "Reference Lap" (usually the current Pole position). Every millisecond, it compares the car's current GPS position to the reference car's timestamp at that exact coordinate. <br><br>
+                                If Driver A is at Turn 4 at 15.221s and the Pole Sitter was there at 15.300s, the system calculates a <b>-0.079s Delta</b> and triggers the Purple overlay for that specific track segment.
+                            </p>
+                        </div>
+                        <div class="bg-black/50 p-6 rounded-lg font-mono text-xs text-green-400 border border-zinc-800">
+                            <div class="mb-1 text-zinc-600">// PSEUDO-CODE LOGIC</div>
+                            <div>IF (driver.current_pos == track.segment[x]) {</div>
+                            <div class="pl-4">delta = driver.timestamp - fastest_lap.timestamp_at(x);</div>
+                            <div class="pl-4">IF (delta < 0 && delta < all_drivers_best[x]) {</div>
+                            <div class="pl-8 text-purple-400">render_segment(x, COLOR_PURPLE);</div>
+                            <div class="pl-4">} ELSE IF (delta < driver.personal_best[x]) {</div>
+                            <div class="pl-8">render_segment(x, COLOR_GREEN);</div>
+                            <div class="pl-4">}</div>
+                            <div>}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="mt-12 border-t border-zinc-800 bg-zinc-900/50 py-12 px-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center opacity-50 text-xs gap-4">
+            <p>&copy; 2024 F1 BROADCAST RESEARCH DASHBOARD | BUILT FOR DEEP DIVE ANALYSIS</p>
+            <div class="flex gap-4">
+                <span>TECH STACK: SMT, VIZRT, ROLEX, MST</span>
+                <span>DATA REFRESH: 5HZ / 200MS</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function showTab(tabId) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            // Show selected content
+            document.getElementById('content-' + tabId).classList.remove('hidden');
+            
+            // Update tab button styles
+            document

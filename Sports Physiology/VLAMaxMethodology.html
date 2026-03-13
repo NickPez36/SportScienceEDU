@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metabolic Master | VLamax Technical Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Base styling and custom utilities */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc; /* light slate background */
+            color: #0f172a; /* dark slate text */
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Chart Container Requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px; /* Base height */
+            max-height: 500px;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        /* Custom Scrollbar for sleek look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e2e8f0; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+    </style>
+
+    <!-- Chosen Palette: Technical Slate & Performance Accents (Slate background, dark text, primary Blue-600, accent Red-500 (glycolytic) and Emerald-500 (aerobic)) -->
+    <!-- Application Structure Plan: The SPA uses a tabbed navigation structure to segment the highly technical report into logical phases: 1. Core Physiology (Mechanisms & MLSS), 2. Profiling (The 'Conflict' across domains), 3. Interventions (Training protocols), 4. Applied Modeling & Testing. This chunking prevents cognitive overload while allowing the user to explore the specific bio-energetic concepts interactively. -->
+    <!-- Visualization & Content Choices: 
+         1. MLSS Shift Line Chart -> Goal: Illustrate the impact of VLamax on Anaerobic Threshold. -> Viz: Chart.js Line Chart with toggle buttons. -> Justification: Clearly shows how high glycolytic flux shifts the lactate curve leftwards.
+         2. Metabolic Profiling Radar Chart -> Goal: Compare archetypes. -> Viz: Chart.js Radar Chart. -> Justification: Allows simultaneous comparison of 5 multivariable metabolic metrics across Ironman, 1500m, and Sprint athletes.
+         3. Intervention Toggles -> Goal: Present training protocols. -> Viz: Interactive HTML/CSS cards. -> Justification: Simplifies complex training protocols into scannable, actionable items without requiring SVG.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased selection:bg-blue-200 selection:text-blue-900">
+
+    <!-- Header / Navigation -->
+    <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center py-4">
+                <div class="mb-4 md:mb-0">
+                    <h1 class="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+                        Metabolic Master
+                    </h1>
+                    <p class="text-xs text-slate-400 uppercase tracking-widest font-semibold mt-1">HPC Technical Report: VLa<sub>max</sub></p>
+                </div>
+                
+                <nav class="flex items-center space-x-1 md:space-x-4 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto">
+                    <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition-colors flex-shrink-0">
+                        <span aria-hidden="true">←</span> Learning Hub
+                    </a>
+                    <button onclick="switchTab('physiology')" id="btn-physiology" class="nav-btn px-4 py-2 rounded-md text-sm font-medium transition-colors bg-blue-600 text-white">Physiology</button>
+                    <button onclick="switchTab('profiles')" id="btn-profiles" class="nav-btn px-4 py-2 rounded-md text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors">Profiles</button>
+                    <button onclick="switchTab('interventions')" id="btn-interventions" class="nav-btn px-4 py-2 rounded-md text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors">Interventions</button>
+                    <button onclick="switchTab('modeling')" id="btn-modeling" class="nav-btn px-4 py-2 rounded-md text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors">Modeling & Testing</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- TAB 1: PHYSIOLOGY -->
+        <section id="physiology" class="tab-content active">
+            <div class="mb-8 border-l-4 border-blue-500 pl-4">
+                <h2 class="text-3xl font-bold text-slate-900">Physiological Mechanism of VLa<sub>max</sub></h2>
+                <p class="mt-2 text-lg text-slate-600">
+                    Understanding the enzymatic drivers and fiber recruitment strategies that dictate the maximal glycolytic rate and determine the metabolic steady-state (MLSS).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-xl font-bold mb-4 text-slate-800 flex items-center">
+                        <span class="text-red-500 mr-2">⚡</span> The Engine: Glycolytic Power
+                    </h3>
+                    <p class="text-slate-600 mb-4 leading-relaxed">
+                        <strong>VLa<sub>max</sub></strong> represents the maximal rate of lactate production, measured in <code>mmol/L/s</code>. It is a direct quantification of an athlete's <strong>glycolytic power</strong>. Physiologically, this is heavily driven by the concentration and activity of key enzymes in the cytosol, primarily <strong>Phosphofructokinase (PFK)</strong>, which acts as the rate-limiting step in glycolysis.
+                    </p>
+                    <p class="text-slate-600 leading-relaxed">
+                        A high VLa<sub>max</sub> indicates a high propensity for <strong>pyruvate flux</strong>. When energy demand spikes rapidly, the nervous system preferentially recruits <strong>Type IIx (fast-twitch, glycolytic) muscle fibers</strong>. These fibers possess dense concentrations of PFK and low mitochondrial density, meaning the rapid pyruvate production exceeds the mitochondria's capacity to import it, resulting in forced reduction to lactate.
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-xl font-bold mb-4 text-slate-800 flex items-center">
+                        <span class="text-emerald-500 mr-2">⚖️</span> MLSS: The Balance Equation
+                    </h3>
+                    <p class="text-slate-600 mb-4 leading-relaxed">
+                        The Maximal Lactate Steady State (MLSS), often referred to as the "Anaerobic Threshold," is not a fixed physiological point, but rather a dynamic equilibrium. It occurs at the highest power output where:
+                    </p>
+                    <div class="bg-slate-100 p-4 rounded-lg text-center font-mono text-sm mb-4 border border-slate-300">
+                        Lactate Production (driven by VLa<sub>max</sub>) <br> <span class="text-xl">=</span> <br> Lactate Clearance/Combustion (driven by VO<sub>2</sub>max)
+                    </div>
+                    <p class="text-slate-600 leading-relaxed">
+                        <strong>The crucial interaction:</strong> If an athlete increases their VLa<sub>max</sub> without increasing VO<sub>2</sub>max, lactate production at any given sub-maximal power output rises. Because clearance capacity remains static, the equilibrium point (MLSS) is forced to a <em>lower</em> power output and a lower percentage of VO<sub>2</sub>max.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Interactive Chart Section -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800">Metabolic Steady-State Shift</h3>
+                        <p class="text-sm text-slate-500 mt-1">Observe how varying VLa<sub>max</sub> shifts the lactate accumulation curve and MLSS point (assuming constant VO<sub>2</sub>max).</p>
+                    </div>
+                    <div class="mt-4 md:mt-0 flex space-x-2">
+                        <button onclick="updateLactateCurve('low')" id="btn-curve-low" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm font-semibold border border-blue-200 hover:bg-blue-200 transition-colors">Low VLa<sub>max</sub> (Endurance)</button>
+                        <button onclick="updateLactateCurve('high')" id="btn-curve-high" class="px-3 py-1 bg-slate-100 text-slate-700 rounded-md text-sm font-semibold border border-slate-200 hover:bg-slate-200 transition-colors">High VLa<sub>max</sub> (Sprint)</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="lactateCurveChart"></canvas>
+                </div>
+                <div id="chart-insight" class="mt-4 text-sm text-slate-600 italic text-center p-3 bg-slate-50 rounded-lg">
+                    <!-- Dynamic text via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: PROFILES -->
+        <section id="profiles" class="tab-content">
+            <div class="mb-8 border-l-4 border-red-500 pl-4">
+                <h2 class="text-3xl font-bold text-slate-900">The "Conflict" of Energy Systems</h2>
+                <p class="mt-2 text-lg text-slate-600">
+                    Why a high glycolytic rate is a "curse" for an Ironman triathlete but a "gift" for a track sprinter.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+                <!-- Text Column -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                        <h4 class="font-bold text-lg text-slate-800 mb-2">The Inverse Relationship</h4>
+                        <p class="text-sm text-slate-600">
+                            There is a fundamental inverse relationship between a high VLa<sub>max</sub> and both <strong>fat oxidation capacity</strong> and <strong>metabolic economy</strong>. High glycolytic flux suppresses lipolysis (fat breakdown) via hormonal and metabolic feedback loops (e.g., malonyl-CoA inhibiting CPT1).
+                        </p>
+                    </div>
+                    <div class="bg-blue-50 p-5 rounded-xl shadow-sm border border-blue-100">
+                        <h4 class="font-bold text-lg text-blue-800 mb-2">The "Curse" (Ironman)</h4>
+                        <p class="text-sm text-blue-900">
+                            For ultra-endurance, glycogen preservation is paramount. A high VLa<sub>max</sub> dictates high carbohydrate combustion even at relatively low intensities. This athlete will rapidly deplete glycogen reserves and "bonk," despite having a massive aerobic engine. They require a VLa<sub>max</sub> near ~0.2 - 0.3 mmol/L/s.
+                        </p>
+                    </div>
+                    <div class="bg-red-50 p-5 rounded-xl shadow-sm border border-red-100">
+                        <h4 class="font-bold text-lg text-red-800 mb-2">The "Gift" (Sprint/Track)</h4>
+                        <p class="text-sm text-red-900">
+                            For events lasting 10-60 seconds (Track cycling, 400m swim/run), aerobic metabolism cannot ramp up fast enough. Success depends entirely on the ability to generate massive pyruvate flux rapidly to produce ATP anaerobically. Here, a VLa<sub>max</sub> of >0.8 mmol/L/s is essential for peak power production.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Chart Column -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4 text-center">Metabolic Archetypes Across Time Domains</h3>
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: INTERVENTIONS -->
+        <section id="interventions" class="tab-content">
+            <div class="mb-8 border-l-4 border-emerald-500 pl-4">
+                <h2 class="text-3xl font-bold text-slate-900">Intervention & Manipulation</h2>
+                <p class="mt-2 text-lg text-slate-600">
+                    Evidence-based training protocols to specificially target and modulate VLa<sub>max</sub> up or down.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Lowering VLamax -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-blue-600 p-4">
+                        <h3 class="text-xl font-bold text-white flex items-center">
+                            <span class="text-2xl mr-2">⬇️</span> Protocol: Lowering VLa<sub>max</sub>
+                        </h3>
+                        <p class="text-blue-100 text-sm">Goal: Shift fiber recruitment, suppress glycolytic enzymes.</p>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                            <h4 class="font-bold text-slate-800 mb-1">1. High-Torque / Low-Cadence (SFR)</h4>
+                            <p class="text-sm text-slate-600">Cycling at 40-50 RPM at upper Zone 3/Sweet Spot. High torque forces the recruitment of Type II fibers, but the sub-maximal intensity forces them to operate aerobically, triggering mitochondrial biogenesis within fast-twitch fibers, shifting them towards Type IIa and down-regulating PFK.</p>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                            <h4 class="font-bold text-slate-800 mb-1">2. Fasted / "Train Low" Sessions</h4>
+                            <p class="text-sm text-slate-600">Executing Zone 2 rides in a glycogen-depleted state (low CHO availability). This amplifies AMPK signaling, strongly promoting fat oxidation machinery and suppressing glycolytic pathway efficiency.</p>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                            <h4 class="font-bold text-slate-800 mb-1">3. High-Volume Zone 2</h4>
+                            <p class="text-sm text-slate-600">Extensive accumulation of volume at intensities below the first lactate turnpoint (LT1). Pure aerobic stimulus maximizes clearance capacity without triggering significant lactate production.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Raising VLamax -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-red-600 p-4">
+                        <h3 class="text-xl font-bold text-white flex items-center">
+                            <span class="text-2xl mr-2">⬆️</span> Protocol: Increasing VLa<sub>max</sub>
+                        </h3>
+                        <p class="text-red-100 text-sm">Goal: Upregulate PFK, maximize anaerobic enzymatic activity.</p>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="p-4 bg-red-50 rounded-lg border border-red-100">
+                            <h4 class="font-bold text-red-900 mb-1">The Critical Distinction: SIT vs HIIT</h4>
+                            <p class="text-sm text-red-800">To raise VLa<sub>max</sub>, you must use <strong>Sprint Interval Training (SIT)</strong>, not standard High-Intensity Interval Training (HIIT).</p>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                            <h4 class="font-bold text-slate-800 mb-1">SIT (The Catalyst)</h4>
+                            <p class="text-sm text-slate-600">Maximal, all-out efforts lasting <strong>15 to 30 seconds</strong> (e.g., Wingate protocols) with very long recoveries (4-5 minutes). This exact duration maximizes intracellular acidosis and localized pyruvate accumulation, providing the specific stimulus required to upregulate PFK and glycolytic power.</p>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                            <h4 class="font-bold text-slate-800 mb-1">Why HIIT fails for VLa<sub>max</sub></h4>
+                            <p class="text-sm text-slate-600">Intervals of 2-5 minutes (e.g., 4x4min) are highly aerobic. While they hurt and produce lactate, the glycolytic flux is sub-maximal. The primary adaptation here is central (stroke volume) and peripheral VO<sub>2</sub>max, not an increase in the maximum rate of glycolysis.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: MODELING & TESTING -->
+        <section id="modeling" class="tab-content">
+            <div class="mb-8 border-l-4 border-purple-500 pl-4">
+                <h2 class="text-3xl font-bold text-slate-900">Race-Specific Modeling & Testing</h2>
+                <p class="mt-2 text-lg text-slate-600">
+                    Interpreting mixed profiles and deploying accurate testing protocols in lab and field settings.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Modeling -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-xl font-bold mb-4 text-purple-800 border-b border-slate-200 pb-2">Modeling the "Mixed-Profile" (800m/1500m)</h3>
+                    <p class="text-sm text-slate-600 mb-4">
+                        Middle-distance runners present the most complex metabolic challenge. They require a massive VO<sub>2</sub>max to sustain high speeds, but also a high VLa<sub>max</sub> to fuel the intense kick and handle the sheer power output of a sub-4 minute mile.
+                    </p>
+                    
+                    <div class="space-y-4 mt-6">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-700 font-bold mr-3">1</div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">Base Phase (Suppress & Build)</h4>
+                                <p class="text-xs text-slate-500 mt-1">Focus entirely on pushing VO<sub>2</sub>max and aerobic capacity. We actively <em>suppress</em> VLa<sub>max</sub> during this phase via high volume and lower intensities to ensure the aerobic engine is built without interference from high glycolytic activity.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center text-purple-700 font-bold mr-3">2</div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">Competition Phase "Tuning"</h4>
+                                <p class="text-xs text-slate-500 mt-1">4-6 weeks out, we introduce SIT. The goal is to rapidly spike VLa<sub>max</sub> to provide "closing speed." The risk: if done too early or too frequently, it will degrade the aerobic base and lower MLSS. It requires precise INSCYD modeling to find the exact balance point.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Testing -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-xl font-bold mb-4 text-slate-800 border-b border-slate-200 pb-2">Testing Protocols</h3>
+                    
+                    <div class="mb-6">
+                        <h4 class="font-bold text-slate-800 text-sm mb-2 flex items-center">
+                            <span class="mr-2">⏱️</span> Field-Based: Power-Duration Testing
+                        </h4>
+                        <p class="text-sm text-slate-600 bg-slate-50 p-3 rounded">
+                            Uses specific efforts (e.g., 15-second max sprint followed by a 4-minute max effort on a different day). <br><br>
+                            <strong>Mechanism:</strong> The 15s effort models absolute maximal glycolytic flux and Phosphocreatine (PCr) depletion. The 4min effort measures VO<sub>2</sub>max. Software then reverse-engineers the VLa<sub>max</sub> required to produce the observed power drop-off between the short and long effort.
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm mb-2 flex items-center">
+                            <span class="mr-2">🩸</span> Lab-Based: Blood Lactate Ramping
+                        </h4>
+                        <p class="text-sm text-slate-600 bg-slate-50 p-3 rounded">
+                            A specific max sprint test (e.g., 15s all out). <br><br>
+                            <strong>Mechanism:</strong> Lactate is measured every 1-2 minutes post-sprint. The peak lactate value, combined with the active muscle mass involved and the exact duration of the sprint, is plugged into a differential equation to calculate the specific rate of appearance (mmol/L/s).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm border-t border-slate-800 mt-8">
+        <p>&copy; 2026 HPC Performance Physiologist Division. Internal Technical Document.</p>
+    </footer>
+
+    <!-- Application Logic & Chart Rendering -->
+    <script>
+        // -- Navigation Logic --
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Reset button styles
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('text-slate-300', 'hover:bg-slate-800');
+            });
+
+            // Show selected tab
+            document.getElementById(tabId).classList.add('active');
+            
+            // Update selected button style
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
+            activeBtn.classList.add('bg-blue-600', 'text-white');
+        }
+
+        // -- Chart Global Configurations --
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748b';
+
+        // -- 1. Lactate Curve Line Chart --
+        let lactateChartInstance = null;
+
+        // Mock data to illustrate the physiological shift
+        const powerAxis = [150, 200, 250, 300, 350, 400, 450];
+        const dataLowVlamax = {
+            label: 'Lactate (Low VLamax = 0.3)',
+            data: [0.8, 1.0, 1.2, 1.8, 3.5, 7.0, 12.0], // MLSS shifts right
+            borderColor: '#3b82f6', // blue-500
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true
+        };
+        const dataHighVlamax = {
+            label: 'Lactate (High VLamax = 0.8)',
+            data: [1.2, 2.0, 3.5, 6.5, 11.0, 16.0, 22.0], // MLSS shifts left
+            borderColor: '#ef4444', // red-500
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            tension: 0.4,
+            fill: true
+        };
+        const mlssLine = {
+            label: 'MLSS Threshold (4.0 mmol/L)',
+            data: [4, 4, 4, 4, 4, 4, 4],
+            borderColor: '#94a3b8',
+            borderDash: [5, 5],
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false
+        };
+
+        function initLactateChart() {
+            const ctx = document.getElementById('lactateCurveChart').getContext('2d');
+            lactateChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: powerAxis,
+                    datasets: [dataLowVlamax, mlssLine] // Default to low
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + ' mmol/L';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Power Output (Watts)' } },
+                        y: { 
+                            title: { display: true, text: 'Blood Lactate (mmol/L)' },
+                            suggestedMax: 15
+                        }
+                    }
+                }
+            });
+            updateChartInsight('low');
+        }
+
+        function updateLactateCurve(type) {
+            // Update active button styles
+            document.getElementById('btn-curve-low').classList.replace('bg-blue-600', 'bg-blue-100');
+            document.getElementById('btn-curve-low').classList.replace('text-white', 'text-blue-700');
+            document.getElementById('btn-curve-high').classList.replace('bg-slate-600', 'bg-slate-100');
+            document.getElementById('btn-curve-high').classList.replace('text-white', 'text-slate-700');
+
+            if (type === 'low') {
+                document.getElementById('btn-curve-low').classList.replace('bg-blue-100', 'bg-blue-600');
+                document.getElementById('btn-curve-low').classList.replace('text-blue-700', 'text-white');
+                lactateChartInstance.data.datasets[0] = dataLowVlamax;
+            } else {
+                document.getElementById('btn-curve-high').classList.replace('bg-slate-100', 'bg-slate-600');
+                document.getElementById('btn-curve-high').classList.replace('text-slate-700', 'text-white');
+                lactateChartInstance.data.datasets[0] = dataHighVlamax;
+            }
+            lactateChartInstance.update();
+            updateChartInsight(type);
+        }
+
+        function updateChartInsight(type) {
+            const insightBox = document.getElementById('chart-insight');
+            if(type === 'low') {
+                insightBox.innerHTML = "Notice how the <strong>low VLa<sub>max</sub></strong> curve stays flat longer. MLSS (crossing the dotted line) occurs at a much higher power output (~360W). Highly economical.";
+            } else {
+                insightBox.innerHTML = "Notice the rapid accumulation. A <strong>high VLa<sub>max</sub></strong> forces MLSS to a much lower power output (~260W), despite assuming the same VO<sub>2</sub>max. High glycolytic penalty.";
+            }
+        }
+
+        // -- 2. Radar Chart for Archetypes --
+        function initRadarChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: [
+                        ['VO2max', '(Aerobic Engine)'], 
+                        ['VLamax', '(Glycolytic Power)'], 
+                        ['FatMax', '(Fat Oxidation)'], 
+                        ['Economy', '(Efficiency)'], 
+                        ['Peak Power', '(Sprint)']
+                    ],
+                    datasets: [
+                        {
+                            label: 'Ironman Triathlete',
+                            data: [90, 20, 95, 80, 30],
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)', // blue
+                            borderColor: '#3b82f6',
+                            pointBackgroundColor: '#3b82f6',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Track Sprinter (Match)',
+                            data: [60, 95, 20, 40, 95],
+                            backgroundColor: 'rgba(239, 68, 68, 0.2)', // red
+                            borderColor: '#ef4444',
+                            pointBackgroundColor: '#ef4444',
+                            borderWidth: 2
+                        },
+                        {
+                            label: '1500m Runner (Mixed)',
+                            data: [95, 65, 50, 70, 70],
+                            backgroundColor: 'rgba(168, 85, 247, 0.2)', // purple
+                            borderColor: '#a855f7',
+                            pointBackgroundColor: '#a855f7',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.1)' },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            pointLabels: {
+                                font: { size: 11, family: "'Inter', sans-serif" },
+                                color: '#475569'
+                            },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        // Initialization
+        window.onload = () => {
+            initLactateChart();
+            initRadarChart();
+            // Set initial active button state for chart
+            document.getElementById('btn-curve-low').classList.replace('bg-blue-100', 'bg-blue-600');
+            document.getElementById('btn-curve-low').classList.replace('text-blue-700', 'text-white');
+        };
+
+    </script>
+</body>
+</html>
