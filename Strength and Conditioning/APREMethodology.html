@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APRE: Autoregulated Progressive Resistance Exercise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #1e293b; /* slate-800 */
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 60vh;
+            max-height: 500px;
+            min-height: 300px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-link {
+            transition: color 0.2s;
+        }
+        .nav-link:hover {
+            color: #2563eb; /* blue-600 */
+        }
+
+        .stat-card {
+            border-left: 4px solid #3b82f6;
+        }
+    </style>
+    <!-- Chosen Palette: Slate (Background/Text), Blue (Primary Accents), Emerald/Rose (Status Indicators) -->
+    <!-- Application Structure Plan: The SPA uses a vertical scrolling narrative structure, functioning as an interactive academic report. 
+    1.  **Executive Summary:** Establishes the core problem with Linear Periodization.
+    2.  **The 'Total Stress Load' Concept:** Uses an interactive chart to visually demonstrate Bryan Mann's research on how academic stress breaks linear progression.
+    3.  **Protocol Breakdown:** Uses a tabbed interface to organize the 3-RM, 6-RM, and 10-RM protocols, reducing cognitive load while allowing deep dives into Hypertrophy vs. Neural adaptations.
+    4.  **Interactive Adjustment Calculator:** Translates static tables into a practical tool, demonstrating the autoregulatory mechanic in action based on user input.
+    5.  **Multi-Year Development Plan:** A structured grid showing macro-level application, focusing on CNS recovery constraints.
+    This structure guides the user from the underlying theory to specific methodologies, and finally to practical application and long-term planning. -->
+    <!-- Visualization & Content Choices: 
+    - **Total Stress Load (Line Chart):** Goal: Compare Linear vs. APRE under stress. Method: Chart.js dual-axis line chart. Justification: Clearly shows the divergence between rigid prescription and physiological reality during high-stress periods (midterms). Library: Chart.js (Canvas). NO SVG.
+    - **Protocols (Tabbed UI):** Goal: Organize complex structural data. Method: HTML/JS Tabs. Justification: Prevents overwhelming text blocks, allowing users to focus on specific RM zones. 
+    - **Adjustment Tables (Interactive Calculator):** Goal: Demonstrate the core mechanic of APRE. Method: HTML Inputs + JS Logic. Justification: Active learning; seeing the weight adjustment change dynamically based on reps performed is more effective than reading a static table.
+    - **Multi-Year Plan (CSS Grid):** Goal: Show progression over time. Method: Tailwind Grid layout. Justification: Creates a clear, timeline-based visual structure without relying on complex external libraries.
+    - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased selection:bg-blue-200 selection:text-blue-900">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-bold text-xl tracking-tight text-blue-900">APRE <span class="font-light text-slate-500">Analysis</span></span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-600">
+                    <a href="#overview" class="nav-link">Overview</a>
+                    <a href="#stress-load" class="nav-link">Total Stress Load</a>
+                    <a href="#protocols" class="nav-link">The Protocols</a>
+                    <a href="#calculator" class="nav-link">Adjustment Engine</a>
+                    <a href="#multi-year" class="nav-link">Macro Planning</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white py-20 border-b-8 border-blue-600">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Autoregulated Progressive Resistance Exercise</h1>
+            <p class="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto font-light">A Superior Paradigm to Linear Periodization for Collegiate Athlete Development</p>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <!-- Section 1: Overview -->
+        <section id="overview" class="scroll-mt-24">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-2xl font-bold mb-4 text-slate-900 border-b pb-2">The Paradigm Shift</h2>
+                <p class="text-slate-600 text-lg leading-relaxed mb-6">
+                    Traditional <strong>Linear Periodization</strong> assumes that biological adaptation occurs in a predictable, strictly escalating trajectory. It dictates percentages of a hypothetical 1-Repetition Maximum (1-RM) calculated weeks in advance. However, collegiate athletes are subject to fluctuating variables: academic pressure, sleep quality, nutritional inconsistencies, and emotional stress.
+                </p>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 stat-card">
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">The Flaw of Linear</h3>
+                        <p class="text-slate-600 text-sm">Forces athletes to lift loads based on a past maximal event, regardless of current daily readiness. This leads to overtraining during high-stress periods and undertraining when athletes are primed for adaptation.</p>
+                    </div>
+                    <div class="bg-blue-50 p-6 rounded-xl border border-blue-100 border-left-4" style="border-left: 4px solid #2563eb;">
+                        <h3 class="font-bold text-lg text-blue-900 mb-2">The APRE Solution</h3>
+                        <p class="text-blue-800 text-sm">Utilizes the athlete's performance on a specific day to dictate the load. By incorporating an 'As Many Reps As Possible' (AMRAP) set, the system autoregulates, ensuring the stimulus matches daily biological capacity.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Bryan Mann & Total Stress Load -->
+        <section id="stress-load" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-2">Managing the 'Total Stress Load'</h2>
+                <p class="text-slate-600 text-lg">Dr. Bryan Mann's research highlights a critical concept: the Central Nervous System (CNS) does not differentiate between physical stress (training) and psychological stress (academics). Both drain the same adaptation pool.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-slate-800">Linear vs. APRE Load Management During Academic Stress</h3>
+                    <p class="text-sm text-slate-500 mt-1">Simulated 16-week semester highlighting Midterms (Week 8) and Finals (Week 16).</p>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="stressChart"></canvas>
+                </div>
+
+                <div class="mt-6 text-sm text-slate-600 bg-slate-50 p-4 rounded-lg">
+                    <strong class="text-slate-800">Data Interpretation:</strong> Notice how the "Academic Stress" spikes at weeks 8 and 16. The "Linear Load" continues to climb rigidly, pushing the 'Total Stress' into the overtraining threshold. Conversely, the "APRE Actual Load" naturally dips during these high-stress weeks because the athlete's performance on the AMRAP set decreases, automatically adjusting the weight downward, protecting the CNS and facilitating recovery.
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: The Protocols -->
+        <section id="protocols" class="scroll-mt-24">
+            <div class="mb-8 text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">The APRE Protocols</h2>
+                <p class="text-slate-600">The protocol selected dictates the specific physiological adaptation. All protocols follow a 4-set structure, where Set 3 is the critical autoregulatory set (AMRAP), and Set 4 is adjusted based on Set 3's performance.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <!-- Tabs -->
+                <div class="flex border-b border-slate-200 bg-slate-50">
+                    <button class="flex-1 py-4 text-center font-bold text-slate-500 hover:text-blue-600 hover:bg-white transition-colors tab-btn border-b-2 border-transparent" data-target="tab-10rm">APRE 10-RM</button>
+                    <button class="flex-1 py-4 text-center font-bold text-slate-500 hover:text-blue-600 hover:bg-white transition-colors tab-btn border-b-2 border-transparent active-tab" style="border-bottom-color: #2563eb; color: #1e40af;" data-target="tab-6rm">APRE 6-RM</button>
+                    <button class="flex-1 py-4 text-center font-bold text-slate-500 hover:text-blue-600 hover:bg-white transition-colors tab-btn border-b-2 border-transparent" data-target="tab-3rm">APRE 3-RM</button>
+                </div>
+
+                <!-- Tab Content: 10-RM -->
+                <div id="tab-10rm" class="tab-content p-8">
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold text-slate-800 mb-2">APRE 10: Hypertrophy</h3>
+                            <p class="text-slate-600 mb-4">The 10-RM protocol is primarily designed for muscular hypertrophy and base tissue preparation. It is heavily utilized during the early off-season or for incoming freshmen to build requisite muscle mass and connective tissue strength.</p>
+                            <div class="bg-emerald-50 text-emerald-800 p-4 rounded-lg mb-4 text-sm font-medium">
+                                Target Adaptation: Sarcoplasmic & Myofibrillar Hypertrophy, Work Capacity.
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-slate-700 border-b pb-2 mb-4">Set Structure</h4>
+                            <ul class="space-y-3 text-sm text-slate-600">
+                                <li class="flex items-center"><span class="w-16 font-bold text-slate-800">Set 1:</span> 50% of estimated 10-RM x 10 reps</li>
+                                <li class="flex items-center"><span class="w-16 font-bold text-slate-800">Set 2:</span> 75% of estimated 10-RM x 10 reps</li>
+                                <li class="flex items-center p-2 bg-blue-50 rounded text-blue-900 border border-blue-100"><span class="w-16 font-bold">Set 3:</span> 100% of estimated 10-RM x AMRAP (Max Reps)</li>
+                                <li class="flex items-center"><span class="w-16 font-bold text-slate-800">Set 4:</span> Adjusted Weight based on Set 3 x AMRAP</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: 6-RM -->
+                <div id="tab-6rm" class="tab-content active p-8">
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold text-slate-800 mb-2">APRE 6: Basic Strength</h3>
+                            <p class="text-slate-600 mb-4">The 6-RM protocol serves as the bridge between hypertrophy and absolute strength. It elicits both structural changes (hypertrophy) and neural adaptations (motor unit recruitment). It is the workhorse protocol for intermediate athletes.</p>
+                            <div class="bg-blue-50 text-blue-800 p-4 rounded-lg mb-4 text-sm font-medium">
+                                Target Adaptation: Functional Hypertrophy, Sub-Maximal Strength, Motor Unit Synchronization.
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-slate-700 border-b pb-2 mb-4">Set Structure</h4>
+                            <ul class="space-y-3 text-sm text-slate-600">
+                                <li class="flex items-center"><span class="w-16 font-bold text-slate-800">Set 1:</span> 50% of estimated 6-RM x 6 reps</li>
+                                <li class="flex items-center"><span class="w-16 font-bold text-slate-800">Set 2:</span> 75% of estimated 6-RM x 3 reps</li>
+                                <li class="flex items-center p-2 bg-blue-50 rounded text-blue-900 border border-blue-100"><span class="w-16 font-bold">Set 3:</span> 100% of estimated 6-RM x AMRAP (Max Reps)</li>
+                                <li class="flex items-center"><span class="w-16 font-bold text-slate-800">Set 4:</span> Adjusted Weight based on Set 3 x AMRAP</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: 3-RM -->
+                <div id="tab-3rm" class="tab-content p-8">
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold text-slate-800 mb-2">APRE 3: Power & Absolute Strength</h3>
+                            <p class="text-slate-600 mb-4">The 3-RM protocol is designed for advanced athletes focusing on pure neural adaptations. It enhances the ability to recruit high-threshold motor units rapidly. It places a high demand on the CNS and is used leading up to the competitive season.</p>
+                            <div class="bg-rose-50 text-rose-800 p-4 rounded-lg mb-4 text-sm font-medium">
+                                Target Adaptation: Rate of Force Development (RFD), Peak Force Production, CNS Efficiency.
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-slate-700 border-b pb-2 mb-4">Set Structure</h4>
+                            <ul class="space-y-3 text-sm text-slate-600">
+                                <li class="flex items-center"><span class="w-16 font-bold text-slate-800">Set 1:</span> 50% of estimated 3-RM x 3 reps</li>
+                                <li class="flex items-center"><span class="w-16 font-bold text-slate-800">Set 2:</span> 75% of estimated 3-RM x 2 reps</li>
+                                <li class="flex items-center p-2 bg-blue-50 rounded text-blue-900 border border-blue-100"><span class="w-16 font-bold">Set 3:</span> 100% of estimated 3-RM x AMRAP (Max Reps)</li>
+                                <li class="flex items-center"><span class="w-16 font-bold text-slate-800">Set 4:</span> Adjusted Weight based on Set 3 x AMRAP</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Interactive Adjustment Tables -->
+        <section id="calculator" class="scroll-mt-24">
+            <div class="bg-slate-900 p-8 rounded-2xl shadow-xl text-white">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-white mb-2">Interactive Adjustment Engine</h2>
+                    <p class="text-slate-400">Select your protocol and input the number of repetitions performed during <strong>Set 3 (AMRAP)</strong> to determine the load adjustment for Set 4 and the following week.</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-12">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">1. Select Protocol</label>
+                            <select id="calc-protocol" class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="10">APRE 10-RM</option>
+                                <option value="6" selected>APRE 6-RM</option>
+                                <option value="3">APRE 3-RM</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">2. Reps Performed (Set 3)</label>
+                            <div class="flex items-center gap-4">
+                                <input type="range" id="calc-reps-slider" min="0" max="20" value="6" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                                <span id="calc-reps-display" class="text-2xl font-bold text-blue-400 w-12 text-center">6</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 flex flex-col justify-center items-center text-center">
+                        <span class="text-slate-400 text-sm uppercase tracking-wider mb-2">Required Adjustment</span>
+                        <div id="calc-result-value" class="text-4xl md:text-5xl font-extrabold text-white mb-4">No Change</div>
+                        <p id="calc-result-desc" class="text-slate-400 text-sm">The athlete performed exactly the target repetitions. Maintain current load for Set 4.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Multi-Year Plan -->
+        <section id="multi-year" class="scroll-mt-24 mb-24">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-2">Multi-Year Development Plan & CNS Constraints</h2>
+                <p class="text-slate-600">Integrating APRE across a collegiate career involves a macro-shift from structural volume (Hypertrophy/10-RM) toward neural efficiency (Power/3-RM). As athletes mature chronologically and training-age increases, their ability to produce force heavily taxes the CNS. The autoregulatory nature of APRE protects senior athletes from neural burnout.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Freshman -->
+                <div class="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-md transition-shadow">
+                    <div class="text-sm font-bold text-blue-600 uppercase tracking-wide mb-1">Year 1</div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">Freshman</h3>
+                    <div class="inline-block bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded mb-3 font-semibold">Primary: APRE 10</div>
+                    <ul class="text-sm text-slate-600 space-y-2">
+                        <li>&#8226; Focus on tissue preparation and work capacity.</li>
+                        <li>&#8226; Motor learning via higher repetition sets.</li>
+                        <li>&#8226; CNS stress is relatively low compared to seniors.</li>
+                    </ul>
+                </div>
+
+                <!-- Sophomore -->
+                <div class="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-md transition-shadow">
+                    <div class="text-sm font-bold text-blue-600 uppercase tracking-wide mb-1">Year 2</div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">Sophomore</h3>
+                    <div class="inline-block bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded mb-3 font-semibold">Primary: APRE 10 & 6</div>
+                    <ul class="text-sm text-slate-600 space-y-2">
+                        <li>&#8226; Transitioning to basic strength phases.</li>
+                        <li>&#8226; Increased loads require initial CNS management.</li>
+                        <li>&#8226; APRE naturally dictates readiness for heavier 6-RM loads.</li>
+                    </ul>
+                </div>
+
+                <!-- Junior -->
+                <div class="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-md transition-shadow relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-blue-50 transform rotate-45 translate-x-8 -translate-y-8"></div>
+                    <div class="text-sm font-bold text-blue-600 uppercase tracking-wide mb-1">Year 3</div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">Junior</h3>
+                    <div class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mb-3 font-semibold">Primary: APRE 6 & 3</div>
+                    <ul class="text-sm text-slate-600 space-y-2">
+                        <li>&#8226; Focus shifts to force production and power.</li>
+                        <li>&#8226; Athlete can now generate significant absolute force.</li>
+                        <li>&#8226; APRE prevents overtraining during heavy academic periods.</li>
+                    </ul>
+                </div>
+
+                <!-- Senior -->
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-lg relative">
+                    <div class="text-sm font-bold text-blue-400 uppercase tracking-wide mb-1">Year 4</div>
+                    <h3 class="text-xl font-bold text-white mb-3">Senior</h3>
+                    <div class="inline-block bg-slate-700 text-blue-300 text-xs px-2 py-1 rounded mb-3 font-semibold border border-slate-600">Primary: APRE 3</div>
+                    <ul class="text-sm text-slate-300 space-y-2">
+                        <li>&#8226; <strong>Critical CNS Management:</strong> Seniors produce massive force.</li>
+                        <li>&#8226; Focus is neural efficiency (Rate of Force Development).</li>
+                        <li>&#8226; APRE 3 strictly regulates volume to prevent catastrophic CNS fatigue prior to competition.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 py-8 border-t border-slate-800">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p class="text-slate-500 text-sm">Interactive Analysis based on Research into Autoregulated Progressive Resistance Exercise and Total Stress Load management.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- Chart.js Implementation for Total Stress Load ---
+            const ctx = document.getElementById('stressChart').getContext('2d');
+            
+            // Generate Data
+            const weeks = Array.from({length: 16}, (_, i) => `Week ${i + 1}`);
+            
+            // Simulate Academic Stress (Spikes at Week 8 and 16)
+            const academicStress = weeks.map((_, i) => {
+                let base = 30 + Math.random() * 10;
+                if (i === 7) return 90; // Midterms
+                if (i === 15) return 95; // Finals
+                if (i === 6 || i === 8) return 70; // Run up/down
+                return base;
+            });
+
+            // Simulate Linear Load Prescription (Rigid escalation)
+            const linearLoad = weeks.map((_, i) => 50 + (i * 3));
+
+            // Simulate APRE Actual Load (Dips when academic stress is high)
+            const apreLoad = weeks.map((_, i) => {
+                let ideal = 50 + (i * 3);
+                if (academicStress[i] > 60) {
+                    return ideal - ((academicStress[i] - 60) * 0.5); // Autoregulation kicks in
+                }
+                return ideal + (Math.random() * 5); // Micro-fluctuations based on readiness
+            });
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: weeks,
+                    datasets: [
+                        {
+                            label: 'Academic Stress Level',
+                            data: academicStress,
+                            borderColor: '#cbd5e1', // slate-300
+                            backgroundColor: 'rgba(203, 213, 225, 0.2)',
+                            fill: true,
+                            yAxisID: 'y-stress',
+                            tension: 0.4,
+                            borderDash: [5, 5]
+                        },
+                        {
+                            label: 'Prescribed Load (Linear)',
+                            data: linearLoad,
+                            borderColor: '#ef4444', // red-500
+                            backgroundColor: 'transparent',
+                            yAxisID: 'y-load',
+                            tension: 0.1,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Actual Load (APRE)',
+                            data: apreLoad,
+                            borderColor: '#3b82f6', // blue-500
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true,
+                            yAxisID: 'y-load',
+                            tension: 0.3,
+                            borderWidth: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)', // slate-900
+                            titleFont: { size: 14, family: 'sans-serif' },
+                            bodyFont: { size: 13, family: 'sans-serif' },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += Math.round(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: { family: 'sans-serif', size: 12 }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false }
+                        },
+                        'y-load': {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Training Load / Intensity' },
+                            grid: { color: '#f1f5f9' } // slate-100
+                        },
+                        'y-stress': {
+                            type: 'linear',
+                            display: false, // Hide the axis visually, just use for scaling
+                            position: 'right',
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+
+            // --- Tab Logic ---
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active states
+                    tabBtns.forEach(b => {
+                        b.classList.remove('active-tab');
+                        b.style.borderBottomColor = 'transparent';
+                        b.style.color = '#64748b'; // slate-500
+                    });
+                    tabContents.forEach(c => c.classList.remove('active'));
+
+                    // Add active state to clicked
+                    btn.classList.add('active-tab');
+                    btn.style.borderBottomColor = '#2563eb'; // blue-600
+                    btn.style.color = '#1e40af'; // blue-800
+                    
+                    const targetId = btn.getAttribute('data-target');
+                    document.getElementById(targetId).classList.add('active');
+                });
+            });
+
+
+            // --- Adjustment Calculator Logic ---
+            const calcProtocol = document.getElementById('calc-protocol');
+            const calcSlider = document.getElementById('calc-reps-slider');
+            const calcDisplay = document.getElementById('calc-reps-display');
+            const resultValue = document.getElementById('calc-result-value');
+            const resultDesc = document.getElementById('calc-result-desc');
+
+            // Adjustment Data Structure based on general APRE guidelines
+            const adjustments = {
+                '10': [
+                    { max: 4, val: "- 5 to 10 lbs", desc: "Performance significantly below target. Decrease weight to allow recovery and proper volume accumulation.", color: "text-red-400" },
+                    { max: 6, val: "- 0 to 5 lbs", desc: "Slightly below target. Minor decrease needed.", color: "text-orange-400" },
+                    { max: 8, val: "No Change", desc: "Optimal loading. Maintain weight for next set/week.", color: "text-white" },
+                    { max: 11, val: "+ 5 to 10 lbs", desc: "Athlete exceeded target. Increase load to match current adaptation level.", color: "text-blue-400" },
+                    { max: 99, val: "+ 10 to 15 lbs", desc: "Significant strength gain detected. Large increase required.", color: "text-emerald-400" }
+                ],
+                '6': [
+                    { max: 2, val: "- 5 to 10 lbs", desc: "Performance below target. Reduce load to preserve CNS and hit target reps.", color: "text-red-400" },
+                    { max: 4, val: "- 0 to 5 lbs", desc: "Slightly below target. Minor reduction.", color: "text-orange-400" },
+                    { max: 7, val: "No Change", desc: "Target hit perfectly. Maintain current load.", color: "text-white" },
+                    { max: 12, val: "+ 5 to 10 lbs", desc: "Target exceeded. Increase load.", color: "text-blue-400" },
+                    { max: 99, val: "+ 10 to 15 lbs", desc: "Performance far exceeded expectation. Significant jump required.", color: "text-emerald-400" }
+                ],
+                '3': [
+                    { max: 2, val: "No Change / - 5 lbs", desc: "Missed target or barely hit it. Maintain or slight decrease depending on bar speed.", color: "text-orange-400" },
+                    { max: 4, val: "No Change", desc: "Perfect execution within neural parameters. Maintain load.", color: "text-white" },
+                    { max: 6, val: "+ 5 to 10 lbs", desc: "Good performance. Incremental increase recommended.", color: "text-blue-400" },
+                    { max: 99, val: "+ 10 to 15 lbs", desc: "Exceptional power output. Large adjustment needed.", color: "text-emerald-400" }
+                ]
+            };
+
+            function updateCalculator() {
+                const protocol = calcProtocol.value;
+                const reps = parseInt(calcSlider.value);
+                calcDisplay.innerText = reps;
+
+                const protocolData = adjustments[protocol];
+                let appliedAdj = protocolData[protocolData.length - 1]; // default to last
+
+                for (let i = 0; i < protocolData.length; i++) {
+                    if (reps <= protocolData[i].max) {
+                        appliedAdj = protocolData[i];
+                        break;
+                    }
+                }
+
+                resultValue.innerText = appliedAdj.val;
+                resultValue.className = `text-4xl md:text-5xl font-extrabold mb-4 transition-colors duration-300 ${appliedAdj.color}`;
+                resultDesc.innerText = appliedAdj.desc;
+            }
+
+            // Update defaults when protocol changes to make sense visually
+            calcProtocol.addEventListener('change', () => {
+                if(calcProtocol.value === '10') calcSlider.value = 10;
+                if(calcProtocol.value === '6') calcSlider.value = 6;
+                if(calcProtocol.value === '3') calcSlider.value = 3;
+                updateCalculator();
+            });
+
+            calcSlider.addEventListener('input', updateCalculator);
+            
+            // Initialize calculator
+            updateCalculator();
+        });
+    </script>
+</body>
+</html>

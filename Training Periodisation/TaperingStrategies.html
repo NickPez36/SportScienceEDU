@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimal Tapering Strategies & The Banister Model</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #FAF9F6; color: #1F2937; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        .chart-container { position: relative; width: 100%; max-width: 800px; margin-left: auto; margin-right: auto; height: 350px; max-height: 450px; }
+        @media (min-width: 768px) { .chart-container { height: 400px; } }
+        .tab-btn.active { background-color: #1F2937; color: white; border-color: #1F2937; }
+        .tab-btn { transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="antialiased">
+
+<!-- Chosen Palette: Warm Neutrals (Off-white #FAF9F6, Dark Gray #1F2937) with subtle functional accents (Blue, Teal, Red) -->
+<!-- Application Structure Plan: The SPA uses a top-down logical flow, acting as an educational dashboard. It begins with the theoretical foundation (Banister Model) to explain *why* tapering works and why it differs by athlete type. It then moves into practical application, comparing taper shapes (Exponential vs Step). Finally, it offers an interactive protocol selector where users can drill down into specific, actionable 1, 2, and 3-week tapers tailored to specific physiological profiles. This structure builds knowledge sequentially before applying it. -->
+<!-- Visualization & Content Choices: 
+1. Banister Model -> Goal: Explain Fitness/Fatigue dynamics -> Viz: Chart.js Line Chart with dynamic data swapping -> Justification: Shows the distinct decay curves clearly. Library: Chart.js.
+2. Taper Shapes -> Goal: Compare Volume reduction methods -> Viz: CSS Grid visual representation -> Justification: Simple, immediate visual comparison without complex data. Method: HTML/Tailwind Grid.
+3. Customized Protocols -> Goal: Provide actionable metrics -> Viz: Chart.js Bar Chart (grouped) & Dynamic Text -> Justification: Allows exact comparison of Volume, Intensity, and Frequency per week/day. Library: Chart.js & Vanilla JS DOM manipulation.
+-->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="font-bold text-xl tracking-tight">TaperSci</div>
+                <div class="hidden sm:flex space-x-8">
+                    <a href="#theory" class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">The Banister Model</a>
+                    <a href="#shapes" class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">Taper Shapes</a>
+                    <a href="#protocols" class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">Custom Protocols</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">Peak Performance Engineering</h1>
+        <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
+            A deep dive into Exponential vs. Step Tapering. Discover how the Banister Impulse-Response Model dictates specific tapers for endurance, middle-distance, and power athletes.
+        </p>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-24">
+
+        <section id="theory" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">The Banister Impulse-Response Model</h2>
+                <p class="mt-4 text-lg text-gray-600">
+                    This section visualizes the theoretical foundation of tapering. The Banister model posits that athletic performance is the difference between acquired <strong>Fitness</strong> (slow to build, slow to decay) and accumulated <strong>Fatigue</strong> (fast to build, fast to decay). Interact with the chart below to see why power athletes require drastically different tapers than endurance athletes.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div class="lg:col-span-2 bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <div class="flex justify-center space-x-4 mb-4">
+                        <button id="btn-endurance-model" class="tab-btn active px-4 py-2 rounded-md border border-gray-300 font-medium text-sm">Endurance Athlete Dynamics</button>
+                        <button id="btn-power-model" class="tab-btn px-4 py-2 rounded-md border border-gray-300 bg-white font-medium text-sm">Power Athlete Dynamics</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="banisterChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-100" id="model-desc-endurance">
+                        <h3 class="text-xl font-bold text-blue-900 mb-2">Endurance Profile</h3>
+                        <p class="text-blue-800 text-sm">
+                            Endurance athletes accumulate deep, systemic metabolic fatigue. However, their cardiovascular fitness decays very slowly. Therefore, they benefit from a <strong>longer taper (2-3 weeks)</strong>. The extended time allows massive fatigue to dissipate fully while aerobic capacity remains near peak levels, creating a massive positive spike in Net Performance.
+                        </p>
+                    </div>
+                    <div class="bg-red-50 p-5 rounded-xl border border-red-100 hidden" id="model-desc-power">
+                        <h3 class="text-xl font-bold text-red-900 mb-2">Power Profile</h3>
+                        <p class="text-red-800 text-sm">
+                            Power athletes generate immense Central Nervous System (CNS) fatigue. CNS fatigue dissipates rapidly (within days). Crucially, neuromuscular activation and "explosive fitness" also decay quickly. A long taper would result in detraining. Thus, they require a <strong>short, sharp taper (1 week)</strong> to drop CNS fatigue while keeping the neuromuscular system highly stimulated.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="shapes" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10">
+            <div class="mb-8 text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-gray-900">Step vs. Exponential Tapering</h2>
+                <p class="mt-4 text-lg text-gray-600">
+                    How you reduce training volume matters. Explore the structural differences between immediate drops (Step) and gradual reductions (Exponential).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div class="border border-gray-200 rounded-xl p-6 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-gray-100 px-3 py-1 text-xs font-bold rounded-bl-lg text-gray-500">Less Common</div>
+                    <h3 class="text-2xl font-bold mb-4">Step Taper</h3>
+                    <p class="text-gray-600 mb-6 text-sm">An immediate, abrupt reduction in training load (e.g., dropping volume by 50% on day one and holding it there). Often leads to feelings of sluggishness in endurance athletes, but can be useful for power athletes needing an immediate CNS reset.</p>
+                    
+                    <div class="flex items-end h-32 space-x-2 border-b-2 border-l-2 border-gray-300 p-2">
+                        <div class="w-1/4 bg-gray-800 h-full rounded-t-sm relative"><span class="absolute -top-6 text-xs font-bold w-full text-center">Pre</span></div>
+                        <div class="w-1/4 bg-gray-400 h-1/2 rounded-t-sm relative"><span class="absolute -top-6 text-xs font-bold w-full text-center">W1</span></div>
+                        <div class="w-1/4 bg-gray-400 h-1/2 rounded-t-sm relative"><span class="absolute -top-6 text-xs font-bold w-full text-center">W2</span></div>
+                        <div class="w-1/4 bg-gray-400 h-1/2 rounded-t-sm relative"><span class="absolute -top-6 text-xs font-bold w-full text-center">W3</span></div>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-xl p-6 relative overflow-hidden shadow-md">
+                    <div class="absolute top-0 right-0 bg-green-100 text-green-800 px-3 py-1 text-xs font-bold rounded-bl-lg">Gold Standard</div>
+                    <h3 class="text-2xl font-bold mb-4">Exponential Taper</h3>
+                    <p class="text-gray-600 mb-6 text-sm">A progressive, mathematical reduction in volume. Can be 'Fast Decay' (drops quickly early on) or 'Slow Decay' (drops smoothly). Scientifically proven to yield the highest performance gains (average 2-3% improvement) across most sports.</p>
+                    
+                    <div class="flex items-end h-32 space-x-2 border-b-2 border-l-2 border-gray-300 p-2">
+                        <div class="w-1/4 bg-gray-800 h-full rounded-t-sm relative"><span class="absolute -top-6 text-xs font-bold w-full text-center">Pre</span></div>
+                        <div class="w-1/4 bg-blue-500 h-3/4 rounded-t-sm relative"><span class="absolute -top-6 text-xs font-bold w-full text-center">W1</span></div>
+                        <div class="w-1/4 bg-blue-400 h-1/2 rounded-t-sm relative"><span class="absolute -top-6 text-xs font-bold w-full text-center">W2</span></div>
+                        <div class="w-1/4 bg-blue-300 h-1/4 rounded-t-sm relative"><span class="absolute -top-6 text-xs font-bold w-full text-center">W3</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="protocols" class="bg-gray-900 rounded-2xl shadow-xl p-6 md:p-10 text-white">
+            <div class="mb-10 text-center">
+                <h2 class="text-3xl font-bold">Custom Taper Protocols</h2>
+                <p class="mt-4 text-lg text-gray-400 max-w-2xl mx-auto">
+                    Select an athlete profile to view their scientifically optimized tapering parameters. Notice how Intensity is maintained across all disciplines, while Volume and Frequency dictate the shape of the taper.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-4 mb-10">
+                <button id="btn-run" class="proto-btn px-6 py-3 rounded-full font-bold bg-blue-600 text-white hover:bg-blue-500 transition-colors">Endurance Runner (3-Week)</button>
+                <button id="btn-swim" class="proto-btn px-6 py-3 rounded-full font-bold bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors">Mid-Distance Swimmer (2-Week)</button>
+                <button id="btn-throw" class="proto-btn px-6 py-3 rounded-full font-bold bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors">Power Thrower (1-Week)</button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 bg-gray-800 rounded-xl p-6 border border-gray-700">
+                
+                <div>
+                    <div class="chart-container">
+                        <canvas id="protocolChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="flex flex-col justify-center space-y-6" id="protocol-details">
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 mt-20 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
+            <p>Based on principles from the Banister Impulse-Response Model and modern sports science literature on Exponential vs. Step tapering.</p>
+        </div>
+    </footer>
+
+    <script>
+        const ctxBanister = document.getElementById('banisterChart').getContext('2d');
+        
+        const generateDecayData = (fitnessStart, fitDecay, fatStart, fatDecay, days) => {
+            let fitness = [];
+            let fatigue = [];
+            let performance = [];
+            for (let i = 0; i <= days; i++) {
+                let currentFit = fitnessStart * Math.exp(-fitDecay * i);
+                let currentFat = fatStart * Math.exp(-fatDecay * i);
+                fitness.push(currentFit);
+                fatigue.push(currentFat);
+                performance.push(currentFit - currentFat + 100); 
+            }
+            return { labels: Array.from({length: days + 1}, (_, i) => 'Day ' + i), fitness, fatigue, performance };
+        };
+
+        const dataEndurance = generateDecayData(50, 0.02, 80, 0.15, 28);
+        const dataPower = generateDecayData(40, 0.08, 90, 0.40, 14);
+
+        let banisterChart = new Chart(ctxBanister, {
+            type: 'line',
+            data: {
+                labels: dataEndurance.labels,
+                datasets: [
+                    { label: 'Fitness (+)', data: dataEndurance.fitness, borderColor: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.1)', tension: 0.4, fill: true },
+                    { label: 'Fatigue (-)', data: dataEndurance.fatigue, borderColor: '#EF4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.4, fill: true },
+                    { label: 'Net Performance', data: dataEndurance.performance, borderColor: '#3B82F6', borderWidth: 3, borderDash: [5, 5], tension: 0.4, pointRadius: 0 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Arbitrary Units' } },
+                    x: { title: { display: true, text: 'Taper Duration (Days)' } }
+                }
+            }
+        });
+
+        document.getElementById('btn-endurance-model').addEventListener('click', (e) => {
+            updateBanisterActiveBtn(e.target);
+            banisterChart.data.labels = dataEndurance.labels;
+            banisterChart.data.datasets[0].data = dataEndurance.fitness;
+            banisterChart.data.datasets[1].data = dataEndurance.fatigue;
+            banisterChart.data.datasets[2].data = dataEndurance.performance;
+            banisterChart.update();
+            document.getElementById('model-desc-endurance').classList.remove('hidden');
+            document.getElementById('model-desc-power').classList.add('hidden');
+        });
+
+        document.getElementById('btn-power-model').addEventListener('click', (e) => {
+            updateBanisterActiveBtn(e.target);
+            banisterChart.data.labels = dataPower.labels;
+            banisterChart.data.datasets[0].data = dataPower.fitness;
+            banisterChart.data.datasets[1].data = dataPower.fatigue;
+            banisterChart.data.datasets[2].data = dataPower.performance;
+            banisterChart.update();
+            document.getElementById('model-desc-endurance').classList.add('hidden');
+            document.getElementById('model-desc-power').classList.remove('hidden');
+        });
+
+        const updateBanisterActiveBtn = (target) => {
+            document.getElementById('btn-endurance-model').classList.remove('active', 'bg-white');
+            document.getElementById('btn-power-model').classList.remove('active', 'bg-white');
+            document.getElementById('btn-endurance-model').classList.add('bg-white');
+            document.getElementById('btn-power-model').classList.add('bg-white');
+            target.classList.add('active');
+            target.classList.remove('bg-white');
+        };
+
+        const protocolData = {
+            run: {
+                labels: ['Pre-Taper', 'Week 1', 'Week 2', 'Week 3 (Race)'],
+                volume: [100, 75, 55, 35],
+                intensity: [100, 100, 100, 100],
+                frequency: [100, 90, 85, 80],
+                html: `
+                    <h3 class="text-2xl font-bold text-blue-400 border-b border-gray-600 pb-2">3-Week Fast-Decay Exponential</h3>
+                    <div>
+                        <p class="font-bold text-gray-200">Volume Strategy:</p>
+                        <p class="text-sm text-gray-400">Reduce to 75% in W1, 55% in W2, and 35% in W3. This rapid initial drop clears metabolic fatigue quickly while the long duration ensures peak cardiovascular adaptation.</p>
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-200">Intensity Strategy:</p>
+                        <p class="text-sm text-gray-400">Crucial to maintain at 100% of race pace. Do not jog. The volume of intense work drops, but the pace itself remains high to maintain running economy.</p>
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-200">Frequency Strategy:</p>
+                        <p class="text-sm text-gray-400">Slightly reduced (e.g., dropping 1 run per week). Muscle memory in running is retained well, allowing for extra recovery days.</p>
+                    </div>
+                `
+            },
+            swim: {
+                labels: ['Pre-Taper', 'Week 1', 'Week 2 (Race)'],
+                volume: [100, 70, 45],
+                intensity: [100, 100, 100],
+                frequency: [100, 100, 100],
+                html: `
+                    <h3 class="text-2xl font-bold text-teal-400 border-b border-gray-600 pb-2">2-Week Slow-Decay Exponential</h3>
+                    <div>
+                        <p class="font-bold text-gray-200">Volume Strategy:</p>
+                        <p class="text-sm text-gray-400">Reduce to 70% in W1, then 45% in W2. A slightly smoother decay curve than running, as swimmers rely heavily on technical feel that can degrade with extreme volume drops.</p>
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-200">Intensity Strategy:</p>
+                        <p class="text-sm text-gray-400">Maintained. Short, sharp race-pace intervals (e.g., broken swims) with plenty of rest to stimulate anaerobic systems without building lactate.</p>
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-200">Frequency Strategy:</p>
+                        <p class="text-sm text-gray-400">Strictly 100%. Swimmers absolutely must maintain their "feel for the water." Sessions become very short, but the athlete gets in the pool just as often.</p>
+                    </div>
+                `
+            },
+            throw: {
+                labels: ['Pre-Taper', 'Days 1-3', 'Days 4-6', 'Day 7 (Comp)'],
+                volume: [100, 50, 20, 0],
+                intensity: [100, 95, 80, 100],
+                frequency: [100, 60, 40, 100],
+                html: `
+                    <h3 class="text-2xl font-bold text-red-400 border-b border-gray-600 pb-2">1-Week Step/Aggressive Taper</h3>
+                    <div>
+                        <p class="font-bold text-gray-200">Volume Strategy:</p>
+                        <p class="text-sm text-gray-400">Immediate step drop to 50% early in the week, plummeting to just activation work by days 4-6. Weight room volume drops to absolute minimums.</p>
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-200">Intensity Strategy:</p>
+                        <p class="text-sm text-gray-400">Keep weights and throw velocities high (90-95%) early in the week to maintain neuromuscular firing. Drop intensity slightly mid-week for CNS recovery, then full intensity on game day.</p>
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-200">Frequency Strategy:</p>
+                        <p class="text-sm text-gray-400">Cut frequency heavily (down 40-60%). Extra days completely off allow for profound CNS recovery, which dictates peak explosive power.</p>
+                    </div>
+                `
+            }
+        };
+
+        const ctxProto = document.getElementById('protocolChart').getContext('2d');
+        let protocolChart = new Chart(ctxProto, {
+            type: 'bar',
+            data: {
+                labels: protocolData.run.labels,
+                datasets: [
+                    { label: 'Volume (%)', data: protocolData.run.volume, backgroundColor: '#60A5FA' },
+                    { label: 'Intensity (%)', data: protocolData.run.intensity, backgroundColor: '#F87171' },
+                    { label: 'Frequency (%)', data: protocolData.run.frequency, backgroundColor: '#34D399' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#D1D5DB' } },
+                    tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y + '%'; } } }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        max: 110,
+                        grid: { color: '#374151' },
+                        ticks: { color: '#9CA3AF' }
+                    },
+                    x: { 
+                        grid: { color: '#374151' },
+                        ticks: { color: '#9CA3AF' }
+                    }
+                }
+            }
+        });
+
+        document.getElementById('protocol-details').innerHTML = protocolData.run.html;
+
+        const updateProtocolActiveBtn = (target) => {
+            const btns = [document.getElementById('btn-run'), document.getElementById('btn-swim'), document.getElementById('btn-throw')];
+            btns.forEach(b => {
+                b.classList.remove('bg-blue-600', 'text-white', 'bg-teal-600', 'bg-red-600');
+                b.classList.add('bg-gray-700', 'text-gray-300');
+            });
+            target.classList.remove('bg-gray-700', 'text-gray-300');
+            target.classList.add('text-white');
+        };
+
+        document.getElementById('btn-run').addEventListener('click', (e) => {
+            updateProtocolActiveBtn(e.target);
+            e.target.classList.add('bg-blue-600');
+            protocolChart.data.labels = protocolData.run.labels;
+            protocolChart.data.datasets[0].data = protocolData.run.volume;
+            protocolChart.data.datasets[1].data = protocolData.run.intensity;
+            protocolChart.data.datasets[2].data = protocolData.run.frequency;
+            protocolChart.update();
+            document.getElementById('protocol-details').innerHTML = protocolData.run.html;
+        });
+
+        document.getElementById('btn-swim').addEventListener('click', (e) => {
+            updateProtocolActiveBtn(e.target);
+            e.target.classList.add('bg-teal-600');
+            protocolChart.data.labels = protocolData.swim.labels;
+            protocolChart.data.datasets[0].data = protocolData.swim.volume;
+            protocolChart.data.datasets[1].data = protocolData.swim.intensity;
+            protocolChart.data.datasets[2].data = protocolData.swim.frequency;
+            protocolChart.update();
+            document.getElementById('protocol-details').innerHTML = protocolData.swim.html;
+        });
+
+        document.getElementById('btn-throw').addEventListener('click', (e) => {
+            updateProtocolActiveBtn(e.target);
+            e.target.classList.add('bg-red-600');
+            protocolChart.data.labels = protocolData.throw.labels;
+            protocolChart.data.datasets[0].data = protocolData.throw.volume;
+            protocolChart.data.datasets[1].data = protocolData.throw.intensity;
+            protocolChart.data.datasets[2].data = protocolData.throw.frequency;
+            protocolChart.update();
+            document.getElementById('protocol-details').innerHTML = protocolData.throw.html;
+        });
+
+    </script>
+</body>
+</html>

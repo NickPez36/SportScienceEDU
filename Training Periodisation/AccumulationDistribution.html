@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accumulation-Distribution: Tactical Periodization</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Warm Neutrals with Action Accents (Slate text, Stone background, Orange for Physical Load, Teal for Tactical Readiness) -->
+    <!-- Application Structure Plan: 
+         1. Hero/Intro: Establishes the core concept of Accumulation vs. Distribution and the necessity of 'Freshness'.
+         2. Interactive Athlete Profiles (Tabs): Allows users to explore specific periodization strategies for Endurance, Middle-Distance, and Power athletes. This tabbed approach keeps the UI clean while handling distinct data sets.
+         3. Dynamic Load Simulator: An interactive tool demonstrating the concept of "staggering." Users move a high-stress day and immediately see the impact on tactical readiness later in the week.
+         Rationale: This structure moves from theory -> specific application -> interactive reinforcement, prioritizing user comprehension of complex physiological timing.
+    -->
+    <!-- Visualization & Content Choices: 
+         - Profile Charts (Chart.js Bar/Line mix): Shows the inverse relationship between physical stress applied and resultant tactical readiness over a week. Bar = Load, Line = State.
+         - Simulator Chart (Chart.js Line): Clearly illustrates the fatigue curve and recovery timeline based on user input (clicking days).
+         - Custom HTML/CSS UI: Used for tabs and interactive days instead of SVG icons to maintain strict compliance while offering a modern UI.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        /* Base Styling & Typography */
+        body {
+            background-color: #f5f5f4; /* Tailwind stone-100 */
+            color: #334155; /* Tailwind slate-700 */
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        /* Mandatory Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 250px;
+            }
+        }
+
+        /* Custom Interactive Elements */
+        .tab-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .tab-btn.active {
+            background-color: #ffffff;
+            border-bottom: 2px solid #0d9488; /* Teal 600 */
+            color: #0f766e; /* Teal 700 */
+            font-weight: 600;
+        }
+        
+        .day-selector {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .day-selector:hover {
+            transform: translateY(-2px);
+        }
+        .day-selector.selected {
+            background-color: #ea580c; /* Orange 600 */
+            color: white;
+            border-color: #ea580c;
+        }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header Section -->
+    <header class="bg-white shadow-sm border-b border-stone-200 pt-6 pb-12 px-4 sm:px-6 lg:px-8 sticky top-0 z-40">
+        <div class="max-w-5xl mx-auto flex flex-col gap-4">
+            <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-[0.18em]">
+                    <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-teal-600 text-[11px] font-black text-white">TP</span>
+                    <span>Training Periodisation</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="index.html" class="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-stone-100 px-3 py-1.5 text-[11px] font-semibold text-stone-800 hover:bg-stone-200 transition-colors">
+                        <span aria-hidden="true">←</span> Browse modules
+                    </a>
+                    <a href="../index.html" class="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-stone-100 px-3 py-1.5 text-[11px] font-semibold text-stone-800 hover:bg-stone-200 transition-colors">
+                        <span aria-hidden="true">🏠</span> Learning Hub
+                    </a>
+                </div>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-2">
+                Tactical Periodization: <br class="hidden sm:block">
+                <span class="text-teal-700">The Accumulation-Distribution Model</span>
+            </h1>
+            <p class="text-xl text-slate-600 max-w-3xl leading-relaxed">
+                Physical fitness is useless if the athlete is too neurologically fatigued to execute tactics. This model explores how to distribute 'Stress Days' to ensure athletes arrive at competition physically prepared and cognitively fresh.
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-16">
+
+        <!-- Introduction Section -->
+        <section class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-stone-200">
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-4">The "Freshness" Imperative</h2>
+                    <p class="mb-4 text-slate-600">
+                        In the <strong>Accumulation phase</strong>, we build the engine through concentrated loading—fatigue is expected and tactical execution suffers. 
+                    </p>
+                    <p class="text-slate-600">
+                        During the <strong>Distribution phase</strong> (the competitive microcycle), the goal shifts. We must distribute physical stress strategically throughout the week. The objective is to maintain physiological adaptations while shedding central nervous system (CNS) fatigue, ensuring the athlete is "fresh" to absorb complex tactical information and execute highly technical movements on game day.
+                    </p>
+                </div>
+                <div class="bg-stone-50 p-6 rounded-xl border border-stone-100 flex flex-col justify-center">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-semibold text-orange-700">Physical Stress Load</span>
+                        <span class="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">Fatiguing</span>
+                    </div>
+                    <div class="w-full bg-stone-200 rounded-full h-2 mb-6">
+                        <div class="bg-orange-500 h-2 rounded-full" style="width: 70%"></div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-semibold text-teal-700">Tactical/Technical Readiness</span>
+                        <span class="text-xs bg-teal-100 text-teal-800 px-2 py-1 rounded">Requires Freshness</span>
+                    </div>
+                    <div class="w-full bg-stone-200 rounded-full h-2">
+                        <div class="bg-teal-500 h-2 rounded-full" style="width: 30%"></div>
+                    </div>
+                    <p class="text-xs text-center text-slate-500 mt-4 italic">High stress suppresses tactical readiness. They must be managed inversely.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Athlete Profiles -->
+        <section>
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Athlete Archetypes & Load Distribution</h2>
+                <p class="text-slate-600">Select an athlete profile to see how 'Stress Days' are staggered differently based on the physiological demands of their sport compared to their tactical requirements.</p>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex overflow-x-auto border-b border-stone-200 bg-stone-50 rounded-t-xl" role="tablist">
+                <button onclick="switchProfile('endurance')" id="tab-endurance" class="tab-btn active flex-1 py-4 px-6 text-center text-slate-600 font-medium focus:outline-none hover:bg-white hover:text-slate-800">
+                    <div class="text-lg">Endurance</div>
+                    <div class="text-xs font-normal opacity-75">Long-Slow vs. Intervals</div>
+                </button>
+                <button onclick="switchProfile('middle')" id="tab-middle" class="tab-btn flex-1 py-4 px-6 text-center text-slate-600 font-medium focus:outline-none hover:bg-white hover:text-slate-800 border-l border-stone-200">
+                    <div class="text-lg">Middle-Distance</div>
+                    <div class="text-xs font-normal opacity-75">Capacity vs. Tactical Speed</div>
+                </button>
+                <button onclick="switchProfile('power')" id="tab-power" class="tab-btn flex-1 py-4 px-6 text-center text-slate-600 font-medium focus:outline-none hover:bg-white hover:text-slate-800 border-l border-stone-200">
+                    <div class="text-lg">Power / Team</div>
+                    <div class="text-xs font-normal opacity-75">Max Effort vs. Technique</div>
+                </button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="bg-white p-6 md:p-8 rounded-b-xl shadow-sm border border-t-0 border-stone-200">
+                <div class="grid lg:grid-cols-3 gap-8">
+                    
+                    <!-- Text Info -->
+                    <div class="lg:col-span-1 space-y-6">
+                        <div>
+                            <h3 id="profile-title" class="text-2xl font-bold text-slate-800">The Endurance Athlete</h3>
+                            <p id="profile-subtitle" class="text-sm text-teal-700 font-semibold mb-3">Marathon, Cycling, Triathlon</p>
+                            <p id="profile-desc" class="text-slate-600">
+                                During the distribution phase leading to an event, volume (long-slow distance) is reduced to shed systemic fatigue. Stress days focus on high-intensity intervals to maintain V02 max and neuromuscular tension without creating deep metabolic exhaustion.
+                            </p>
+                        </div>
+                        
+                        <div class="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                            <h4 class="font-bold text-slate-800 mb-2">Staggering Strategy</h4>
+                            <p id="profile-stagger" class="text-sm text-slate-600">
+                                <strong>Intervals (High CNS/Metabolic Stress)</strong> are placed early/mid-week. <strong>Long-slow recovery</strong> acts as active clearance. The days immediately preceding the event demand high tactical readiness for pacing strategies, requiring minimal preceding physical stress.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Chart Area -->
+                    <div class="lg:col-span-2 flex flex-col justify-center">
+                        <div class="mb-2 flex justify-end space-x-4 text-xs font-medium">
+                            <span class="flex items-center"><span class="w-3 h-3 bg-orange-500 rounded-sm inline-block mr-1"></span> Physical Stress Load</span>
+                            <span class="flex items-center"><span class="w-3 h-1 bg-teal-600 inline-block mr-1"></span> Tactical Readiness</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="profileChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Staggering Simulator -->
+        <section class="bg-slate-800 text-stone-100 p-6 md:p-8 rounded-2xl shadow-lg">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-white mb-2">The Staggering Simulator</h2>
+                <p class="text-slate-300">
+                    See how the placement of a "High Stress" physical day impacts tactical readiness. 
+                    <strong>Goal:</strong> Maximize the Tactical Readiness line on Match Day (Saturday).
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <!-- Inputs -->
+                <div>
+                    <h3 class="text-lg font-semibold text-teal-400 mb-4">1. Assign the Heavy Training Day</h3>
+                    <p class="text-sm text-slate-400 mb-4">Click a day below to schedule the primary physical stressor for the week (e.g., Heavy Squats or Max V02 Intervals).</p>
+                    
+                    <div class="grid grid-cols-5 gap-2 mb-6" id="day-selector-container">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <div class="bg-slate-700/50 p-4 rounded-lg">
+                        <h4 class="font-medium text-white mb-2 flex items-center">
+                            <span class="text-xl mr-2">ℹ️</span> The Physiology of Freshness
+                        </h4>
+                        <p class="text-sm text-slate-300" id="sim-feedback">
+                            Select a day to see the neurological impact.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Sim Chart -->
+                <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+                    <h3 class="text-center font-semibold text-white mb-2">Readiness Curve</h3>
+                    <div class="chart-container !h-[250px]">
+                        <canvas id="simChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-stone-200 mt-20 py-8 text-center text-slate-500 text-sm">
+        <p>Interactive conceptual model based on Tactical Periodization principles.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- DATA for Athlete Profiles ---
+        const profileData = {
+            endurance: {
+                title: "The Endurance Athlete",
+                subtitle: "Marathon, Cycling, Triathlon",
+                desc: "During the distribution phase leading to an event, volume (long-slow distance) is reduced to shed systemic fatigue. Stress days focus on high-intensity intervals to maintain V02 max and neuromuscular tension without creating deep metabolic exhaustion.",
+                stagger: "<strong>Intervals (High CNS/Metabolic Stress)</strong> are placed mid-week. <strong>Long-slow active recovery</strong> bridges the gaps. The days immediately preceding the event demand high tactical readiness for complex pacing and positioning strategies, requiring a drastic taper in load.",
+                chartLoad: [10, 85, 40, 20, 75, 10, 100], // Mon-Sun
+                chartReady: [80, 40, 60, 85, 50, 95, 100]
+            },
+            middle: {
+                title: "The Middle-Distance / Field Athlete",
+                subtitle: "800m, Soccer Midfielder, Basketball",
+                desc: "These athletes need extreme aerobic capacity combined with tactical speed and agility. Accumulation focuses on capacity (repeated sprints). Distribution shifts to tactical speed (short, explosive bursts with full recovery) and game-simulations.",
+                stagger: "<strong>Capacity work (Lactic stress)</strong> must be far away from tactical days. <strong>Tactical Speed (Alactic)</strong> can be placed closer to the match, provided volume is low. You cannot teach complex team tactics the day after a grueling repeated-sprint session.",
+                chartLoad: [20, 90, 30, 70, 10, 100, 10], // Tue is capacity, Thu is tactical speed
+                chartReady: [70, 30, 65, 50, 90, 100, 60]
+            },
+            power: {
+                title: "The Power / Technique Athlete",
+                subtitle: "Sprinter, Weightlifter, Linebacker",
+                desc: "Performance relies on maximum central nervous system (CNS) output and perfect mechanical technique. Accumulation is heavy, slow lifting. Distribution is fast, lighter, explosive movements aiming for neuromuscular peaking.",
+                stagger: "<strong>Max effort loading (Heavy CNS tax)</strong> requires 48-72 hours of recovery before complex technique can be executed cleanly. Staggering means placing heavy physical demands early in the week, leaving the latter half strictly for neurological sharpening and tactical walk-throughs.",
+                chartLoad: [95, 20, 60, 85, 10, 100, 10], // Mon heavy, Wed speed, Thu explosive, Sat game
+                chartReady: [20, 50, 75, 40, 95, 100, 70]
+            }
+        };
+
+        let currentProfileChart = null;
+
+        // --- Core Setup & Chart Configs ---
+        Chart.defaults.font.family = 'ui-sans-serif, system-ui, -apple-system, sans-serif';
+        Chart.defaults.color = '#64748b'; // slate-500
+
+        function initProfileChart() {
+            const ctx = document.getElementById('profileChart').getContext('2d');
+            currentProfileChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat (Match/Race)', 'Sun'],
+                    datasets: [
+                        {
+                            label: 'Physical Stress Load',
+                            type: 'bar',
+                            data: [],
+                            backgroundColor: 'rgba(234, 88, 12, 0.8)', // Orange 600
+                            borderRadius: 4,
+                            barPercentage: 0.6
+                        },
+                        {
+                            label: 'Tactical Readiness',
+                            type: 'line',
+                            data: [],
+                            borderColor: '#0d9488', // Teal 600
+                            backgroundColor: '#0d9488',
+                            borderWidth: 3,
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#fff',
+                            pointBorderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }, // Custom legend used in HTML
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleFont: { size: 14 },
+                            padding: 12
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: 'Intensity / Readiness (%)' },
+                            grid: { color: '#e7e5e4' } // stone-200
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Interaction Logic ---
+        function switchProfile(type) {
+            // Update Tabs UI
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tab-${type}`).classList.add('active');
+
+            // Update Text Content
+            const data = profileData[type];
+            document.getElementById('profile-title').innerText = data.title;
+            document.getElementById('profile-subtitle').innerText = data.subtitle;
+            document.getElementById('profile-desc').innerText = data.desc;
+            document.getElementById('profile-stagger').innerHTML = data.stagger;
+
+            // Update Chart
+            currentProfileChart.data.datasets[0].data = data.chartLoad;
+            currentProfileChart.data.datasets[1].data = data.chartReady;
+            currentProfileChart.update();
+        }
+
+
+        // --- Simulator Logic ---
+        let simChart = null;
+        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+        let selectedStressDay = 1; // Default to Tuesday (index 1)
+
+        function initSimulator() {
+            // Build day selector UI
+            const container = document.getElementById('day-selector-container');
+            days.forEach((day, index) => {
+                const btn = document.createElement('button');
+                btn.className = `day-selector border border-slate-600 rounded-md py-2 px-1 text-center font-medium text-slate-300 hover:border-orange-500 ${index === selectedStressDay ? 'selected' : ''}`;
+                btn.innerText = day;
+                btn.onclick = () => updateSimulator(index);
+                container.appendChild(btn);
+            });
+
+            // Init Chart
+            const ctx = document.getElementById('simChart').getContext('2d');
+            simChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat (Match)'],
+                    datasets: [{
+                        label: 'Tactical Readiness',
+                        data: [],
+                        borderColor: '#2dd4bf', // teal-400
+                        backgroundColor: 'rgba(45, 212, 191, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#0f172a',
+                        pointBorderColor: '#2dd4bf',
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataIndex === 5) return `Match Day Readiness: ${context.raw}%`;
+                                    return `Readiness: ${context.raw}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0, max: 100,
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8', font: { weight: 'bold' } }
+                        }
+                    }
+                }
+            });
+
+            updateSimulator(selectedStressDay);
+        }
+
+        function updateSimulator(stressDayIndex) {
+            // Update UI buttons
+            const btns = document.querySelectorAll('.day-selector');
+            btns.forEach((btn, i) => {
+                if(i === stressDayIndex) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+
+            // Calculate Readiness Curve
+            // Base assumption: Start fresh (90%). Stress day drops readiness drastically. Recovers ~20% per day.
+            let readiness = [90, 95, 95, 95, 95, 95]; // Base line
+            
+            let currentReadiness = 90;
+            for(let i=0; i<6; i++) {
+                if(i === stressDayIndex) {
+                    currentReadiness -= 50; // Huge CNS hit
+                } else {
+                    currentReadiness += 25; // Recovery
+                }
+                
+                // Cap at 100, floor at 0
+                if(currentReadiness > 100) currentReadiness = 100;
+                if(currentReadiness < 0) currentReadiness = 0;
+                
+                readiness[i] = currentReadiness;
+            }
+
+            // Update Chart
+            simChart.data.datasets[0].data = readiness;
+            
+            // Highlight Match Day point
+            simChart.data.datasets[0].pointBackgroundColor = readiness.map((r, i) => i === 5 ? '#ea580c' : '#0f172a');
+            simChart.data.datasets[0].pointBorderColor = readiness.map((r, i) => i === 5 ? '#ea580c' : '#2dd4bf');
+            simChart.data.datasets[0].pointRadius = readiness.map((r, i) => i === 5 ? 8 : 5);
+            
+            simChart.update();
+
+            // Update Feedback Text
+            const feedbackEl = document.getElementById('sim-feedback');
+            const matchReadiness = readiness[5];
+            
+            if (stressDayIndex <= 2) {
+                feedbackEl.innerHTML = `<strong>Optimal:</strong> Heavy load on ${days[stressDayIndex]} allows sufficient time (48-72h) for the CNS to clear fatigue. You arrive at Match Day with <strong>${matchReadiness}% readiness</strong>, primed for complex tactical execution.`;
+                feedbackEl.className = "text-sm text-teal-300";
+            } else if (stressDayIndex === 3) {
+                feedbackEl.innerHTML = `<strong>Caution:</strong> Loading on Thursday leaves residual fatigue. Match day readiness drops to <strong>${matchReadiness}%</strong>. Athlete may feel sluggish reacting to tactical changes.`;
+                feedbackEl.className = "text-sm text-yellow-400";
+            } else {
+                feedbackEl.innerHTML = `<strong>Poor Staggering:</strong> A heavy load on Friday severely depresses the nervous system. Match day readiness is only <strong>${matchReadiness}%</strong>. Tactical execution, decision making, and explosive technique will be heavily compromised.`;
+                feedbackEl.className = "text-sm text-red-400";
+            }
+        }
+
+
+        // --- Initialize App ---
+        window.onload = () => {
+            initProfileChart();
+            switchProfile('endurance'); // Load default
+            initSimulator();
+        };
+
+    </script>
+</body>
+</html>

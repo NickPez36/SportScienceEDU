@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post-Activation Performance Enhancement (PAPE) Interactive Guide</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chosen Palette: Warm Neutrals with Rust and Sage Accents (Stone, Orange, Emerald) -->
+    <!-- Application Structure Plan: 
+         1. Introduction/Header: Sets the context of PAPE and Complex Training.
+         2. The Physiology (Interactive Chart): Visualizes the core concept - the overlapping curves of Fatigue and Potentiation, demonstrating the 'Window of Potentiation'.
+         3. Individualization Controls: Buttons that act as variables (Training Age, Fiber Type) to dynamically alter the chart, proving that rest intervals (4-8 mins) are highly individual.
+         4. Loading Strategies (Comparative Grid): Breaks down Complex vs. Contrast loading visually using HTML/CSS cards.
+         5. Practical Application (Tabbed Examples): Provides the requested 3 sport-specific examples for Sprinting and Vertical Jumps to bridge theory into coaching practice. 
+         This structure moves from theory -> interactive variables -> methodology -> practical application, optimizing cognitive load and user understanding. -->
+    <!-- Visualization & Content Choices: 
+         - Window of Potentiation: Line chart (Chart.js canvas) to show time-course data (Fatigue vs. Potentiation). Interaction: Updates based on user variables to show shifting rest windows. Justification: Time-series physiology is best understood through overlapping curves.
+         - Loading Strategies: HTML/CSS Flexbox Cards. Interaction: Hover effects. Justification: Direct comparison of discrete categorical concepts.
+         - Sport Examples: Interactive Tabs (JS/HTML). Interaction: Click to reveal specific exercise pairings. Justification: Groups related data, preventing visual clutter while allowing deep dives into specific sporting needs.
+         - CONFIRMING: NO SVG used. NO Mermaid JS used. Visuals rely on Canvas, Tailwind, and Unicode. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        /* Essential Chart Container Constraints */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 280px;
+            }
+        }
+        
+        /* Smooth transitions for interactive elements */
+        .btn-transition {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        /* Hide scrollbar for clean UI where needed */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans antialiased">
+
+    <!-- Header Section -->
+    <header class="bg-stone-900 text-stone-100 py-12 px-6 shadow-md border-b-4 border-orange-600">
+        <div class="max-w-5xl mx-auto">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 tracking-tight">Mastering PAPE in Complex Training</h1>
+            <p class="text-lg md:text-xl text-stone-300 max-w-3xl leading-relaxed">
+                Post-Activation Performance Enhancement (PAPE) is a physiological phenomenon where muscular performance is acutely enhanced following a high-intensity conditioning stimulus. This interactive guide explores how to manipulate the <strong>Window of Potentiation</strong>, individualize rest intervals, and apply complex loading for maximal athletic output.
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-6 py-12 space-y-16">
+
+        <!-- Section 1 & 2: Physiology and Individualization -->
+        <section class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+            <div class="p-8 border-b border-stone-100 bg-stone-50/50">
+                <h2 class="text-2xl font-bold text-stone-800 mb-3">The Window of Potentiation vs. Fatigue</h2>
+                <p class="text-stone-600 leading-relaxed max-w-4xl">
+                    Every heavy lift creates two competing physiological responses: <strong>Fatigue</strong> (which decreases performance) and <strong>Potentiation</strong> (which increases performance). Because fatigue dissipates faster than potentiation, a "window" opens where net performance is enhanced. However, this 4-8 minute window is highly variable. Use the controls below to see how an athlete's <strong>Training Age</strong> and <strong>Muscle Fiber Type</strong> shift this critical window.
+                </p>
+            </div>
+
+            <div class="p-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <!-- Interactive Controls -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div>
+                        <h3 class="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-3">1. Training Age</h3>
+                        <div class="flex flex-col space-y-2">
+                            <button id="btn-novice" class="btn-transition w-full text-left px-4 py-3 rounded-lg border-2 border-stone-200 text-stone-600 hover:border-orange-400 font-medium focus:outline-none" onclick="updateState('trainingAge', 'novice')">
+                                Novice / Intermediate
+                            </button>
+                            <button id="btn-elite" class="btn-transition w-full text-left px-4 py-3 rounded-lg border-2 border-orange-600 bg-orange-50 text-orange-800 font-bold focus:outline-none" onclick="updateState('trainingAge', 'elite')">
+                                Advanced / Elite
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-3">2. Fiber Type Dominance</h3>
+                        <div class="flex flex-col space-y-2">
+                            <button id="btn-type1" class="btn-transition w-full text-left px-4 py-3 rounded-lg border-2 border-stone-200 text-stone-600 hover:border-emerald-400 font-medium focus:outline-none" onclick="updateState('fiberType', 'type1')">
+                                Type I (Slow Twitch)
+                            </button>
+                            <button id="btn-type2" class="btn-transition w-full text-left px-4 py-3 rounded-lg border-2 border-emerald-600 bg-emerald-50 text-emerald-800 font-bold focus:outline-none" onclick="updateState('fiberType', 'type2')">
+                                Type II (Fast Twitch)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-100 p-4 rounded-lg mt-6">
+                        <p class="text-sm text-stone-700 font-medium">Optimal Rest Prediction:</p>
+                        <p id="optimal-rest-display" class="text-2xl font-bold text-orange-600 mt-1">~4.5 Minutes</p>
+                    </div>
+                </div>
+
+                <!-- Chart Container -->
+                <div class="lg:col-span-3 flex flex-col justify-center items-center relative">
+                    <div class="chart-container">
+                        <canvas id="papeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Loading Strategies -->
+        <section>
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-stone-800 mb-3">Contrast vs. Complex Loading</h2>
+                <p class="text-stone-600 leading-relaxed max-w-4xl">
+                    While often used interchangeably, these two programming strategies differ in their biomechanical application. Understanding the distinction is crucial for targeted athletic development.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Contrast Loading Card -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border-t-4 border-t-emerald-600 border border-stone-200">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xl">&#x21C4;</div>
+                        <h3 class="text-xl font-bold text-stone-800">Contrast Loading</h3>
+                    </div>
+                    <p class="text-stone-600 mb-4 font-medium text-sm bg-stone-50 p-3 rounded-lg">
+                        Alternating heavy and light loads within the <strong>exact same biomechanical movement pattern</strong>.
+                    </p>
+                    <ul class="space-y-3 text-stone-700">
+                        <li class="flex items-start">
+                            <span class="text-emerald-500 mr-2">&#x2713;</span>
+                            <span><strong>Goal:</strong> Directly enhance the speed and mechanics of the specific competitive movement.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-emerald-500 mr-2">&#x2713;</span>
+                            <span><strong>Mechanism:</strong> The nervous system expects high resistance during the unresisted effort, resulting in massive neural drive and velocity.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Complex Loading Card -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border-t-4 border-t-orange-600 border border-stone-200">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-700 font-bold text-xl">&#x26A1;</div>
+                        <h3 class="text-xl font-bold text-stone-800">Complex Loading</h3>
+                    </div>
+                    <p class="text-stone-600 mb-4 font-medium text-sm bg-stone-50 p-3 rounded-lg">
+                        Pairing a heavy traditional strength exercise with a <strong>biomechanically similar plyometric or ballistic exercise</strong>.
+                    </p>
+                    <ul class="space-y-3 text-stone-700">
+                        <li class="flex items-start">
+                            <span class="text-orange-500 mr-2">&#x2713;</span>
+                            <span><strong>Goal:</strong> General power development and transferring absolute strength into explosive power.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-orange-500 mr-2">&#x2713;</span>
+                            <span><strong>Mechanism:</strong> The heavy lift recruits high-threshold motor units, which remain activated and available for the subsequent explosive movement.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Sport-Specific Examples -->
+        <section class="bg-stone-900 rounded-2xl shadow-lg overflow-hidden text-stone-100">
+            <div class="p-8 border-b border-stone-700">
+                <h2 class="text-2xl font-bold text-white mb-3">Sport-Specific PAPE Applications</h2>
+                <p class="text-stone-400 leading-relaxed max-w-4xl">
+                    Select a performance goal below to view three highly effective pairings designed to exploit the PAPE window for specific athletic outcomes. Remember to apply the 4-8 minute rest interval based on the athlete's profile.
+                </p>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex border-b border-stone-700">
+                <button id="tab-sprint" class="flex-1 py-4 px-6 text-center font-bold text-orange-400 border-b-2 border-orange-500 bg-stone-800 hover:bg-stone-700 transition focus:outline-none" onclick="switchTab('sprint')">
+                    <span class="text-xl mr-2">&#x1F3C3;</span> 10m Sprint Start
+                </button>
+                <button id="tab-jump" class="flex-1 py-4 px-6 text-center font-bold text-stone-400 border-b-2 border-transparent hover:bg-stone-800 transition focus:outline-none" onclick="switchTab('jump')">
+                    <span class="text-xl mr-2">&#x1F680;</span> Maximal Vertical Jump
+                </button>
+            </div>
+
+            <!-- Tab Content: Sprint -->
+            <div id="content-sprint" class="p-8 bg-stone-800/50 block">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <div class="bg-stone-800 p-6 rounded-xl border border-stone-600">
+                        <div class="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-2">Contrast Pair</div>
+                        <h4 class="text-lg font-bold text-white mb-4">Sled Push to Free Sprint</h4>
+                        <div class="space-y-4">
+                            <div class="flex items-center bg-stone-900 p-3 rounded text-sm">
+                                <div class="w-8 text-center font-bold text-stone-500">1</div>
+                                <div><strong>Heavy Sled Push</strong><br><span class="text-stone-400">3 reps x 15m (heavy load)</span></div>
+                            </div>
+                            <div class="text-center text-orange-500 text-sm font-bold">&#x23F1; Rest: 4-8 mins</div>
+                            <div class="flex items-center bg-stone-900 p-3 rounded text-sm">
+                                <div class="w-8 text-center font-bold text-stone-500">2</div>
+                                <div><strong>Unresisted Sprint</strong><br><span class="text-stone-400">2 reps x 10m (max effort)</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-800 p-6 rounded-xl border border-stone-600">
+                        <div class="text-xs font-bold text-orange-400 uppercase tracking-widest mb-2">Complex Pair</div>
+                        <h4 class="text-lg font-bold text-white mb-4">Trap Bar to Broad Jump</h4>
+                        <div class="space-y-4">
+                            <div class="flex items-center bg-stone-900 p-3 rounded text-sm">
+                                <div class="w-8 text-center font-bold text-stone-500">1</div>
+                                <div><strong>Trap Bar Deadlift</strong><br><span class="text-stone-400">3 reps @ 85% 1RM</span></div>
+                            </div>
+                            <div class="text-center text-orange-500 text-sm font-bold">&#x23F1; Rest: 4-8 mins</div>
+                            <div class="flex items-center bg-stone-900 p-3 rounded text-sm">
+                                <div class="w-8 text-center font-bold text-stone-500">2</div>
+                                <div><strong>Standing Broad Jump</strong><br><span class="text-stone-400">3 reps (max distance)</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-800 p-6 rounded-xl border border-stone-600">
+                        <div class="text-xs font-bold text-orange-400 uppercase tracking-widest mb-2">Complex Pair</div>
+                        <h4 class="text-lg font-bold text-white mb-4">Split Squat to Bounding</h4>
+                        <div class="space-y-4">
+                            <div class="flex items-center bg-stone-900 p-3 rounded text-sm">
+                                <div class="w-8 text-center font-bold text-stone-500">1</div>
+                                <div><strong>Bulgarian Split Squat</strong><br><span class="text-stone-400">4 reps/leg @ heavy load</span></div>
+                            </div>
+                            <div class="text-center text-orange-500 text-sm font-bold">&#x23F1; Rest: 4-8 mins</div>
+                            <div class="flex items-center bg-stone-900 p-3 rounded text-sm">
+                                <div class="w-8 text-center font-bold text-stone-500">2</div>
+                                <div><strong>Alternating Bounds</strong><br><span class="text-stone-400">10m (focus on horizontal force)</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Tab Content: Jump -->
+            <div id="content-jump" class="p-8 bg-stone-800/50 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <div class="bg-stone-800 p-6 rounded-xl border border-stone-600">
+                        <div class="text-xs font-bold text-orange-400 uppercase tracking-widest mb-2">Complex Pair</div>
+                        <h4 class="text-lg font-bold text-white mb-4">Squat to Depth Jump</h4>
+                        <div class="space-y-4">
+                            <div class="flex items-center bg-stone-900 p-3 rounded text-sm">
+                                <div class="w-8 text-center font-bold text-stone-500">1</div>
+                                <div><strong>Barbell Back Squat</strong><br><span class="text-stone-400">3 reps @ 85-90% 1RM</span></div>
+                            </div>
+                            <div class="text-center text-orange-500 text-sm font-bold">&#x23F1; Rest: 4-8 mins</div>
+                            <div class="flex items-center bg-stone-900 p-3 rounded text-sm">
+                                <div class="w-8 text-center font-bold text-stone-500">2</div>
+                                <div><strong>Depth Jumps</strong><br><span class="text-stone-400">4 reps (from 30-40cm box)</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-800 p-6 rounded-xl border border-stone-600">
+                        <div class="text-xs font-bold text-orange-400 uppercase tracking-widest mb-2">Complex Pair</div>
+                        <h4 class="text-lg font-bold text-white mb-4">IMTP to Max Vert</h4>
+                        <div class="space-y-4">
+                            <div class="flex items-center bg-stone-900 p-3 rounded text-sm">
+                                <div class="w-8 text-center font-bold text-stone-500">1</div>
+                                <div><strong>Isometric Mid-Thigh Pull</strong><br><span class="text-stone-400">2 x 4-sec maximal pulls</span></div>
+                            </div>
+                            <div class="text-center text-orange-500 text-sm font-bold">&#x23F1; Rest: 3-6 mins</div>
+                            <div class="flex items-center bg-stone-900 p-3 rounded text-sm">
+                                <div class="w-8 text-center font-bold text-stone-500">2</div>
+                                <div><strong>Countermovement Jump</strong><br><span class="text-stone-400">3 reps (max height)</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-800 p-6 rounded-xl border border-stone-600">
+                        <div class="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-2">Contrast Pair</div>
+                        <h4 class="text-lg font-bold text-white mb-4">Resisted to Free Jumps</h4>
+                        <div class="space-y-4">
+                            <div class="flex items-center bg-stone-900 p-3 rounded text-sm">
+                                <div class="w-8 text-center font-bold text-stone-500">1</div>
+                                <div><strong>Banded Jump Squats</strong><br><span class="text-stone-400">4 reps (heavy band tension)</span></div>
+                            </div>
+                            <div class="text-center text-orange-500 text-sm font-bold">&#x23F1; Rest: 4-8 mins</div>
+                            <div class="flex items-center bg-stone-900 p-3 rounded text-sm">
+                                <div class="w-8 text-center font-bold text-stone-500">2</div>
+                                <div><strong>Unweighted Jump Squats</strong><br><span class="text-stone-400">4 reps (max explosive intent)</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-100 py-8 border-t border-stone-200 text-center text-stone-500 text-sm mt-12">
+        <p>Information Architecture & Interactive Design Exercise based on Post-Activation Performance Enhancement principles.</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- State Management ---
+        const appState = {
+            trainingAge: 'elite', // 'novice' or 'elite'
+            fiberType: 'type2'    // 'type1' or 'type2'
+        };
+
+        let papeChartInstance = null;
+
+        // --- Data Generation Logic for PAPE Curves ---
+        // Simulating the mathematical intersection of Potentiation and Fatigue over time.
+        function generateCurveData() {
+            const timePoints = [];
+            const fatigueData = [];
+            const potentiationData = [];
+            const netData = [];
+            
+            // Base parameters
+            let potMagnitude = 100; 
+            let fatMagnitude = -120;
+            let potDecay = 0.05; 
+            let fatDecay = 0.25; 
+
+            // Adjust based on Training Age
+            // Elite: Recover from fatigue faster, higher initial potentiation
+            // Novice: Retain fatigue longer, lower potentiation
+            if (appState.trainingAge === 'novice') {
+                potMagnitude *= 0.7;
+                fatDecay *= 0.5; // Slower fatigue decay
+            }
+
+            // Adjust based on Fiber Type
+            // Type II (Fast Twitch): Massive potentiation, massive initial fatigue
+            // Type I (Slow Twitch): Less potentiation, less initial fatigue
+            if (appState.fiberType === 'type1') {
+                potMagnitude *= 0.6;
+                fatMagnitude *= 0.6;
+                potDecay *= 0.8; 
+            } else {
+                potMagnitude *= 1.3;
+                fatMagnitude *= 1.3;
+                fatDecay *= 1.2;
+            }
+
+            let maxNet = -999;
+            let optimalMinute = 0;
+
+            for (let t = 0; t <= 15; t += 0.5) {
+                timePoints.push(t);
+                
+                // Exponential decay models
+                const p = potMagnitude * Math.exp(-potDecay * t);
+                const f = fatMagnitude * Math.exp(-fatDecay * t);
+                const n = p + f;
+
+                potentiationData.push(p);
+                fatigueData.push(f);
+                netData.push(n);
+
+                if (n > maxNet) {
+                    maxNet = n;
+                    optimalMinute = t;
+                }
+            }
+
+            // Update UI text for optimal rest
+            document.getElementById('optimal-rest-display').innerText = 
+                (maxNet > 0) ? `~${optimalMinute.toFixed(1)} Minutes` : "No Positive Window";
+
+            return { timePoints, fatigueData, potentiationData, netData };
+        }
+
+        // --- Chart Rendering ---
+        function renderChart() {
+            const ctx = document.getElementById('papeChart').getContext('2d');
+            const data = generateCurveData();
+
+            if (papeChartInstance) {
+                papeChartInstance.destroy();
+            }
+
+            papeChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.timePoints,
+                    datasets: [
+                        {
+                            label: 'Net Performance (The Window)',
+                            data: data.netData,
+                            borderColor: '#ea580c', // Orange-600
+                            backgroundColor: 'rgba(234, 88, 12, 0.2)',
+                            borderWidth: 4,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            order: 1
+                        },
+                        {
+                            label: 'Potentiation (+)',
+                            data: data.potentiationData,
+                            borderColor: '#10b981', // Emerald-500
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            order: 2
+                        },
+                        {
+                            label: 'Fatigue (-)',
+                            data: data.fatigueData,
+                            borderColor: '#ef4444', // Red-500
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            order: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // CRITICAL for chart-container to govern height
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { family: 'system-ui, sans-serif' },
+                                color: '#444'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + Math.round(context.parsed.y) + ' units';
+                                },
+                                title: function(context) {
+                                    return 'Minute: ' + context[0].label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Rest Interval (Minutes)',
+                                font: { weight: 'bold' }
+                            },
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    const val = this.getLabelForValue(value);
+                                    return Number.isInteger(parseFloat(val)) ? val : null;
+                                }
+                            },
+                            grid: { display: false }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Effect on Performance',
+                                font: { weight: 'bold' }
+                            },
+                            grid: { color: 'rgba(0,0,0,0.05)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Interaction Handlers ---
+        function updateState(variable, value) {
+            appState[variable] = value;
+            
+            // Update UI Buttons
+            if (variable === 'trainingAge') {
+                const btnN = document.getElementById('btn-novice');
+                const btnE = document.getElementById('btn-elite');
+                
+                if(value === 'novice') {
+                    btnN.className = "btn-transition w-full text-left px-4 py-3 rounded-lg border-2 border-orange-600 bg-orange-50 text-orange-800 font-bold focus:outline-none";
+                    btnE.className = "btn-transition w-full text-left px-4 py-3 rounded-lg border-2 border-stone-200 text-stone-600 hover:border-orange-400 font-medium focus:outline-none";
+                } else {
+                    btnE.className = "btn-transition w-full text-left px-4 py-3 rounded-lg border-2 border-orange-600 bg-orange-50 text-orange-800 font-bold focus:outline-none";
+                    btnN.className = "btn-transition w-full text-left px-4 py-3 rounded-lg border-2 border-stone-200 text-stone-600 hover:border-orange-400 font-medium focus:outline-none";
+                }
+            }
+            
+            if (variable === 'fiberType') {
+                const btn1 = document.getElementById('btn-type1');
+                const btn2 = document.getElementById('btn-type2');
+                
+                if(value === 'type1') {
+                    btn1.className = "btn-transition w-full text-left px-4 py-3 rounded-lg border-2 border-emerald-600 bg-emerald-50 text-emerald-800 font-bold focus:outline-none";
+                    btn2.className = "btn-transition w-full text-left px-4 py-3 rounded-lg border-2 border-stone-200 text-stone-600 hover:border-emerald-400 font-medium focus:outline-none";
+                } else {
+                    btn2.className = "btn-transition w-full text-left px-4 py-3 rounded-lg border-2 border-emerald-600 bg-emerald-50 text-emerald-800 font-bold focus:outline-none";
+                    btn1.className = "btn-transition w-full text-left px-4 py-3 rounded-lg border-2 border-stone-200 text-stone-600 hover:border-emerald-400 font-medium focus:outline-none";
+                }
+            }
+
+            // Re-render chart with new data
+            renderChart();
+        }
+
+        function switchTab(tabId) {
+            const tabs = ['sprint', 'jump'];
+            
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const content = document.getElementById(`content-${t}`);
+                
+                if (t === tabId) {
+                    btn.classList.add('text-orange-400', 'border-orange-500', 'bg-stone-800');
+                    btn.classList.remove('text-stone-400', 'border-transparent', 'hover:bg-stone-800');
+                    content.classList.remove('hidden');
+                    content.classList.add('block');
+                } else {
+                    btn.classList.remove('text-orange-400', 'border-orange-500', 'bg-stone-800');
+                    btn.classList.add('text-stone-400', 'border-transparent', 'hover:bg-stone-800');
+                    content.classList.remove('block');
+                    content.classList.add('hidden');
+                }
+            });
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderChart();
+        });
+
+    </script>
+</body>
+</html>

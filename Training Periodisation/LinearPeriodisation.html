@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traditional Linear Periodization: A Technical Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Merriweather:wght@300;400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fafaf9; /* stone-50 */
+            color: #292524; /* stone-800 */
+        }
+        
+        h1, h2, h3, h4 {
+            font-family: 'Merriweather', serif;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+            .chart-container-sm {
+                height: 300px;
+                max-width: 500px;
+            }
+        }
+
+        .tab-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .tab-btn.active {
+            border-bottom: 3px solid #0369a1; /* sky-700 */
+            color: #0369a1;
+            font-weight: 600;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #e7e5e4;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Chosen Palette: Warm Neutrals (Stone/Zinc) with Sky Blue (#0369a1), Emerald Green (#047857), and Amber (#d97706) accents. -->
+    
+    <!-- Application Structure Plan: 
+         The SPA uses a tabbed dashboard structure to break down complex sport science concepts into digestible segments. 
+         1. 'Model Overview': Establishes the baseline theory (Matveyev's model) with a macrocycle line chart.
+         2. 'The Shift (GPP to SPP)': Focuses purely on the physiological mechanism of Hypertrophy -> Max Strength using an interactive comparison toggle.
+         3. 'Phenotype Profiles': An interactive dashboard where users select an athlete type to dynamically update a radar chart and specific training phase metrics. This allows for direct, side-by-side mental modeling of different athletic needs.
+         4. 'Taper Mechanics': Explores the final peaking phase using a scatter/bubble chart to map Taper Duration vs Volume Reduction, providing quantitative visual comparisons.
+         This non-linear layout allows users to understand the macro theory first, then drill down into specific physiological shifts and real-world athlete applications without being overwhelmed by a wall of text. 
+    -->
+
+    <!-- Visualization & Content Choices: 
+         - Goal: Inform on Macro theory -> Line Chart (Volume vs Intensity) -> Shows the inverse relationship over time -> Chart.js (NO SVG).
+         - Goal: Organize physiological shifts -> Interactive HTML/Tailwind toggles -> Allows user to compare Hypertrophy vs Neural adaptations without clutter -> Vanilla JS.
+         - Goal: Compare Phenotypes -> Radar Chart -> Shows differing physiological demands (Aerobic, CNS, Power, etc.) for Runner, Swimmer, Sprinter -> Chart.js.
+         - Goal: Analyze Tapering -> Bar/Scatter Chart -> Visualizes the quantitative differences in taper duration and volume drop -> Chart.js.
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <nav class="bg-white border-b border-stone-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between h-auto md:h-16 py-4 md:py-0">
+                <div class="flex items-center justify-center md:justify-start">
+                    <span class="text-2xl mr-2 text-sky-700">&#9878;</span>
+                    <span class="font-bold text-xl tracking-tight">PeriodizationLab</span>
+                </div>
+                <div class="flex overflow-x-auto mt-4 md:mt-0 space-x-4 md:space-x-8 justify-start md:justify-end items-center px-2">
+                    <button onclick="switchTab('overview')" class="tab-btn active pb-2 whitespace-nowrap" id="tab-overview">1. Model Overview</button>
+                    <button onclick="switchTab('shift')" class="tab-btn pb-2 text-stone-500 hover:text-stone-800 whitespace-nowrap" id="tab-shift">2. GPP to SPP Shift</button>
+                    <button onclick="switchTab('phenotypes')" class="tab-btn pb-2 text-stone-500 hover:text-stone-800 whitespace-nowrap" id="tab-phenotypes">3. Phenotype Profiles</button>
+                    <button onclick="switchTab('taper')" class="tab-btn pb-2 text-stone-500 hover:text-stone-800 whitespace-nowrap" id="tab-taper">4. Taper Mechanics</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        
+        <div id="overview" class="fade-in">
+            <div class="mb-10 text-center max-w-3xl mx-auto">
+                <h1 class="text-3xl md:text-5xl font-bold text-stone-900 mb-4">Traditional Linear Periodization</h1>
+                <p class="text-lg text-stone-600 leading-relaxed">
+                    A technical analysis of the classic macrocycle structure. This section outlines the foundational principle: the inverse relationship between training volume and training intensity as an athlete progresses toward competition.
+                </p>
+            </div>
+
+            <div class="card p-6 md:p-8 mb-8">
+                <h2 class="text-2xl font-bold mb-6 text-center">The Matveyev Macrocycle Model</h2>
+                <div class="chart-container">
+                    <canvas id="macrocycleChart"></canvas>
+                </div>
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                    <div class="p-4 bg-stone-50 rounded-lg border border-stone-100">
+                        <h3 class="font-bold text-stone-800 mb-2 text-lg">&#9646; General Preparatory Phase (GPP)</h3>
+                        <p class="text-stone-600">High volume, low intensity. Focus on structural changes, tissue tolerance, and broad base conditioning. Hypertrophy and basic aerobic capacity are prioritized.</p>
+                    </div>
+                    <div class="p-4 bg-stone-50 rounded-lg border border-stone-100">
+                        <h3 class="font-bold text-stone-800 mb-2 text-lg">&#9646; Specific Preparatory Phase (SPP)</h3>
+                        <p class="text-stone-600">Volume drops, intensity rises. Training mimics the biomechanical and metabolic demands of the sport. Shift from morphological adaptation to neural optimization.</p>
+                    </div>
+                    <div class="p-4 bg-stone-50 rounded-lg border border-stone-100">
+                        <h3 class="font-bold text-stone-800 mb-2 text-lg">&#9646; Competition Phase (Peaking)</h3>
+                        <p class="text-stone-600">Volume drops drastically to dissipate fatigue (tapering), while intensity is maintained to keep the Central Nervous System (CNS) primed. Supercompensation occurs.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="shift" class="hidden fade-in">
+            <div class="mb-10 max-w-3xl mx-auto">
+                <h1 class="text-3xl md:text-5xl font-bold text-stone-900 mb-4 text-center">The Physiological Shift</h1>
+                <p class="text-lg text-stone-600 leading-relaxed text-center">
+                    The transition from GPP to SPP is defined by a shift from altering muscle morphology (Hypertrophy) to enhancing neural drive (Maximal Strength). Explore the distinct adaptations below.
+                </p>
+            </div>
+
+            <div class="card p-0 overflow-hidden mb-8">
+                <div class="flex border-b border-stone-200">
+                    <button onclick="toggleShift('hypertrophy')" id="btn-hypertrophy" class="flex-1 py-4 text-center font-bold text-lg bg-stone-100 text-stone-800 transition-colors">GPP: Hypertrophy & Structure</button>
+                    <button onclick="toggleShift('strength')" id="btn-strength" class="flex-1 py-4 text-center font-bold text-lg bg-white text-stone-400 hover:bg-stone-50 transition-colors">SPP: Maximal Strength & Neural</button>
+                </div>
+                
+                <div class="p-8">
+                    <div id="content-hypertrophy" class="block">
+                        <div class="flex items-center mb-6">
+                            <span class="text-4xl mr-4">&#128170;</span>
+                            <h2 class="text-2xl font-bold text-stone-800">Building the Engine</h2>
+                        </div>
+                        <p class="text-stone-600 mb-6 text-lg">
+                            During the GPP, the primary objective is structural adaptation. By utilizing higher volumes (e.g., 3-5 sets of 8-15 reps at 60-75% 1RM), the athlete increases the cross-sectional area (CSA) of the muscle fibers.
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <ul class="space-y-3">
+                                <li class="flex items-start"><span class="text-emerald-600 font-bold mr-2">&#10003;</span> <span class="text-stone-700"><strong>Myofibrillar Hypertrophy:</strong> Increase in contractile proteins (actin/myosin).</span></li>
+                                <li class="flex items-start"><span class="text-emerald-600 font-bold mr-2">&#10003;</span> <span class="text-stone-700"><strong>Connective Tissue:</strong> Strengthening of tendons and ligaments to handle future high loads.</span></li>
+                                <li class="flex items-start"><span class="text-emerald-600 font-bold mr-2">&#10003;</span> <span class="text-stone-700"><strong>Work Capacity:</strong> Enhanced ability to tolerate training stress and clear metabolites.</span></li>
+                            </ul>
+                            <div class="bg-stone-50 p-4 rounded border border-stone-200">
+                                <h4 class="font-bold mb-2 text-stone-800">Sport Science Core Insight:</h4>
+                                <p class="text-sm text-stone-600 italic">"Hypertrophy increases the theoretical ceiling for force production. A larger muscle has more contractile units, but without the subsequent SPP phase, the athlete cannot fully recruit them effectively in sport-specific movements."</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="content-strength" class="hidden">
+                        <div class="flex items-center mb-6">
+                            <span class="text-4xl mr-4">&#9889;</span>
+                            <h2 class="text-2xl font-bold text-stone-800">Tuning the Engine</h2>
+                        </div>
+                        <p class="text-stone-600 mb-6 text-lg">
+                            Entering the SPP, training shifts to high loads and low volumes (e.g., 3-5 sets of 1-5 reps at 85-100% 1RM). The focus moves from the muscle tissue itself to the Central Nervous System (CNS) governing it.
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <ul class="space-y-3">
+                                <li class="flex items-start"><span class="text-sky-600 font-bold mr-2">&#10003;</span> <span class="text-stone-700"><strong>Motor Unit Recruitment:</strong> Ability to activate high-threshold, fast-twitch motor units.</span></li>
+                                <li class="flex items-start"><span class="text-sky-600 font-bold mr-2">&#10003;</span> <span class="text-stone-700"><strong>Rate Coding:</strong> Increasing the frequency of neural impulses to the muscle, generating force faster (RFD).</span></li>
+                                <li class="flex items-start"><span class="text-sky-600 font-bold mr-2">&#10003;</span> <span class="text-stone-700"><strong>Inter-muscular Coordination:</strong> Optimizing the synergy between agonist and antagonist muscles during movement.</span></li>
+                            </ul>
+                            <div class="bg-stone-50 p-4 rounded border border-stone-200">
+                                <h4 class="font-bold mb-2 text-stone-800">Sport Science Core Insight:</h4>
+                                <p class="text-sm text-stone-600 italic">"Maximal strength is a neural phenomenon. By lifting heavy, the CNS 'learns' to access the new muscle tissue built in GPP, converting raw size into usable, sport-specific force and power."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="phenotypes" class="hidden fade-in">
+            <div class="mb-8 max-w-3xl mx-auto text-center">
+                <h1 class="text-3xl md:text-5xl font-bold text-stone-900 mb-4">Application Across Phenotypes</h1>
+                <p class="text-lg text-stone-600 leading-relaxed">
+                    Linear periodization is a framework, not a strict recipe. See how the transition from GPP to SPP is manipulated based on the distinct physiological demands of an Endurance Runner, a Middle-Distance Swimmer, and a Track Sprinter.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <button onclick="updateAthlete('endurance')" id="btn-endurance" class="px-6 py-3 rounded-full font-bold bg-sky-700 text-white shadow-md transition-transform transform hover:scale-105">Endurance Runner</button>
+                <button onclick="updateAthlete('swimmer')" id="btn-swimmer" class="px-6 py-3 rounded-full font-bold bg-stone-200 text-stone-700 hover:bg-stone-300 transition-transform transform hover:scale-105">Mid-Distance Swimmer</button>
+                <button onclick="updateAthlete('sprinter')" id="btn-sprinter" class="px-6 py-3 rounded-full font-bold bg-stone-200 text-stone-700 hover:bg-stone-300 transition-transform transform hover:scale-105">Track Sprinter</button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="card p-6 flex flex-col justify-center">
+                    <h2 id="athlete-title" class="text-2xl font-bold mb-2 text-sky-700">Endurance Runner (Marathon/10k)</h2>
+                    <p id="athlete-desc" class="text-stone-600 mb-6">Focuses on maximizing aerobic engine and tissue tolerance to repeated impact. Strength work is supplemental but critical for economy.</p>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-bold text-stone-800 border-b pb-1 mb-2 uppercase text-xs tracking-wider">GPP Focus</h4>
+                            <p id="athlete-gpp" class="text-sm text-stone-600">High mileage, low-intensity steady state (Zone 2). Gym work focuses on basic structural balance and core endurance to handle road volume.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-stone-800 border-b pb-1 mb-2 uppercase text-xs tracking-wider">SPP Focus</h4>
+                            <p id="athlete-spp" class="text-sm text-stone-600">Volume stabilizes, intensity shifts to Lactate Threshold and VO2 Max intervals. Gym work shifts to heavy, low-rep lower body lifts to increase running economy via tendon stiffness, without adding bulk.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card p-6 flex flex-col items-center justify-center">
+                    <h3 class="text-lg font-bold mb-4 text-center text-stone-800">Physiological Demand Profile</h3>
+                    <div class="chart-container chart-container-sm">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="taper" class="hidden fade-in">
+            <div class="mb-10 max-w-3xl mx-auto">
+                <h1 class="text-3xl md:text-5xl font-bold text-stone-900 mb-4 text-center">The Taper Mechanics</h1>
+                <p class="text-lg text-stone-600 leading-relaxed text-center">
+                    The competition phase requires a taper: a purposeful reduction in training load to dissipate fatigue while maintaining fitness. The duration and depth of this drop vary drastically by phenotype due to central vs. peripheral fatigue rates.
+                </p>
+            </div>
+
+            <div class="card p-6 md:p-8">
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                    <div class="lg:col-span-2 flex flex-col justify-center">
+                        <h2 class="text-2xl font-bold mb-4 text-stone-800">Why Phenotypes Taper Differently</h2>
+                        <ul class="space-y-4 text-stone-600 text-sm">
+                            <li><strong class="text-amber-600">&#9654; Track Sprinter:</strong> Generates massive Central Nervous System (CNS) fatigue. Neural recovery is slow. Requires a long taper (14-28 days) with a sharp drop in volume, maintaining very short, maximal intensity bursts.</li>
+                            <li><strong class="text-sky-600">&#9654; Mid-Distance Swimmer:</strong> Relies heavily on "feel for the water" and localized muscular power endurance. Taper is medium (10-21 days). Dropping volume too fast ruins their kinesthetic feel.</li>
+                            <li><strong class="text-emerald-600">&#9654; Endurance Runner:</strong> Fatigue is largely metabolic and muscular (peripheral). Recovery is relatively quick. A long taper leads to detraining of the aerobic enzymes. Short taper (7-14 days).</li>
+                        </ul>
+                    </div>
+                    <div class="lg:col-span-3">
+                        <div class="chart-container">
+                            <canvas id="taperChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Data State
+        const athleteData = {
+            endurance: {
+                title: "Endurance Runner (Marathon/10k)",
+                color: "#0369a1",
+                desc: "Focuses on maximizing the aerobic engine and tissue tolerance to repeated impact. Strength work is supplemental but critical for running economy.",
+                gpp: "High mileage, low-intensity steady state (Zone 2). Gym work focuses on basic structural balance, tissue tolerance, and core endurance to handle road volume.",
+                spp: "Volume stabilizes, intensity shifts to Lactate Threshold and VO2 Max intervals. Gym work shifts to heavy, low-rep lower body lifts to increase running economy via tendon stiffness, strictly without adding bulk.",
+                radar: [95, 40, 50, 30, 85, 20]
+            },
+            swimmer: {
+                title: "Mid-Distance Swimmer (200m/400m)",
+                color: "#0f766e",
+                desc: "Requires a complex mix of aerobic capacity, lactate tolerance, and upper body power. Highly dependent on aquatic mechanics and 'feel'.",
+                gpp: "High yardage pool sessions building general aerobic base. Gym work utilizes moderate rep ranges for upper body/lat hypertrophy to increase propulsive potential.",
+                spp: "Pool volume drops, focusing on race-pace intervals and lactate clearance. Gym shifts to specific power-endurance and maximal pull strength to maximize distance per stroke.",
+                radar: [70, 85, 75, 70, 60, 65]
+            },
+            sprinter: {
+                title: "Track Sprinter (100m/200m)",
+                color: "#b45309",
+                desc: "The ultimate expression of human power. Training is heavily biased towards neurological output, Rate of Force Development (RFD), and maximal velocity.",
+                gpp: "Gym-heavy phase focused on overall hypertrophy, structural balance (hamstring/glute architecture), and general acceleration mechanics on the track.",
+                spp: "Track work shifts to maximal velocity sprints (flying 30s) with long rest. Gym work moves entirely to maximal strength (>90% 1RM) and high-velocity plyometrics to peak RFD.",
+                radar: [20, 95, 100, 95, 30, 80]
+            }
+        };
+
+        let macroChartInstance = null;
+        let radarChartInstance = null;
+        let taperChartInstance = null;
+
+        // Navigation Logic
+        function switchTab(tabId) {
+            const tabs = ['overview', 'shift', 'phenotypes', 'taper'];
+            tabs.forEach(tab => {
+                document.getElementById(tab).classList.add('hidden');
+                document.getElementById('tab-' + tab).classList.remove('active', 'border-b', 'border-sky-700', 'text-sky-700', 'font-bold');
+                document.getElementById('tab-' + tab).classList.add('text-stone-500');
+            });
+
+            document.getElementById(tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('tab-' + tabId);
+            activeBtn.classList.remove('text-stone-500');
+            activeBtn.classList.add('active');
+
+            // Render charts if entering specific tabs
+            if(tabId === 'overview' && !macroChartInstance) initMacroChart();
+            if(tabId === 'phenotypes' && !radarChartInstance) initRadarChart();
+            if(tabId === 'taper' && !taperChartInstance) initTaperChart();
+        }
+
+        // Shift Toggle Logic
+        function toggleShift(type) {
+            const btnHyp = document.getElementById('btn-hypertrophy');
+            const btnStr = document.getElementById('btn-strength');
+            const contHyp = document.getElementById('content-hypertrophy');
+            const contStr = document.getElementById('content-strength');
+
+            if (type === 'hypertrophy') {
+                btnHyp.className = "flex-1 py-4 text-center font-bold text-lg bg-stone-100 text-stone-800 transition-colors";
+                btnStr.className = "flex-1 py-4 text-center font-bold text-lg bg-white text-stone-400 hover:bg-stone-50 transition-colors";
+                contHyp.classList.remove('hidden');
+                contStr.classList.add('hidden');
+            } else {
+                btnStr.className = "flex-1 py-4 text-center font-bold text-lg bg-stone-100 text-stone-800 transition-colors";
+                btnHyp.className = "flex-1 py-4 text-center font-bold text-lg bg-white text-stone-400 hover:bg-stone-50 transition-colors";
+                contStr.classList.remove('hidden');
+                contHyp.classList.add('hidden');
+            }
+        }
+
+        // Athlete Profile Logic
+        function updateAthlete(athleteType) {
+            // Update buttons styling
+            ['endurance', 'swimmer', 'sprinter'].forEach(type => {
+                const btn = document.getElementById('btn-' + type);
+                btn.className = "px-6 py-3 rounded-full font-bold bg-stone-200 text-stone-700 hover:bg-stone-300 transition-transform transform hover:scale-105";
+            });
+            
+            const activeBtn = document.getElementById('btn-' + athleteType);
+            const data = athleteData[athleteType];
+            
+            activeBtn.className = `px-6 py-3 rounded-full font-bold text-white shadow-md transition-transform transform hover:scale-105`;
+            activeBtn.style.backgroundColor = data.color;
+
+            // Update text content
+            document.getElementById('athlete-title').innerText = data.title;
+            document.getElementById('athlete-title').style.color = data.color;
+            document.getElementById('athlete-desc').innerText = data.desc;
+            document.getElementById('athlete-gpp').innerText = data.gpp;
+            document.getElementById('athlete-spp').innerText = data.spp;
+
+            // Update Radar Chart
+            if (radarChartInstance) {
+                radarChartInstance.data.datasets[0].data = data.radar;
+                radarChartInstance.data.datasets[0].backgroundColor = data.color + '40'; // 40 is hex for 25% opacity
+                radarChartInstance.data.datasets[0].borderColor = data.color;
+                radarChartInstance.data.datasets[0].pointBackgroundColor = data.color;
+                radarChartInstance.update();
+            }
+        }
+
+        // Chart.js Initializations
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#57534e'; // stone-500
+
+        function initMacroChart() {
+            const ctx = document.getElementById('macrocycleChart').getContext('2d');
+            macroChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mesocycle 1 (GPP)', 'Mesocycle 2 (GPP)', 'Mesocycle 3 (SPP)', 'Mesocycle 4 (SPP)', 'Competition (Taper)'],
+                    datasets: [
+                        {
+                            label: 'Training Volume',
+                            data: [90, 100, 70, 50, 20],
+                            borderColor: '#047857', // emerald-700
+                            backgroundColor: 'rgba(4, 120, 87, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Training Intensity / Specificity',
+                            data: [40, 50, 80, 95, 100],
+                            borderColor: '#0369a1', // sky-700
+                            backgroundColor: 'transparent',
+                            borderWidth: 3,
+                            borderDash: [5, 5],
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 110,
+                            title: { display: true, text: 'Relative % of Maximum' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initRadarChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: [
+                        ['Aerobic', 'Capacity'], 
+                        ['Anaerobic', 'Lactic'], 
+                        ['Maximal', 'Strength'], 
+                        ['Power /', 'RFD'], 
+                        ['Muscular', 'Endurance'], 
+                        ['Hypertrophy', '(Morphology)']
+                    ],
+                    datasets: [{
+                        label: 'Relative Importance (%)',
+                        data: athleteData.endurance.radar,
+                        backgroundColor: '#0369a140',
+                        borderColor: '#0369a1',
+                        pointBackgroundColor: '#0369a1',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#0369a1',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: '#e7e5e4' },
+                            grid: { color: '#e7e5e4' },
+                            pointLabels: {
+                                font: { size: 11, family: "'Inter', sans-serif" },
+                                color: '#292524'
+                            },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: (tooltipItems) => {
+                                    // Handle wrapped labels (array of strings)
+                                    return tooltipItems[0].label.replace(/,/g, ' ');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initTaperChart() {
+            const ctx = document.getElementById('taperChart').getContext('2d');
+            taperChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Endurance Runner', 'Mid-Distance Swimmer', 'Track Sprinter'],
+                    datasets: [
+                        {
+                            label: 'Avg Taper Duration (Days)',
+                            data: [10, 18, 24],
+                            backgroundColor: ['#0369a1', '#0f766e', '#b45309'],
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Volume Reduction (%)',
+                            type: 'line',
+                            data: [50, 30, 70],
+                            borderColor: '#292524',
+                            backgroundColor: '#292524',
+                            borderWidth: 3,
+                            pointRadius: 6,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y + (context.datasetIndex === 1 ? '%' : ' Days');
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Duration (Days)' },
+                            beginAtZero: true,
+                            max: 30
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Volume Drop (%)' },
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize first view
+        window.onload = () => {
+            initMacroChart();
+        };
+
+    </script>
+</body>
+</html>

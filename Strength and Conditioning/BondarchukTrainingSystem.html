@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bondarchuk Training System: Transfer & Peaking Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 450px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        body {
+            background-color: #fcfbf9;
+            color: #292524;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals (Stone/Amber) - Background: #fcfbf9, Text: #292524 (Stone 800), Accents: #d97706 (Amber 600) / #78716c (Stone 500) -->
+    <!-- Application Structure Plan: The SPA is structured sequentially to build the user's understanding of Bondarchuk's complex methodology. 
+         1. Introduction sets the context. 
+         2. Exercise Classification Matrix (Interactive Cards) defines the foundational vocabulary (GPE, SPE, SDE, CE). 
+         3. Physical Training Resonance (Bar Chart) explains how these classifications interact. 
+         4. Peaking Strategies (Interactive Line Chart with Tabs) contrasts Bondarchuk's 'Complex' method with traditional 'Sequential' models. 
+         5. The Response Curve (Line Chart) visualizes the core monitoring process for determining form. 
+         6. Long-Term Delayed Training Effect (Line Chart) shows post-block adaptation. 
+         This linear narrative with interactive nodes prevents cognitive overload while explaining highly technical sports science concepts. -->
+    <!-- Visualization & Content Choices: 
+         - Matrix: Goal: Define terms. Viz: Clickable Grid. Interaction: Selection reveals details. Justification: Chunking information makes abstract concepts digestible.
+         - Resonance: Goal: Show synergy. Viz: Bar Chart (Chart.js). Interaction: Hover tooltips. Justification: Visually demonstrates that combined effect > sum of parts. NO SVG.
+         - Peaking (Complex vs Sequential): Goal: Compare methodologies. Viz: Line Chart with Tab Toggle. Interaction: Switching datasets. Justification: Clearly contrasts the overlapping vs linear progression of physiological qualities over time. NO SVG.
+         - Response Curve: Goal: Visualize athlete monitoring. Viz: Line Chart tracking performance over days. Interaction: Tooltips highlighting phases (Dip, Rise, Plateau). Justification: Crucial for understanding *when* peak form occurs based on daily data. NO SVG.
+         - LDTE: Goal: Show delayed adaptation. Viz: Line chart crossing block boundaries. Interaction: Hover. Justification: Illustrates the residual effects of training after volume drops. NO SVG. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All charts are Canvas via Chart.js. Icons are HTML/CSS entities. -->
+</head>
+<body class="antialiased selection:bg-amber-200 selection:text-amber-900">
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        <header class="mb-16 border-b border-stone-200 pb-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-stone-900 mb-4">Anatoliy Bondarchuk’s System</h1>
+            <p class="text-xl text-stone-600 max-w-3xl mx-auto">A technical analysis of exercise classification, physical training resonance, and the predictable management of athletic peak form through continuous monitoring.</p>
+        </header>
+
+        <section class="mb-20">
+            <h2 class="text-3xl font-bold text-stone-800 mb-6 flex items-center">
+                <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-md text-sm mr-4">01</span>
+                The Exercise Classification Matrix
+            </h2>
+            <p class="text-lg text-stone-600 mb-8 leading-relaxed">
+                The foundation of Bondarchuk’s approach to the "transfer of training" relies on strictly categorizing exercises based on their mechanical and physiological similarity to the competitive event. Unlike traditional models that view general strength as universally beneficial, this system prioritizes exercises with the highest direct transfer coefficient to competition results. Select a category below to explore its technical definition.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="matrix-container">
+                <button class="matrix-btn bg-white border-2 border-stone-200 p-6 rounded-xl text-left hover:border-amber-500 hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500" data-category="gpe">
+                    <h3 class="font-bold text-xl text-stone-800 mb-2">GPE</h3>
+                    <p class="text-sm text-stone-500">General Preparatory</p>
+                </button>
+                <button class="matrix-btn bg-white border-2 border-stone-200 p-6 rounded-xl text-left hover:border-amber-500 hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500" data-category="spe">
+                    <h3 class="font-bold text-xl text-stone-800 mb-2">SPE</h3>
+                    <p class="text-sm text-stone-500">Special Preparatory</p>
+                </button>
+                <button class="matrix-btn bg-white border-2 border-stone-200 p-6 rounded-xl text-left hover:border-amber-500 hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500" data-category="sde">
+                    <h3 class="font-bold text-xl text-stone-800 mb-2">SDE</h3>
+                    <p class="text-sm text-stone-500">Special Developmental</p>
+                </button>
+                <button class="matrix-btn bg-white border-2 border-stone-200 p-6 rounded-xl text-left hover:border-amber-500 hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500" data-category="ce">
+                    <h3 class="font-bold text-xl text-stone-800 mb-2">CE</h3>
+                    <p class="text-sm text-stone-500">Competitive Exercise</p>
+                </button>
+            </div>
+
+            <div id="matrix-details" class="bg-stone-50 rounded-xl p-8 border border-stone-200 hidden">
+                <h4 id="detail-title" class="text-2xl font-bold text-amber-700 mb-3"></h4>
+                <p id="detail-desc" class="text-stone-700 mb-4 leading-relaxed"></p>
+                <div class="flex flex-col sm:flex-row gap-4 mt-6 pt-6 border-t border-stone-200">
+                    <div class="flex-1">
+                        <span class="block text-xs uppercase tracking-wider text-stone-500 font-semibold mb-1">Transfer Coefficient</span>
+                        <span id="detail-transfer" class="font-mono text-lg text-stone-800 font-medium"></span>
+                    </div>
+                    <div class="flex-1">
+                        <span class="block text-xs uppercase tracking-wider text-stone-500 font-semibold mb-1">Practical Example (Throws)</span>
+                        <span id="detail-example" class="text-stone-800"></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-20">
+            <h2 class="text-3xl font-bold text-stone-800 mb-6 flex items-center">
+                <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-md text-sm mr-4">02</span>
+                Physical Training Resonance
+            </h2>
+            <div class="flex flex-col lg:flex-row gap-12 items-center">
+                <div class="lg:w-1/2">
+                    <p class="text-lg text-stone-600 mb-6 leading-relaxed">
+                        Bondarchuk argues that human adaptation is not purely additive. When specific exercises from different classifications are combined within a training session or block, they can create a "Physical Training Resonance."
+                    </p>
+                    <p class="text-lg text-stone-600 leading-relaxed">
+                        This resonance implies that the central nervous system integrates the localized stimuli (e.g., strength from an SPE, specific speed from an SDE) to produce a combined effect on the competitive exercise that is greater than the sum of its parts. It is the harmonious interaction of localized adaptations driving global performance.
+                    </p>
+                </div>
+                <div class="lg:w-1/2 w-full">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-100">
+                        <div class="chart-container">
+                            <canvas id="resonanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-20">
+            <h2 class="text-3xl font-bold text-stone-800 mb-6 flex items-center">
+                <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-md text-sm mr-4">03</span>
+                Peaking Strategies: Complex vs. Sequential
+            </h2>
+            <p class="text-lg text-stone-600 mb-8 leading-relaxed">
+                Traditional periodization often utilizes a <strong>Sequential</strong> approach (block periodization), where physiological qualities (Hypertrophy, Max Strength, Power) are trained linearly in separate phases. Bondarchuk utilizes a <strong>Complex</strong> approach, developing all targeted physiological abilities simultaneously within the same training session and block, maintaining the same exercises until adaptation is exhausted.
+            </p>
+
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 md:p-8">
+                <div class="flex justify-center mb-6 border-b border-stone-200">
+                    <button id="btn-complex" class="px-6 py-3 font-semibold text-amber-600 border-b-2 border-amber-500 focus:outline-none transition-colors">Complex (Bondarchuk)</button>
+                    <button id="btn-sequential" class="px-6 py-3 font-semibold text-stone-500 border-b-2 border-transparent hover:text-stone-700 focus:outline-none transition-colors">Sequential (Traditional)</button>
+                </div>
+                
+                <div class="mb-6 text-center text-sm text-stone-500 h-12" id="peaking-description">
+                    All physiological targets (Speed, Strength, Technique) are stimulated simultaneously in every session. The athlete adapts to the entire complex of stimuli at once.
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="peakingChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-20">
+            <h2 class="text-3xl font-bold text-stone-800 mb-6 flex items-center">
+                <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-md text-sm mr-4">04</span>
+                Monitoring the Individual Response Curve
+            </h2>
+            <p class="text-lg text-stone-600 mb-8 leading-relaxed">
+                Because Bondarchuk's complex blocks maintain the exact same exercises and structure every session, the only variable is the athlete's physiological state. By measuring the <strong>Competitive Exercise (CE)</strong> or a primary <strong>SDE</strong> every single session, the coach can plot the individual's "Response Curve." Peak form is not predicted by a calendar; it is observed in real-time. When the curve plateaus at a new high, adaptation is complete, and the exercise complex must change.
+            </p>
+
+            <div class="bg-stone-900 rounded-xl shadow-lg p-6 md:p-8 text-stone-100">
+                <h3 class="text-xl font-bold mb-2 text-stone-100">Simulated Training Block Data</h3>
+                <p class="text-stone-400 text-sm mb-6">Tracking daily throwing distance over a 6-week invariant training complex.</p>
+                <div class="chart-container">
+                    <canvas id="responseCurveChart"></canvas>
+                </div>
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div class="bg-stone-800 p-4 rounded-lg border border-stone-700">
+                        <span class="block text-amber-500 font-bold mb-1">1. Initial Dip (Fatigue)</span>
+                        As the new complex is introduced, systemic fatigue masks fitness. Performance drops initially.
+                    </div>
+                    <div class="bg-stone-800 p-4 rounded-lg border border-stone-700">
+                        <span class="block text-amber-500 font-bold mb-1">2. Adaptation Phase</span>
+                        The central nervous system and musculature adapt to the specific stimuli. Performance steadily climbs.
+                    </div>
+                    <div class="bg-stone-800 p-4 rounded-lg border border-stone-700">
+                        <span class="block text-amber-500 font-bold mb-1">3. Peak & Plateau</span>
+                        The athlete reaches a state of high sport form. Further repetition of this complex yields no further gains.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-12">
+            <h2 class="text-3xl font-bold text-stone-800 mb-6 flex items-center">
+                <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-md text-sm mr-4">05</span>
+                Long-Term Delayed Training Effect (LDTE)
+            </h2>
+            <div class="flex flex-col lg:flex-row-reverse gap-12 items-center">
+                <div class="lg:w-1/2">
+                    <p class="text-lg text-stone-600 mb-6 leading-relaxed">
+                        What happens when the athlete reaches peak form and the training complex is changed or volume is significantly reduced? Bondarchuk noted the phenomenon of the Long-Term Delayed Training Effect.
+                    </p>
+                    <p class="text-lg text-stone-600 leading-relaxed">
+                        Due to the removal of residual fatigue from the previous block, the functional capabilities developed do not disappear immediately. Instead, they often result in an even higher peak (supercompensation) occurring 2 to 4 weeks after the conclusion of the heavy developmental block. This requires precise timing relative to major competitions.
+                    </p>
+                </div>
+                <div class="lg:w-1/2 w-full">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-100">
+                        <div class="chart-container">
+                            <canvas id="ldteChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const matrixData = {
+                gpe: {
+                    title: "General Preparatory Exercises (GPE)",
+                    desc: "Exercises that utilize different muscle groups and different energy systems compared to the competitive event. They do not replicate the neuromuscular coordination of the sport. While vital for beginners to build work capacity, elite athletes often see zero or even negative transfer from GPE to competitive results.",
+                    transfer: "Very Low / Zero (for elites)",
+                    example: "A shot putter running a 5km cross-country, or performing bicep curls."
+                },
+                spe: {
+                    title: "Special Preparatory Exercises (SPE)",
+                    desc: "Exercises that target the identical muscle groups and physiological systems used in competition, but utilize different structural movements. These are typically localized strength or power exercises that build the 'engine' without perfectly mimicking the specific skill.",
+                    transfer: "Medium / Indirect",
+                    example: "Barbell Back Squat or Bench Press for a thrower."
+                },
+                sde: {
+                    title: "Special Developmental Exercises (SDE)",
+                    desc: "Exercises that share the same muscle groups, identical physiological systems, and replicate parts or the entirety of the competitive movement structure. These exercises directly develop specific coordination alongside power.",
+                    transfer: "High / Direct",
+                    example: "Throwing an implement that is slightly heavier or lighter than competition weight."
+                },
+                ce: {
+                    title: "Competitive Exercises (CE)",
+                    desc: "The execution of the actual sport event itself, adhering strictly to competition rules. This represents the ultimate integration of all physical, technical, and psychological preparation.",
+                    transfer: "1.0 (The standard)",
+                    example: "Throwing the exact competition-weight implement from the official circle."
+                }
+            };
+
+            const matrixBtns = document.querySelectorAll('.matrix-btn');
+            const detailsContainer = document.getElementById('matrix-details');
+            const titleEl = document.getElementById('detail-title');
+            const descEl = document.getElementById('detail-desc');
+            const transferEl = document.getElementById('detail-transfer');
+            const exampleEl = document.getElementById('detail-example');
+
+            matrixBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    matrixBtns.forEach(b => {
+                        b.classList.remove('border-amber-500', 'bg-amber-50');
+                        b.classList.add('border-stone-200', 'bg-white');
+                    });
+                    btn.classList.remove('border-stone-200', 'bg-white');
+                    btn.classList.add('border-amber-500', 'bg-amber-50');
+
+                    const category = btn.getAttribute('data-category');
+                    const data = matrixData[category];
+
+                    titleEl.textContent = data.title;
+                    descEl.textContent = data.desc;
+                    transferEl.textContent = data.transfer;
+                    exampleEl.textContent = data.example;
+
+                    detailsContainer.classList.remove('hidden');
+                    
+                    detailsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                });
+            });
+
+            Chart.defaults.font.family = 'ui-sans-serif, system-ui, sans-serif';
+            Chart.defaults.color = '#78716c'; 
+            Chart.defaults.scale.grid.color = '#f5f5f4';
+
+            const ctxRes = document.getElementById('resonanceChart').getContext('2d');
+            new Chart(ctxRes, {
+                type: 'bar',
+                data: {
+                    labels: ['SDE Benefit', 'SPE Benefit', 'Expected Sum (Linear)', 'Actual Result (Resonance)'],
+                    datasets: [{
+                        label: 'Adaptation Magnitude',
+                        data: [4, 3, 7, 9.5], 
+                        backgroundColor: [
+                            'rgba(120, 113, 108, 0.6)', 
+                            'rgba(120, 113, 108, 0.6)', 
+                            'rgba(217, 119, 6, 0.3)',   
+                            'rgba(217, 119, 6, 0.9)'    
+                        ],
+                        borderColor: [
+                            'rgb(120, 113, 108)',
+                            'rgb(120, 113, 108)',
+                            'rgb(217, 119, 6)',
+                            'rgb(217, 119, 6)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if(context.dataIndex === 3) return "Synergistic effect via CNS integration";
+                                    return context.parsed.y + " units";
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, display: false },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            const peakingDataComplex = {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
+                datasets: [
+                    { label: 'Max Strength Focus', data: [7, 7, 7, 8, 8, 8], borderColor: '#1c1917', backgroundColor: 'transparent', tension: 0.4, borderWidth: 3 },
+                    { label: 'Specific Speed Focus', data: [6, 6, 7, 7, 8, 9], borderColor: '#d97706', backgroundColor: 'transparent', tension: 0.4, borderWidth: 3 },
+                    { label: 'Technique Work', data: [8, 8, 8, 8, 8, 8], borderColor: '#a8a29e', borderDash: [5, 5], backgroundColor: 'transparent', tension: 0, borderWidth: 2 }
+                ]
+            };
+
+            const peakingDataSequential = {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
+                datasets: [
+                    { label: 'Max Strength Phase', data: [9, 9, 3, 2, 1, 1], borderColor: '#1c1917', backgroundColor: 'transparent', tension: 0.4, borderWidth: 3 },
+                    { label: 'Specific Speed Phase', data: [2, 2, 8, 9, 3, 2], borderColor: '#d97706', backgroundColor: 'transparent', tension: 0.4, borderWidth: 3 },
+                    { label: 'Peaking/Tech Phase', data: [1, 1, 2, 3, 9, 10], borderColor: '#a8a29e', borderDash: [5, 5], backgroundColor: 'transparent', tension: 0.4, borderWidth: 2 }
+                ]
+            };
+
+            const ctxPeak = document.getElementById('peakingChart').getContext('2d');
+            let peakingChart = new Chart(ctxPeak, {
+                type: 'line',
+                data: peakingDataComplex,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, max: 11, title: { display: true, text: 'Training Volume/Intensity' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            const btnComplex = document.getElementById('btn-complex');
+            const btnSequential = document.getElementById('btn-sequential');
+            const descPeaking = document.getElementById('peaking-description');
+
+            btnComplex.addEventListener('click', () => {
+                peakingChart.data = peakingDataComplex;
+                peakingChart.update();
+                btnComplex.className = "px-6 py-3 font-semibold text-amber-600 border-b-2 border-amber-500 focus:outline-none transition-colors";
+                btnSequential.className = "px-6 py-3 font-semibold text-stone-500 border-b-2 border-transparent hover:text-stone-700 focus:outline-none transition-colors";
+                descPeaking.textContent = "All physiological targets (Speed, Strength, Technique) are stimulated simultaneously in every session. The athlete adapts to the entire complex of stimuli at once.";
+            });
+
+            btnSequential.addEventListener('click', () => {
+                peakingChart.data = peakingDataSequential;
+                peakingChart.update();
+                btnSequential.className = "px-6 py-3 font-semibold text-amber-600 border-b-2 border-amber-500 focus:outline-none transition-colors";
+                btnComplex.className = "px-6 py-3 font-semibold text-stone-500 border-b-2 border-transparent hover:text-stone-700 focus:outline-none transition-colors";
+                descPeaking.textContent = "Qualities are trained in distinct blocks (Accumulation, Transmutation, Realization). Strength is built, then converted to power, then refined for technique.";
+            });
+
+            const ctxCurve = document.getElementById('responseCurveChart').getContext('2d');
+            
+            Chart.defaults.color = '#a8a29e'; 
+            Chart.defaults.scale.grid.color = '#44403c'; 
+
+            new Chart(ctxCurve, {
+                type: 'line',
+                data: {
+                    labels: ['D1', 'D4', 'D8', 'D12', 'D16', 'D20', 'D24', 'D28', 'D32', 'D36', 'D40'],
+                    datasets: [{
+                        label: 'Daily CE Result (Meters)',
+                        data: [72.5, 71.0, 70.2, 71.5, 72.8, 73.5, 74.2, 74.8, 75.1, 75.0, 75.2],
+                        borderColor: '#fbbf24', 
+                        backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointRadius: 4,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + "m";
+                                }
+                            }
+                        },
+                        annotation: { 
+                        }
+                    },
+                    scales: {
+                        y: { min: 68, max: 77, grid: { color: '#44403c' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            Chart.defaults.color = '#78716c'; 
+            Chart.defaults.scale.grid.color = '#f5f5f4';
+
+            const ctxLdte = document.getElementById('ldteChart').getContext('2d');
+            new Chart(ctxLdte, {
+                type: 'line',
+                data: {
+                    labels: ['Start Block', 'Mid Block', 'End Block', 'Week 1 Post', 'Week 2 Post', 'Week 3 Post'],
+                    datasets: [{
+                        label: 'Performance Level',
+                        data: [100, 95, 105, 103, 110, 108],
+                        borderColor: '#292524',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#d97706',
+                        pointRadius: 5,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    if(context[0].label === 'Week 2 Post') return 'Supercompensation Peak';
+                                    return context[0].label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { display: false },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

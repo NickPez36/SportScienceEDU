@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Triphasic Training for Elite Sprinters</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Warm Neutrals with Athletic Accents (Slate, Stone, Rose, Blue) -->
+    <!-- Application Structure Plan: The SPA is structured as a vertical, single-page interactive report. It moves logically from theory (Neurology & GTO/SSC) to applied biomechanics (Force-Time 'V-Shape' & Load Brackets) and finally to practical application (6-Week Macrocycle). Interactive tabs in the neurology section prevent text overload, while a dynamic Chart.js graph illustrates the 'V-shape' concept. The macrocycle uses a clickable grid to reveal detailed week-by-week programming without overwhelming the user on first load. This architecture is designed for progressive disclosure, ideal for dense sports science data. -->
+    <!-- Visualization & Content Choices: 
+         1. Neurology (Goal: Inform on GTO/SSC) -> Interactive Tabs (HTML/CSS/JS) -> Allows focused reading on Eccentric vs Isometric without clutter. 
+         2. Dynamic V-Shape & Intensity (Goal: Compare & Visualize) -> Line Chart (Chart.js) -> Best shows the Force-Time dip (the 'V') and how training flattens it. 
+         3. Macrocycle (Goal: Organize & Apply) -> Interactive Grid Panel (HTML/JS) -> Translates theory into an actionable 6-week schedule. 
+         CONFIRMING: NO SVG used. NO Mermaid JS used. All visual elements are Canvas or CSS-based. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #1e293b; /* slate-800 */
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 50vh;
+            max-height: 450px;
+            min-height: 300px;
+        }
+
+        .phase-indicator {
+            transition: all 0.3s ease;
+        }
+
+        .active-tab {
+            border-bottom: 4px solid #e11d48; /* rose-600 */
+            color: #e11d48;
+            font-weight: 700;
+        }
+
+        .macro-card.active {
+            border-color: #0f172a; /* slate-900 */
+            background-color: #f1f5f9; /* slate-100 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .signal-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-rose-200 selection:text-rose-900">
+
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center font-bold text-xl text-slate-900 tracking-tight">
+                    <span class="text-rose-600 mr-2">&#9650;</span> Triphasic Sprint System
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#neurology" class="text-slate-600 hover:text-rose-600 font-medium transition-colors">Neurology</a>
+                    <a href="#biomechanics" class="text-slate-600 hover:text-rose-600 font-medium transition-colors">The V-Shape</a>
+                    <a href="#macrocycle" class="text-slate-600 hover:text-rose-600 font-medium transition-colors">Macrocycle</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="pt-20 pb-16 bg-slate-900 text-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-rose-400 via-slate-900 to-slate-900"></div>
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Optimizing the Sprint Engine</h1>
+            <p class="text-xl md:text-2xl text-slate-300 max-w-3xl mb-8">A pedagogical breakdown of Cal Dietz’s Triphasic Training model applied to the elite sprinting population. Master force absorption, neurological inhibition, and high-velocity realization.</p>
+            <div class="flex flex-wrap gap-4">
+                <a href="#neurology" class="bg-rose-600 hover:bg-rose-500 text-white px-6 py-3 rounded-md font-semibold transition-colors shadow-lg shadow-rose-600/30">Explore the Science</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <section id="neurology" class="scroll-mt-24">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">1. Neurological Demands & Tissue Prep</h2>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    This section breaks down the foundational blocks of Triphasic Training: the Eccentric and Isometric phases. For elite sprinters, top speed isn't just about pushing hard; it's about the nervous system's ability to absorb massive ground reaction forces rapidly without shutting down, and instantly converting that energy into forward propulsion via the Stretch-Shortening Cycle (SSC).
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="flex border-b border-slate-200">
+                    <button id="btn-eccentric" class="flex-1 py-4 text-center font-semibold text-lg hover:bg-slate-50 transition-colors active-tab" onclick="switchPhase('eccentric')">Eccentric Block (Yielding)</button>
+                    <button id="btn-isometric" class="flex-1 py-4 text-center font-semibold text-lg text-slate-500 hover:bg-slate-50 transition-colors" onclick="switchPhase('isometric')">Isometric Block (Amortization)</button>
+                </div>
+                
+                <div class="p-8 md:p-12" id="phase-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <h3 id="phase-title" class="text-2xl font-bold text-blue-800 mb-4">The Eccentric Phase: Desensitizing the Governor</h3>
+                            <p id="phase-desc" class="text-slate-700 mb-6 leading-relaxed">
+                                In sprinting, every foot strike introduces up to 5x body weight in force in under 100 milliseconds. The body's natural defense mechanism is the <strong>Golgi Tendon Organ (GTO)</strong>, which detects extreme tension and reflexively shuts down muscle activation to prevent tearing. <br><br> Heavy eccentric loading (supramaximal loads lowered slowly) deliberately overloads this system. By surviving these extreme tensions, the GTO becomes <em>desensitized</em> or <em>inhibited</em>. The "governor" is removed, allowing the sprinter to safely absorb higher forces at top speed without the nervous system applying the brakes.
+                            </p>
+                            <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                <h4 class="font-semibold text-slate-900 mb-2">Key Sprinting Benefit:</h4>
+                                <p id="phase-benefit" class="text-sm text-slate-600">Greater braking force tolerance allows for shorter ground contact times. The muscle can act as a stiffer spring.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-center items-center h-64 bg-slate-100 rounded-xl p-4 relative overflow-hidden border border-slate-200">
+                            <div id="visual-ecc" class="w-full h-full flex flex-col justify-center items-center relative">
+                                <div class="text-xs font-bold text-slate-400 absolute top-2 left-2 uppercase tracking-widest">Nervous System Model</div>
+                                <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold mb-4 z-10 shadow-lg">Load</div>
+                                <div class="w-2 h-24 bg-blue-400 relative">
+                                    <div class="absolute inset-0 bg-blue-600 scale-y-0 origin-top transition-transform duration-1000 ease-in-out" id="anim-tension"></div>
+                                </div>
+                                <div class="w-32 h-12 border-4 border-slate-400 rounded-lg flex items-center justify-center mt-2 relative z-10 bg-white">
+                                    <span class="font-bold text-slate-600" id="gto-text">GTO Active</span>
+                                </div>
+                                <div class="absolute top-1/2 left-1/4 w-4 h-4 rounded-full bg-red-500 signal-pulse hidden" id="inhibition-signal"></div>
+                            </div>
+
+                            <div id="visual-iso" class="w-full h-full flex flex-col justify-center items-center relative hidden">
+                                <div class="text-xs font-bold text-slate-400 absolute top-2 left-2 uppercase tracking-widest">Motor Unit Firing</div>
+                                <div class="flex items-end gap-2 h-24 mb-4">
+                                    <div class="w-4 bg-slate-300 rounded-t-sm h-1/4 transition-all duration-300"></div>
+                                    <div class="w-4 bg-slate-400 rounded-t-sm h-2/4 transition-all duration-300"></div>
+                                    <div class="w-4 bg-slate-500 rounded-t-sm h-3/4 transition-all duration-300"></div>
+                                    <div class="w-4 bg-slate-600 rounded-t-sm h-full transition-all duration-300 shadow-[0_0_15px_rgba(71,85,105,0.8)]"></div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="font-bold text-slate-800">Maximal Intent</div>
+                                    <div class="text-xs text-slate-500">Rapid Recruitment</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="w-full h-px bg-slate-200 my-8"></div>
+
+        <section id="biomechanics" class="scroll-mt-24">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">2. The Dynamic 'V' Shape & Intensity Brackets</h2>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    This section visualizes the ultimate goal of Triphasic Training: altering the Force-Time curve of a ground contact (the "V-shape"). It also explains how manipulating intensity brackets (Above 80% vs Below 80% 1RM) achieves this by shifting different areas of the Force-Velocity continuum.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Force-Time Curve: The Stretch-Shortening Dip</h3>
+                    <p class="text-sm text-slate-500 mb-6">The graph illustrates the amortization phase (ground contact). The goal is to make the 'V' narrower (less time on ground) and shallower (less force lost during transition).</p>
+                    
+                    <div class="chart-container">
+                        <canvas id="vShapeChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-slate-900 text-white p-6 rounded-xl shadow-md border-t-4 border-rose-600">
+                        <h4 class="text-2xl font-bold mb-3">Above 80% (High Load)</h4>
+                        <ul class="space-y-3 text-sm text-slate-300">
+                            <li class="flex items-start"><span class="text-rose-500 mr-2 font-bold">&#10003;</span> <strong class="text-white mr-1">Goal:</strong> Intramuscular coordination and maximal motor unit recruitment.</li>
+                            <li class="flex items-start"><span class="text-rose-500 mr-2 font-bold">&#10003;</span> <strong class="text-white mr-1">Effect:</strong> Raises the absolute ceiling of force generation. Crucial for desensitizing GTO during the Eccentric block.</li>
+                            <li class="flex items-start"><span class="text-rose-500 mr-2 font-bold">&#10003;</span> <strong class="text-white mr-1">Application:</strong> Heavy back squats, RDLs. Low reps, high tension.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-t-4 border-blue-500">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-3">Below 80% (High Velocity)</h4>
+                        <ul class="space-y-3 text-sm text-slate-600">
+                            <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">&#10003;</span> <strong class="text-slate-900 mr-1">Goal:</strong> Rate of Force Development (RFD) and high-velocity realization.</li>
+                            <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">&#10003;</span> <strong class="text-slate-900 mr-1">Effect:</strong> Shifts the curve leftward (faster). Narrows the 'V' shape, teaching the CNS to fire rapidly.</li>
+                            <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">&#10003;</span> <strong class="text-slate-900 mr-1">Application:</strong> French contrast, accelerated jumps, weighted sprint bounds.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="w-full h-px bg-slate-200 my-8"></div>
+
+        <section id="macrocycle" class="scroll-mt-24 mb-20">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">3. The 6-Week Sprinter Macrocycle</h2>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    This interactive matrix outlines a specialized 6-week peaking block. It transitions the athlete from strict morphological alterations (tissue preparation) to high-neurological output and sports-specific velocity realization. Click on any block to view programming details.
+                </p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                
+                <div class="w-full lg:w-1/3 space-y-3">
+                    <button class="w-full text-left macro-card active p-4 rounded-lg border border-slate-200 hover:border-slate-400 transition-all" onclick="showWeek(0, this)">
+                        <div class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Weeks 1-2</div>
+                        <div class="font-bold text-lg text-slate-900">Eccentric Block</div>
+                        <div class="text-sm text-slate-500">Tissue prep & GTO Inhibition</div>
+                    </button>
+                    <button class="w-full text-left macro-card p-4 rounded-lg border border-slate-200 hover:border-slate-400 transition-all" onclick="showWeek(1, this)">
+                        <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Weeks 3-4</div>
+                        <div class="font-bold text-lg text-slate-900">Isometric Block</div>
+                        <div class="text-sm text-slate-500">SSC Enhancement & Motor Unit Firing</div>
+                    </button>
+                    <button class="w-full text-left macro-card p-4 rounded-lg border border-slate-200 hover:border-slate-400 transition-all" onclick="showWeek(2, this)">
+                        <div class="text-xs font-bold text-rose-600 uppercase tracking-wider mb-1">Weeks 5-6</div>
+                        <div class="font-bold text-lg text-slate-900">Reactive / Velocity Block</div>
+                        <div class="text-sm text-slate-500">Peaking & High-Velocity Realization</div>
+                    </button>
+                </div>
+
+                <div class="w-full lg:w-2/3 bg-white p-6 md:p-8 rounded-xl shadow-md border border-slate-200 min-h-[400px]" id="macro-detail-panel">
+                    
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-8 text-center text-sm">
+        <div class="max-w-6xl mx-auto px-4">
+            <p>&copy; 2026 Sports Science & Performance Analytics. Educational Demonstration.</p>
+            <p class="mt-2 text-slate-600">Based on principles by Cal Dietz. Designed for interactive pedagogical use.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- 1. Neurology Section Logic ---
+        const phaseData = {
+            eccentric: {
+                title: "The Eccentric Phase: Desensitizing the Governor",
+                color: "text-blue-800",
+                desc: "In sprinting, every foot strike introduces up to 5x body weight in force in under 100 milliseconds. The body's natural defense mechanism is the <strong>Golgi Tendon Organ (GTO)</strong>, which detects extreme tension and reflexively shuts down muscle activation to prevent tearing. <br><br> Heavy eccentric loading (supramaximal loads lowered slowly over 4-6 seconds) deliberately overloads this system. By surviving these extreme tensions, the GTO becomes <em>desensitized</em> or <em>inhibited</em>. The 'governor' is removed, allowing the sprinter to safely absorb higher forces at top speed without the nervous system applying the brakes.",
+                benefit: "Greater braking force tolerance allows for shorter ground contact times. The muscle can act as a stiffer spring.",
+                animTrigger: () => {
+                    document.getElementById('visual-ecc').classList.remove('hidden');
+                    document.getElementById('visual-iso').classList.add('hidden');
+                    
+                    const tension = document.getElementById('anim-tension');
+                    const gto = document.getElementById('gto-text');
+                    const sig = document.getElementById('inhibition-signal');
+                    
+                    tension.style.transform = 'scaleY(0)';
+                    gto.innerText = 'GTO Active';
+                    gto.classList.remove('text-red-500');
+                    gto.classList.add('text-slate-600');
+                    sig.classList.add('hidden');
+
+                    setTimeout(() => {
+                        tension.style.transform = 'scaleY(1)';
+                        setTimeout(() => {
+                            gto.innerText = 'GTO Inhibited';
+                            gto.classList.remove('text-slate-600');
+                            gto.classList.add('text-red-500');
+                            sig.classList.remove('hidden');
+                        }, 1000);
+                    }, 100);
+                }
+            },
+            isometric: {
+                title: "The Isometric Phase: The Amortization Engine",
+                color: "text-slate-800",
+                desc: "The amortization phase is the brief moment between yielding (eccentric) and overcoming (concentric) force. It is the bottom of the 'V' on a force-time graph. <br><br> Isometric training teaches the nervous system to instantly recruit the highest threshold motor units simultaneously. By pausing at the weakest point of a lift (e.g., bottom of a squat for 3 seconds) with maximal intent to move, the athlete radically improves the efficiency of the <strong>Stretch-Shortening Cycle (SSC)</strong>. This translates to the ability to switch from braking to propelling almost instantly during a sprint stride.",
+                benefit: "Dramatically reduces amortization time. Faster transition from eccentric stretch to concentric contraction = higher exit velocity.",
+                animTrigger: () => {
+                    document.getElementById('visual-ecc').classList.add('hidden');
+                    document.getElementById('visual-iso').classList.remove('hidden');
+                    
+                    const bars = document.getElementById('visual-iso').querySelectorAll('.w-4');
+                    bars.forEach(bar => {
+                        bar.style.height = '10%';
+                        bar.classList.remove('bg-rose-500', 'shadow-[0_0_15px_rgba(225,29,72,0.8)]');
+                        bar.classList.add('bg-slate-400');
+                    });
+
+                    setTimeout(() => {
+                        bars.forEach((bar, index) => {
+                            setTimeout(() => {
+                                bar.style.height = '100%';
+                                bar.classList.remove('bg-slate-400');
+                                bar.classList.add('bg-rose-500', 'shadow-[0_0_15px_rgba(225,29,72,0.8)]');
+                            }, index * 150);
+                        });
+                    }, 300);
+                }
+            }
+        };
+
+        function switchPhase(phase) {
+            // Update Buttons
+            document.getElementById('btn-eccentric').className = `flex-1 py-4 text-center font-semibold text-lg transition-colors ${phase === 'eccentric' ? 'active-tab' : 'text-slate-500 hover:bg-slate-50'}`;
+            document.getElementById('btn-isometric').className = `flex-1 py-4 text-center font-semibold text-lg transition-colors ${phase === 'isometric' ? 'active-tab' : 'text-slate-500 hover:bg-slate-50'}`;
+
+            // Update Content
+            const data = phaseData[phase];
+            const titleEl = document.getElementById('phase-title');
+            titleEl.innerHTML = data.title;
+            titleEl.className = `text-2xl font-bold mb-4 ${data.color}`;
+            document.getElementById('phase-desc').innerHTML = data.desc;
+            document.getElementById('phase-benefit').innerHTML = data.benefit;
+
+            // Trigger Animation
+            data.animTrigger();
+        }
+
+        // --- 2. Biomechanics Chart Logic ---
+        const ctx = document.getElementById('vShapeChart').getContext('2d');
+        
+        // Simulating the "V" shape of a ground contact force-time curve
+        const labels = Array.from({length: 20}, (_, i) => i * 10); // 0 to 190ms
+        
+        // Deep, wide V (slow amortization)
+        const preTrainingData = [0, -200, -500, -800, -1000, -1200, -1300, -1350, -1300, -1100, -800, -500, -200, 0, 0, 0, 0, 0, 0, 0];
+        
+        // Shallow, narrow V (fast amortization, high force maintained) - shifting up and left
+        const postTrainingData = [0, -300, -700, -1000, -1100, -1150, -1000, -600, -200, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+        const vShapeChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Pre-Triphasic (Untrained SSC)',
+                        data: preTrainingData,
+                        borderColor: '#94a3b8', // slate-400
+                        backgroundColor: 'rgba(148, 163, 184, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        borderDash: [5, 5],
+                        fill: true
+                    },
+                    {
+                        label: 'Post-Triphasic (Elite SSC)',
+                        data: postTrainingData,
+                        borderColor: '#e11d48', // rose-600
+                        backgroundColor: 'rgba(225, 29, 72, 0.1)',
+                        borderWidth: 4,
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { font: { family: 'Inter', size: 13 } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleFont: { size: 14, family: 'Inter' },
+                        bodyFont: { size: 13, family: 'Inter' },
+                        callbacks: {
+                            title: function(context) { return context[0].label + ' ms (Ground Contact)'; },
+                            label: function(context) {
+                                // Wrapping logic conceptually, though standard labels are short here
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed.y !== null) { label += Math.abs(context.parsed.y) + ' N (Force Loss)'; }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Time (milliseconds)', font: { weight: 'bold' } },
+                        grid: { display: false }
+                    },
+                    y: {
+                        title: { display: true, text: 'Absorbed Force (Newtons)', font: { weight: 'bold' } },
+                        // Inverting scale visually by formatting ticks, since the "V" is usually drawn downwards for yielding
+                        ticks: {
+                            callback: function(value) { return Math.abs(value); }
+                        }
+                    }
+                }
+            }
+        });
+
+        // --- 3. Macrocycle Logic ---
+        const macrocycleData = [
+            {
+                title: "Weeks 1-2: Eccentric Focus",
+                color: "blue",
+                overview: "The primary goal is morphological. We are stretching the fascia and heavily loading the eccentric phase to inhibit the GTO. This prepares the tissues to handle extreme ground reaction forces without inhibition.",
+                above80: "Heavy Squats/RDLs. 4-6 second strict eccentric lowering, fast concentric. 3-4 sets of 3-5 reps. High neural demand.",
+                below80: "French Contrast Method. Heavy partial squat -> Depth Jump -> Band-assisted jump -> Accelerated sprint. Focus on speed of movement.",
+                sprintFocus: "Acceleration mechanics. Short, heavily resisted sled pulls to match the high-force output of the weight room."
+            },
+            {
+                title: "Weeks 3-4: Isometric Focus",
+                color: "slate",
+                overview: "Transitioning to the amortization phase. The goal is to maximize motor unit recruitment instantly. We hold the weakest biomechanical position to eliminate stretch reflex momentum and force raw neurological firing.",
+                above80: "Squats/Bulgarian Splits. 3-second strict pause at the bottom. <em>Intent</em> to explode upward must be 100%, even if the bar moves slowly. 3 sets of 4 reps.",
+                below80: "Altitude Drops into immediate pause (stick the landing rigidly). Weighted sprint bounds with pauses.",
+                sprintFocus: "Max velocity mechanics. Fly 10s and 20s. The isometric block tightens the SSC, directly transferring to upright, bouncy sprinting."
+            },
+            {
+                title: "Weeks 5-6: Reactive / High-Velocity Realization",
+                color: "rose",
+                overview: "The 'Above 80%' work drops off completely. We realize the physiological changes built in previous blocks by converting them into pure Rate of Force Development (RFD) and top speed.",
+                above80: "Replaced by Peak Power metrics. Oscillatory squats (rapid, pulsing movements in a 2-inch range) to train ultra-fast relaxation and contraction.",
+                below80: "Unloaded, ultra-fast plyometrics. Assisted/Overspeed jumps. French contrast using only light loads (<30% 1RM).",
+                sprintFocus: "Race modeling. Full competitive sprints with complete neurological recovery between reps. The 'V' shape is now optimally narrowed."
+            }
+        ];
+
+        function showWeek(index, el) {
+            // UI Update
+            document.querySelectorAll('.macro-card').forEach(card => card.classList.remove('active'));
+            if(el) el.classList.add('active');
+
+            const data = macrocycleData[index];
+            const panel = document.getElementById('macro-detail-panel');
+            
+            // Map colors to tailwind classes securely
+            let colorHex, bgColor;
+            if(data.color === 'blue') { colorHex = 'text-blue-700'; bgColor = 'bg-blue-50 border-blue-200'; }
+            else if(data.color === 'slate') { colorHex = 'text-slate-800'; bgColor = 'bg-slate-50 border-slate-300'; }
+            else { colorHex = 'text-rose-700'; bgColor = 'bg-rose-50 border-rose-200'; }
+
+            // Build HTML
+            panel.innerHTML = `
+                <h3 class="text-2xl font-bold ${colorHex} mb-4">${data.title}</h3>
+                <p class="text-slate-700 mb-6 text-lg leading-relaxed">${data.overview}</p>
+                
+                <div class="space-y-4">
+                    <div class="p-4 rounded-lg border ${bgColor}">
+                        <h4 class="font-bold text-slate-900 mb-1 flex items-center">
+                            <span class="inline-block w-2 h-2 rounded-full bg-slate-800 mr-2"></span>
+                            Primary Lift (Above 80% Day)
+                        </h4>
+                        <p class="text-slate-700 text-sm ml-4">${data.above80}</p>
+                    </div>
+                    
+                    <div class="p-4 rounded-lg border border-slate-100 bg-white shadow-sm">
+                        <h4 class="font-bold text-slate-900 mb-1 flex items-center">
+                            <span class="inline-block w-2 h-2 rounded-full bg-slate-400 mr-2"></span>
+                            Dynamic Lift (Below 80% Day)
+                        </h4>
+                        <p class="text-slate-600 text-sm ml-4">${data.below80}</p>
+                    </div>
+
+                    <div class="p-4 rounded-lg border border-slate-100 bg-white shadow-sm">
+                        <h4 class="font-bold text-slate-900 mb-1 flex items-center">
+                            <span class="inline-block w-2 h-2 rounded-full bg-rose-500 mr-2"></span>
+                            Track Application (Sprint Focus)
+                        </h4>
+                        <p class="text-slate-600 text-sm ml-4">${data.sprintFocus}</p>
+                    </div>
+                </div>
+            `;
+            
+            // Fade in effect
+            panel.animate([
+                { opacity: 0, transform: 'translateY(10px)' },
+                { opacity: 1, transform: 'translateY(0)' }
+            ], { duration: 300, easing: 'ease-out' });
+        }
+
+        // Initialize first week and first phase
+        window.onload = () => {
+            showWeek(0, document.querySelector('.macro-card'));
+            phaseData.eccentric.animTrigger(); // start initial animation
+        };
+    </script>
+</body>
+</html>

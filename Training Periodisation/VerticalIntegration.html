@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertical Integration & High-Low CNS Training Methodology</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chosen Palette: Zinc (Base text), Slate (Headers), Rose/Red (High CNS), Emerald/Teal (Low CNS), Amber (Neutral/Middle) -->
+    <!-- Application Structure Plan: 
+         1. Hero Section: Introduces the methodology and its creator (Charlie Francis).
+         2. Core Principles (Vertical Integration & High-Low): Uses stacked area and bar charts to visually explain the abstract concepts of maintaining all training qualities simultaneously and separating CNS intensities.
+         3. Interactive Athlete Stacks: A dashboard allowing users to switch between Endurance, Middle-Distance, and Power profiles. It dynamically updates the definitions of "High", "Low", and a Radar chart showing the physiological load distribution. This supports comparison and contextual understanding.
+    -->
+    <!-- Visualization & Content Choices: 
+         - Vertical Integration: Stacked Area Chart (Chart.js) -> Goal: Show how qualities (speed, strength, endurance) coexist over time rather than being strictly block-periodized.
+         - High-Low CNS: Bimodal Bar Chart (Chart.js) -> Goal: Visually contrast the "polarization" of training intensity against a flawed "medium" intensity approach. 
+         - Athlete Profiles: Interactive Toggle + Radar Chart (Chart.js) -> Goal: Compare the specific bio-motor demands of different sports. NO SVG used, entirely Canvas and Tailwind DOM manipulation.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        /* Custom Styles & Chart Container Constraints */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fafafa;
+            color: #27272a; /* Zinc 800 */
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Subtle styling for interactive elements */
+        .tab-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .tab-btn.active {
+            background-color: #0f172a; /* Slate 900 */
+            color: white;
+            transform: scale(1.02);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .indicator-high { border-left-color: #e11d48; } /* Rose 600 */
+        .indicator-low { border-left-color: #059669; } /* Emerald 600 */
+    </style>
+</head>
+<body class="antialiased selection:bg-rose-200 selection:text-rose-900">
+
+    <!-- Navigation / Header -->
+    <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="text-xl font-bold tracking-tight">CF System <span class="text-slate-400 font-normal">| Training Architecture</span></div>
+            <nav class="hidden md:flex space-x-6 text-sm font-medium">
+                <a href="#principles" class="hover:text-rose-400 transition-colors">Core Principles</a>
+                <a href="#high-low" class="hover:text-rose-400 transition-colors">High-Low Concept</a>
+                <a href="#stacks" class="hover:text-rose-400 transition-colors">Training Stacks</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="max-w-6xl mx-auto px-4 py-12 md:py-20">
+        <div class="text-center max-w-3xl mx-auto">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-6">
+                Mastering the CNS: <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-orange-500">Vertical Integration & High-Low</span>
+            </h1>
+            <p class="text-lg text-zinc-600 mb-8 leading-relaxed">
+                Pioneered by legendary sprint coach Charlie Francis, this methodology revolutionizes athletic programming. It discards traditional "block" periodization in favor of maintaining all bio-motor qualities year-round, while strictly polarizing Central Nervous System (CNS) strain to optimize recovery and peak performance.
+            </p>
+            <div class="flex justify-center space-x-4">
+                <a href="#principles" class="bg-slate-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-slate-800 transition-colors">Explore the Theory</a>
+                <a href="#stacks" class="bg-white text-slate-900 border border-slate-300 px-6 py-3 rounded-lg font-medium hover:bg-slate-50 transition-colors">View Athlete Stacks</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Principles: Vertical Integration -->
+    <section id="principles" class="bg-white border-y border-zinc-200 py-16">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="mb-10 max-w-2xl">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">1. Vertical Integration</h2>
+                <p class="text-zinc-600">
+                    Traditional block periodization develops one quality (e.g., endurance) then drops it to build another (e.g., speed), leading to detraining of the neglected quality. <strong>Vertical Integration</strong> ensures all elements (Speed, Strength, Endurance) remain in the program vertically. Only the <em>volume</em> and <em>focus</em> change throughout the macrocycle.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="bg-zinc-50 p-6 rounded-xl border border-zinc-100 shadow-sm">
+                    <h3 class="text-lg font-bold mb-4 text-slate-800">Quality Progression over a Season</h3>
+                    <div class="chart-container">
+                        <canvas id="verticalIntegrationChart"></canvas>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div class="p-5 border-l-4 border-slate-800 bg-slate-50 rounded-r-lg">
+                        <h4 class="font-bold text-slate-900">Continuous Stimulus</h4>
+                        <p class="text-sm text-zinc-600 mt-1">A sprinter never stops sprinting fast. An endurance athlete never stops touching speed. The intensity remains specific to the sport year-round.</p>
+                    </div>
+                    <div class="p-5 border-l-4 border-slate-400 bg-slate-50 rounded-r-lg">
+                        <h4 class="font-bold text-slate-900">Fluctuating Volume</h4>
+                        <p class="text-sm text-zinc-600 mt-1">While all elements are present, they are not emphasized equally. Volume shifts based on the phase (GPP, SPP, Competition).</p>
+                    </div>
+                    <div class="p-5 border-l-4 border-slate-300 bg-slate-50 rounded-r-lg">
+                        <h4 class="font-bold text-slate-900">Interaction Effect</h4>
+                        <p class="text-sm text-zinc-600 mt-1">Maintaining a baseline of strength aids in the development of speed. Maintaining a baseline of aerobic capacity aids in recovery between high-intensity efforts.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Principles: High-Low CNS -->
+    <section id="high-low" class="py-16">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="mb-10 max-w-2xl">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">2. The High-Low CNS Approach</h2>
+                <p class="text-zinc-600">
+                    The Central Nervous System dictates power output. The High-Low system states that training days should either be highly demanding on the CNS (Max Speed, Heavy Weights) or strictly low demand (Tempo, Active Recovery). <strong>The "Medium" zone is the black hole of training:</strong> it creates too much fatigue to recover from quickly, but doesn't provide enough stimulus to increase maximum capacity.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6 order-2 lg:order-1">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-rose-100 border-l-8 indicator-high">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-bold text-rose-700 text-xl">High Days</h4>
+                            <span class="bg-rose-100 text-rose-800 text-xs font-bold px-2 py-1 rounded">>95% Intensity</span>
+                        </div>
+                        <p class="text-sm text-zinc-600 mb-3">Goal: Push the absolute ceiling of the athlete's capacity.</p>
+                        <ul class="text-sm text-zinc-700 list-disc list-inside space-y-1">
+                            <li>Maximal Velocity Sprinting</li>
+                            <li>Maximal Strength (Heavy Weights, < 5 reps)</li>
+                            <li>Intense Plyometrics / Shock Method</li>
+                            <li>Requires 48-72 hours of CNS recovery.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-emerald-100 border-l-8 indicator-low">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-bold text-emerald-700 text-xl">Low Days</h4>
+                            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded">< 75% Intensity</span>
+                        </div>
+                        <p class="text-sm text-zinc-600 mb-3">Goal: Facilitate recovery, build capillary density, and flush the system.</p>
+                        <ul class="text-sm text-zinc-700 list-disc list-inside space-y-1">
+                            <li>Extensive Tempo (Sub-maximal aerobic intervals)</li>
+                            <li>Mobility, Yoga, Pool sessions</li>
+                            <li>General Strength circuits (Bodyweight/Med balls)</li>
+                            <li>Leaves the CNS fresh for the next High Day.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="bg-zinc-50 p-6 rounded-xl border border-zinc-100 shadow-sm order-1 lg:order-2">
+                    <h3 class="text-lg font-bold mb-4 text-slate-800">CNS Intensity Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="highLowChart"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-zinc-500 mt-4">Notice the avoidance of the 76%-94% "Medium" zone, preventing CNS exhaustion.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Section: Athlete Training Stacks -->
+    <section id="stacks" class="bg-slate-900 text-zinc-100 py-16 rounded-t-3xl">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="mb-10 text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-white mb-4">Comparative Training Stacks</h2>
+                <p class="text-slate-400">
+                    While the High-Low framework is universal, the definition of what constitutes a "High" stressor changes depending on the bio-motor demands of the sport. Select an athlete profile below to see how Vertical Integration and High-Low are applied in practice.
+                </p>
+            </div>
+
+            <!-- Profile Selector -->
+            <div class="flex flex-wrap justify-center gap-4 mb-12">
+                <button onclick="updateAthleteView('endurance')" id="btn-endurance" class="tab-btn bg-slate-800 text-slate-300 px-6 py-3 rounded-full font-bold border border-slate-700 hover:bg-slate-700">
+                    Endurance Athlete
+                </button>
+                <button onclick="updateAthleteView('middle')" id="btn-middle" class="tab-btn bg-slate-800 text-slate-300 px-6 py-3 rounded-full font-bold border border-slate-700 hover:bg-slate-700">
+                    Middle-Distance
+                </button>
+                <button onclick="updateAthleteView('power')" id="btn-power" class="tab-btn active px-6 py-3 rounded-full font-bold border border-slate-600">
+                    Power / Sprinter
+                </button>
+            </div>
+
+            <!-- Dynamic Content Area -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- Left Column: Definitions & Breakdown -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                        <h3 id="profile-title" class="text-2xl font-bold text-white mb-2">Power Athlete (Sprinter)</h3>
+                        <p id="profile-desc" class="text-slate-400 text-sm mb-6">Focuses on absolute maximal output, alactic energy systems, and extreme fast-twitch fiber recruitment. The highest CNS demand of any athlete profile.</p>
+                        
+                        <div class="mb-6">
+                            <h4 class="text-rose-400 font-bold uppercase tracking-wider text-xs mb-2 border-b border-slate-700 pb-1">Defining the "High" Intensity</h4>
+                            <p id="high-definition" class="text-slate-200 text-lg font-medium bg-slate-900/50 p-3 rounded">
+                                > 95% of Max Velocity (Speed) & > 90% 1RM (Strength)
+                            </p>
+                            <p id="high-context" class="text-sm text-slate-400 mt-2">
+                                For a sprinter, anything below 95% speed alters mechanics and doesn't stimulate the highest threshold motor units. It requires full systemic recovery between reps.
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+                            <!-- High Stack -->
+                            <div class="bg-rose-950/30 border border-rose-900/50 p-4 rounded-xl">
+                                <h5 class="text-rose-400 font-bold mb-3 flex items-center justify-between">
+                                    <span>High Day Stack</span>
+                                    <span class="text-lg">🔥</span>
+                                </h5>
+                                <ul id="high-stack-list" class="space-y-2 text-sm text-slate-300">
+                                    <li>• Alactic short sprints (10m-60m)</li>
+                                    <li>• Max Plyometrics (Depth Jumps)</li>
+                                    <li>• Max Strength (Squat, Cleans)</li>
+                                    <li>• Complete rest between reps (3-5 min)</li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Low Stack -->
+                            <div class="bg-emerald-950/30 border border-emerald-900/50 p-4 rounded-xl">
+                                <h5 class="text-emerald-400 font-bold mb-3 flex items-center justify-between">
+                                    <span>Low Day Stack</span>
+                                    <span class="text-lg">🔋</span>
+                                </h5>
+                                <ul id="low-stack-list" class="space-y-2 text-sm text-slate-300">
+                                    <li>• Extensive Tempo (100m @ 65-75%)</li>
+                                    <li>• Core & Med Ball Circuits</li>
+                                    <li>• Dynamic Mobility</li>
+                                    <li>• Active recovery modalities</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Radar Chart -->
+                <div class="lg:col-span-5 flex flex-col items-center justify-center bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                    <h4 class="text-slate-300 font-bold text-center mb-2">Physiological Demand Profile</h4>
+                    <p class="text-xs text-slate-500 text-center mb-4">Relative intensity distribution required during peak training.</p>
+                    <div class="chart-container w-full" style="height: 300px;">
+                        <canvas id="athleteRadarChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-slate-950 text-slate-500 py-8 text-center text-sm border-t border-slate-800">
+        <p>Interactive Architecture Demonstration: Vertical Integration & High-Low Methodology</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Data Store for Athlete Profiles
+        const athleteData = {
+            endurance: {
+                title: "Endurance Athlete (Marathon, Triathlete)",
+                desc: "Focuses on sustained aerobic capacity, muscular endurance, and efficiency. The CNS demand is lower per step, but accumulated fatigue is immense.",
+                highDef: "> 95% VO2 Max (Aerobic Power) & Heavy Resistance (Strength)",
+                highContext: "High intensity here is cardiovascular (reaching max heart rate / VO2 max intervals) or neuromuscular (heavy lifting for running economy, NOT hypertrophy).",
+                highStack: [
+                    "• VO2 Max Intervals (e.g., 800m repeats)",
+                    "• Heavy, low-rep strength training (CNS recruitment)",
+                    "• Steep Hill Sprints (Alactic touches)",
+                    "• Lactate Threshold / Tempo Runs"
+                ],
+                lowStack: [
+                    "• Zone 2 Aerobic Base building",
+                    "• Long slow distance (LSD)",
+                    "• Extensive mobility & stretching",
+                    "• Form drills / low-impact cross-training"
+                ],
+                radarData: [90, 40, 20, 85, 30] // [Aerobic, Lactic Tol, Alactic Speed, Muscular End., Absolute Str.]
+            },
+            middle: {
+                title: "Middle-Distance Athlete (800m, 1500m)",
+                desc: "The most physiologically complex profile. Requires extreme lactic tolerance, high aerobic capacity, and significant maximal speed. The 'Highs' are agonizing.",
+                highDef: "> 95% Race Pace (Lactic Capacity) & Speed Endurance",
+                highContext: "High intensity involves flooding the body with lactate and maintaining mechanical efficiency, alongside true max speed development.",
+                highStack: [
+                    "• Specific Endurance (e.g., 300m @ 800m pace)",
+                    "• Intensive Tempo (80-90% speed, short rest)",
+                    "• Max Velocity maintenance (Flying 30s)",
+                    "• Complex training (Lifting + Plyos)"
+                ],
+                lowStack: [
+                    "• Recovery Aerobic Runs (30-40 mins)",
+                    "• Extensive Tempo (Aerobic flush on grass)",
+                    "• General strength circuits",
+                    "• Joint mobility protocols"
+                ],
+                radarData: [70, 95, 75, 60, 60] // [Aerobic, Lactic Tol, Alactic Speed, Muscular End., Absolute Str.]
+            },
+            power: {
+                title: "Power Athlete (Sprinter, Jumper, Thrower)",
+                desc: "Focuses on absolute maximal output, alactic energy systems, and extreme fast-twitch fiber recruitment. The highest CNS demand of any athlete profile.",
+                highDef: "> 95% of Max Velocity (Speed) & > 90% 1RM (Strength)",
+                highContext: "For a sprinter, anything below 95% speed alters mechanics and doesn't stimulate the highest threshold motor units. It requires full systemic recovery between reps.",
+                highStack: [
+                    "• Alactic short sprints (10m-60m)",
+                    "• Max Plyometrics (Depth Jumps, Bounds)",
+                    "• Max Strength (Squat, Cleans, Olympic lifts)",
+                    "• Complete rest between reps (3-5+ min)"
+                ],
+                lowStack: [
+                    "• Extensive Tempo (100m @ 65-75% on grass)",
+                    "• Core & Med Ball Circuits",
+                    "• Dynamic Mobility & Activation",
+                    "• Active recovery / Pool sessions"
+                ],
+                radarData: [20, 40, 100, 20, 95] // [Aerobic, Lactic Tol, Alactic Speed, Muscular End., Absolute Str.]
+            }
+        };
+
+        // Chart Instances
+        let verticalChartInstance = null;
+        let highLowChartInstance = null;
+        let radarChartInstance = null;
+
+        // Initialize Application
+        document.addEventListener("DOMContentLoaded", () => {
+            initVerticalIntegrationChart();
+            initHighLowChart();
+            initRadarChart();
+            // Default load
+            updateAthleteView('power');
+        });
+
+        // 1. Vertical Integration Chart (Stacked Area)
+        function initVerticalIntegrationChart() {
+            const ctx = document.getElementById('verticalIntegrationChart').getContext('2d');
+            verticalChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Off-Season (GPP)', 'Pre-Season (SPP)', 'Early Comp', 'Peak Comp'],
+                    datasets: [
+                        {
+                            label: 'Speed / Specificity',
+                            data: [20, 40, 70, 90],
+                            borderColor: '#e11d48', // Rose 600
+                            backgroundColor: 'rgba(225, 29, 72, 0.7)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Max Strength',
+                            data: [40, 70, 60, 40],
+                            borderColor: '#0f172a', // Slate 900
+                            backgroundColor: 'rgba(15, 23, 42, 0.5)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'General Capacity / Aerobic',
+                            data: [80, 50, 30, 20],
+                            borderColor: '#059669', // Emerald 600
+                            backgroundColor: 'rgba(5, 150, 105, 0.3)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            stacked: true, 
+                            display: true, 
+                            title: { display: true, text: 'Training Volume / Focus' },
+                            grid: { color: '#f4f4f5' } // Zinc 100
+                        },
+                        x: { 
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                }
+            });
+        }
+
+        // 2. High-Low Concept Chart (Bar Chart)
+        function initHighLowChart() {
+            const ctx = document.getElementById('highLowChart').getContext('2d');
+            highLowChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['0-60%', '61-75%', '76-85%', '86-94%', '95-100%'],
+                    datasets: [{
+                        label: 'Optimal High-Low Distribution',
+                        data: [15, 45, 0, 5, 35], // Large chunks in low, big chunk in high, near zero in middle
+                        backgroundColor: [
+                            'rgba(5, 150, 105, 0.6)', // Low
+                            'rgba(5, 150, 105, 0.8)', // Low
+                            'rgba(245, 158, 11, 0.2)', // Amber (Avoid)
+                            'rgba(245, 158, 11, 0.2)', // Amber (Avoid)
+                            'rgba(225, 29, 72, 0.8)'  // High
+                        ],
+                        borderColor: [
+                            '#059669', '#059669', '#f59e0b', '#f59e0b', '#e11d48'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            display: true, 
+                            title: { display: true, text: '% of Weekly Volume' },
+                            grid: { color: '#f4f4f5' }
+                        },
+                        x: { 
+                            title: { display: true, text: 'Intensity Zone (% of Max)' },
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if(context.dataIndex === 2 || context.dataIndex === 3) {
+                                        return context.raw + '% Volume (The "Black Hole" - Avoid)';
+                                    }
+                                    return context.raw + '% Volume';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 3. Radar Chart (Empty initialization)
+        function initRadarChart() {
+            const ctx = document.getElementById('athleteRadarChart').getContext('2d');
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Aerobic Cap.', 'Lactic Tol.', 'Alactic Speed', 'Muscular End.', 'Absolute Str.'],
+                    datasets: [{
+                        label: 'Demand Profile',
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: 'rgba(251, 113, 133, 0.2)', // Rose 400 with opacity
+                        borderColor: '#fb7185', // Rose 400
+                        pointBackgroundColor: '#e11d48',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#e11d48',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            pointLabels: { color: '#cbd5e1', font: { size: 11 } },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: true }
+                    }
+                }
+            });
+        }
+
+        // Main Interaction Function: Update Athlete View
+        function updateAthleteView(type) {
+            // Update Buttons State
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-slate-900', 'text-white');
+                btn.classList.add('bg-slate-800', 'text-slate-300');
+            });
+            const activeBtn = document.getElementById(`btn-${type}`);
+            activeBtn.classList.remove('bg-slate-800', 'text-slate-300');
+            activeBtn.classList.add('active'); // CSS handles bg and text for active class
+
+            // Get Data
+            const data = athleteData[type];
+
+            // Update DOM Text Content
+            document.getElementById('profile-title').textContent = data.title;
+            document.getElementById('profile-desc').textContent = data.desc;
+            document.getElementById('high-definition').textContent = data.highDef;
+            document.getElementById('high-context').textContent = data.highContext;
+
+            // Update Lists (Helper function to map arrays to li elements)
+            const populateList = (elementId, arrayData) => {
+                const el = document.getElementById(elementId);
+                el.innerHTML = '';
+                arrayData.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    el.appendChild(li);
+                });
+            };
+
+            populateList('high-stack-list', data.highStack);
+            populateList('low-stack-list', data.lowStack);
+
+            // Update Radar Chart Data
+            radarChartInstance.data.datasets[0].data = data.radarData;
+            
+            // Adjust chart colors slightly based on profile for visual flair
+            if(type === 'endurance') {
+                radarChartInstance.data.datasets[0].borderColor = '#34d399'; // Emerald
+                radarChartInstance.data.datasets[0].backgroundColor = 'rgba(52, 211, 153, 0.2)';
+                radarChartInstance.data.datasets[0].pointBackgroundColor = '#059669';
+            } else if (type === 'middle') {
+                radarChartInstance.data.datasets[0].borderColor = '#a78bfa'; // Violet
+                radarChartInstance.data.datasets[0].backgroundColor = 'rgba(167, 139, 250, 0.2)';
+                radarChartInstance.data.datasets[0].pointBackgroundColor = '#7c3aed';
+            } else {
+                radarChartInstance.data.datasets[0].borderColor = '#fb7185'; // Rose
+                radarChartInstance.data.datasets[0].backgroundColor = 'rgba(251, 113, 133, 0.2)';
+                radarChartInstance.data.datasets[0].pointBackgroundColor = '#e11d48';
+            }
+
+            radarChartInstance.update();
+        }
+    </script>
+</body>
+</html>

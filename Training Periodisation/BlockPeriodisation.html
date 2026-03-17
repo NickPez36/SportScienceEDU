@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block Periodization: Issurin's Model Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#fdfbf7', // Warm off-white
+                        surface: '#f3f0ea',    // Slightly darker warm neutral
+                        surfaceDark: '#e4dfd5',
+                        primary: '#2c3e50',    // Slate blue/grey for text
+                        accent: '#c05621',     // Rust/Orange for highlights
+                        secondary: '#2b6cb0',  // Muted blue
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                        serif: ['Merriweather', 'Georgia', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Strict Chart Container Constraints */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 50vh;
+            max-height: 400px;
+            min-height: 250px;
+        }
+        
+        .rte-chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 60vh;
+            max-height: 450px;
+            min-height: 300px;
+        }
+
+        /* Custom Scrollbar for inner containers if needed */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f3f0ea; 
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        .tab-active {
+            border-bottom: 4px solid #c05621;
+            color: #c05621;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="bg-background text-primary font-sans antialiased leading-relaxed">
+
+    <!-- Chosen Palette: Warm Neutrals with Rust and Slate Accents -->
+    <!-- Application Structure Plan: 
+         1. Hero/Intro: Establishes the context of Issurin's Block Periodization.
+         2. The ATR Framework: An interactive 3-card layout explaining the core physiology of Accumulation, Transmutation, and Realization. This allows users to grasp the baseline model before seeing variations.
+         3. Athlete Profiles (The Core Interactive Section): A dashboard layout with tabs for Endurance, Middle-Distance, and Power athletes. Selecting an athlete dynamically updates a chart showing Volume vs. Intensity curves and specific textual analysis of block duration and concentrated loads. This structure directly addresses the prompt's request for specific physiological adjustments.
+         4. Residual Training Effects (RTE): A horizontal bar chart section explaining the decay rates of physiological qualities, tying back into why blocks are sequenced the way they are. 
+         This structure ensures logical flow: Basic Concept -> Application/Variation -> Underlying Mechanism (RTE). 
+    -->
+    <!-- Visualization & Content Choices: 
+         - ATR Framework: HTML/CSS Flexbox cards with hover effects. Goal: Inform. Justification: Text-heavy definitions are best presented in clean, chunked UI elements rather than complex charts. No SVG used.
+         - Athlete Load Adjustments: Line Chart (Chart.js) showing Volume vs Intensity across the 3 blocks. Goal: Compare/Change. Justification: A line chart perfectly illustrates the dynamic interplay of 'concentrated loads' over time. Javascript updates the dataset based on the selected athlete.
+         - Residual Training Effects: Horizontal Bar Chart (Chart.js). Goal: Inform/Compare. Justification: Horizontal bars are ideal for showing duration (Days) side-by-side for different physiological qualities. 
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <!-- Header -->
+        <header class="mb-12 text-center">
+            <h1 class="text-4xl md:text-5xl font-serif font-bold text-primary mb-4 tracking-tight">Issurin's Block Periodization</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+                An interactive analysis of the ATR (Accumulation, Transmutation, Realization) model, concentrated loads, and residual training effects across different athletic disciplines.
+            </p>
+        </header>
+
+        <!-- Section 1: The ATR Framework -->
+        <section class="mb-16">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold mb-2 border-l-4 border-accent pl-3">The ATR Framework: Physiological Targets</h2>
+                <p class="text-gray-700">
+                    Unlike traditional periodization which attempts to develop multiple abilities simultaneously, Issurin's model uses highly <strong>concentrated loads</strong> in sequenced blocks. Each block focuses on a minimal number of compatible physiological targets.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Accumulation -->
+                <div class="bg-surface rounded-lg p-6 border-t-4 border-secondary shadow-sm hover:shadow-md transition duration-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-secondary">1. Accumulation</h3>
+                        <span class="text-2xl">&#9650;</span> <!-- Unicode representation of foundation -->
+                    </div>
+                    <p class="text-sm font-semibold text-gray-500 mb-2">Duration: 2-6 weeks</p>
+                    <p class="text-gray-700 text-sm mb-4">
+                        <strong>Goal:</strong> Develop basic abilities. High volume, low/moderate intensity.
+                    </p>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>Aerobic cardiovascular endurance</li>
+                        <li>Basic muscular strength / Hypertrophy</li>
+                        <li>Movement biomechanics</li>
+                    </ul>
+                </div>
+
+                <!-- Transmutation -->
+                <div class="bg-surface rounded-lg p-6 border-t-4 border-accent shadow-sm hover:shadow-md transition duration-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-accent">2. Transmutation</h3>
+                        <span class="text-2xl">&#9889;</span> <!-- Unicode representation of energy/intensity -->
+                    </div>
+                    <p class="text-sm font-semibold text-gray-500 mb-2">Duration: 2-4 weeks</p>
+                    <p class="text-gray-700 text-sm mb-4">
+                        <strong>Goal:</strong> Translate basic abilities into sport-specific readiness. Volume drops, intensity spikes.
+                    </p>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>Anaerobic/Glycolytic endurance</li>
+                        <li>Strength endurance / Power</li>
+                        <li>Sport-specific technical tactics</li>
+                    </ul>
+                </div>
+
+                <!-- Realization -->
+                <div class="bg-surface rounded-lg p-6 border-t-4 border-green-700 shadow-sm hover:shadow-md transition duration-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-green-700">3. Realization</h3>
+                        <span class="text-2xl">&#127919;</span> <!-- Unicode target -->
+                    </div>
+                    <p class="text-sm font-semibold text-gray-500 mb-2">Duration: 1-2 weeks</p>
+                    <p class="text-gray-700 text-sm mb-4">
+                        <strong>Goal:</strong> Restoration and peaking for competition. Lowest volume, maximal intensity/speed.
+                    </p>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>Maximal speed and explosiveness</li>
+                        <li>Event-specific readiness</li>
+                        <li>Full neuromuscular recovery</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Athlete Adjustments (Interactive Dashboard) -->
+        <section class="mb-16 bg-white p-6 md:p-8 rounded-xl shadow-sm border border-surfaceDark">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold mb-2 border-l-4 border-accent pl-3">Applying Concentrated Loads by Discipline</h2>
+                <p class="text-gray-700">
+                    The duration and physiological targets of the ATR blocks are heavily modified based on the athlete's primary energy system and muscular demands. Select an athlete profile below to see how block periodization is adapted.
+                </p>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="flex flex-wrap border-b border-gray-300 mb-6">
+                <button onclick="setAthlete('endurance')" id="btn-endurance" class="tab-active py-2 px-6 text-lg font-medium hover:bg-surface transition-colors focus:outline-none">
+                    &#127939; Endurance
+                </button>
+                <button onclick="setAthlete('middle')" id="btn-middle" class="py-2 px-6 text-lg font-medium text-gray-500 hover:bg-surface transition-colors focus:outline-none">
+                    &#128368; Middle-Distance
+                </button>
+                <button onclick="setAthlete('power')" id="btn-power" class="py-2 px-6 text-lg font-medium text-gray-500 hover:bg-surface transition-colors focus:outline-none">
+                    &#128170; Power/Sprint
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <!-- Text Analysis Column -->
+                <div class="order-2 lg:order-1">
+                    <h3 id="profile-title" class="text-3xl font-serif font-bold mb-4 text-primary">Endurance Athletes</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-surfaceDark bg-opacity-30 p-4 rounded-lg">
+                            <h4 class="font-bold text-accent mb-1">Accumulation Strategy</h4>
+                            <p id="desc-accumulation" class="text-gray-700 text-sm">
+                                <strong>Duration: Prolonged (4-6 weeks).</strong> Endurance athletes require extensive time to trigger morphological changes such as increased mitochondrial density, aerobic enzymes (e.g., Citrate Synthase), and capillarization. The concentrated load is overwhelmingly high-volume, low-intensity aerobic work.
+                            </p>
+                        </div>
+
+                        <div class="bg-surfaceDark bg-opacity-30 p-4 rounded-lg">
+                            <h4 class="font-bold text-secondary mb-1">Transmutation Strategy</h4>
+                            <p id="desc-transmutation" class="text-gray-700 text-sm">
+                                <strong>Duration: Moderate (2-3 weeks).</strong> The focus shifts to anaerobic threshold and race-pace mechanics. Because the aerobic base (established in Accumulation) has a very long residual effect, the athlete can safely drop pure aerobic volume to focus on higher intensity threshold work without losing baseline fitness.
+                            </p>
+                        </div>
+
+                        <div class="bg-surfaceDark bg-opacity-30 p-4 rounded-lg">
+                            <h4 class="font-bold text-green-700 mb-1">Realization Strategy</h4>
+                            <p id="desc-realization" class="text-gray-700 text-sm">
+                                <strong>Duration: Short (1-2 weeks).</strong> A steep taper. Volume drops drastically to shed accumulated fatigue. Intensity remains specific to race pace to keep the neuromuscular system primed, relying on the residual effects of the previous blocks to carry the athlete through competition day.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Column -->
+                <div class="order-1 lg:order-2">
+                    <h4 class="text-center font-bold text-gray-600 mb-2">Training Load Distribution (Relative)</h4>
+                    <div class="chart-container">
+                        <canvas id="loadChart"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-gray-500 mt-2">Visual representation of Volume vs. Intensity shifts across the ATR cycle.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Residual Training Effects -->
+        <section class="mb-10">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold mb-2 border-l-4 border-accent pl-3">The Engine of Block Periodization: Residual Training Effects (RTE)</h2>
+                <p class="text-gray-700">
+                    The entire ATR model functions successfully because of <strong>Residual Training Effects</strong>—the retention of physiological changes after the cessation of targeted training. Block periodization exploits these timelines: basic abilities with long residuals are trained first (Accumulation), while specific abilities with short residuals are trained right before competition (Realization).
+                </p>
+            </div>
+
+            <div class="bg-surface rounded-xl p-6 shadow-sm border border-surfaceDark">
+                <div class="rte-chart-container">
+                    <canvas id="rteChart"></canvas>
+                </div>
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                    <div class="bg-white p-4 rounded border-l-4 border-secondary">
+                        <strong>Why it matters for Endurance:</strong> Aerobic endurance and max strength adaptations last ~30 days. This allows endurance athletes to completely shift away from high-volume base training during Transmutation/Realization, knowing their aerobic foundation will survive until race day.
+                    </div>
+                    <div class="bg-white p-4 rounded border-l-4 border-accent">
+                        <strong>Why it matters for Power/Speed:</strong> Alactic speed and maximal power dissipate rapidly (within 5-8 days). Therefore, the Realization block for sprinters/power athletes must perfectly time neuromuscular peaking right up to the day of competition, utilizing high-velocity, low-volume loads.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // --- Data Store ---
+        
+        // Data for the Load Distribution Line Chart
+        const chartData = {
+            labels: ['Acc: Week 1', 'Acc: Week 2', 'Acc: Week 3', 'Acc: Week 4', 'Trans: Week 1', 'Trans: Week 2', 'Trans: Week 3', 'Real: Week 1', 'Real: Week 2'],
+            endurance: {
+                volume: [80, 90, 100, 95, 75, 60, 50, 30, 20],
+                intensity: [30, 35, 35, 40, 65, 75, 80, 85, 90]
+            },
+            middle: {
+                volume: [70, 85, 90, 80, 60, 50, 45, 30, 25],
+                intensity: [40, 45, 50, 55, 80, 90, 95, 85, 95]
+            },
+            power: {
+                volume: [80, 90, 85, 70, 50, 40, 30, 20, 15],
+                intensity: [60, 65, 70, 75, 85, 95, 100, 95, 100]
+            }
+        };
+
+        // Text Content for Athlete Profiles
+        const profileContent = {
+            endurance: {
+                title: "Endurance Athletes",
+                acc: "<strong>Duration: Prolonged (4-6 weeks).</strong> Endurance athletes require extensive time to trigger morphological changes such as increased mitochondrial density, aerobic enzymes (e.g., Citrate Synthase), and capillarization. The concentrated load is overwhelmingly high-volume, low-intensity aerobic work.",
+                trans: "<strong>Duration: Moderate (2-3 weeks).</strong> The focus shifts to anaerobic threshold and race-pace mechanics. Because the aerobic base (established in Accumulation) has a very long residual effect, the athlete can safely drop pure aerobic volume to focus on higher intensity threshold work without losing baseline fitness.",
+                real: "<strong>Duration: Short (1-2 weeks).</strong> A steep taper. Volume drops drastically to shed accumulated fatigue. Intensity remains specific to race pace to keep the neuromuscular system primed, relying on the residual effects of the previous blocks to carry the athlete through competition day."
+            },
+            middle: {
+                title: "Middle-Distance Athletes",
+                acc: "<strong>Duration: Moderate (3-4 weeks).</strong> The focus is on a mixed foundation: building basic aerobic capacity to aid recovery, alongside maximal strength training to prepare tissues for the severe mechanical loads of high-speed running/swimming/etc.",
+                trans: "<strong>Duration: Prolonged (3-4 weeks).</strong> This is the critical block. Concentrated loads target <strong>glycolytic power and capacity</strong>. The athlete experiences massive accumulations of lactate and hydrogen ions. Because glycolytic adaptations have a moderate residual effect (18 days), this block must be extensive to ensure physiological buffering systems are maximized.",
+                real: "<strong>Duration: Short (1-2 weeks).</strong> Focuses on restoring the body from the severe fatigue of the Transmutation block. Low volume, but extremely high-intensity, event-specific bursts to synthesize speed and glycolytic tolerance into race readiness."
+            },
+            power: {
+                title: "Power & Sprint Athletes",
+                acc: "<strong>Duration: Moderate (3-4 weeks).</strong> Unlike endurance, the base here is purely structural and neural. Concentrated loads focus on muscular hypertrophy and maximal strength. Building this max strength foundation is crucial as it has a 30-day residual, feeding into the subsequent blocks.",
+                trans: "<strong>Duration: Moderate (3-4 weeks).</strong> The heavy weights are dropped in favor of explosive loads. The physiological target shifts to <strong>Rate of Force Development (RFD) and neuromuscular recruitment</strong>. Strength endurance may also be trained depending on the exact sport duration.",
+                real: "<strong>Duration: Moderate/Extended (2 weeks).</strong> Tapering for power athletes requires careful management of the nervous system. Volume is extremely low to allow total Central Nervous System (CNS) recovery. Intensity involves maximal alactic speed/explosiveness. Because max speed has a short residual (5±3 days), this block must lead precisely into the competition."
+            }
+        };
+
+        // --- Chart Instantiation ---
+        
+        let loadChartInstance = null;
+
+        function initCharts() {
+            // 1. Load Distribution Chart
+            const ctxLoad = document.getElementById('loadChart').getContext('2d');
+            loadChartInstance = new Chart(ctxLoad, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [
+                        {
+                            label: 'Volume (Relative)',
+                            data: chartData.endurance.volume,
+                            borderColor: '#2b6cb0', // secondary
+                            backgroundColor: 'rgba(43, 108, 176, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Intensity (Relative)',
+                            data: chartData.endurance.intensity,
+                            borderColor: '#c05621', // accent
+                            backgroundColor: 'rgba(192, 86, 33, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { family: 'Inter', size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(44, 62, 80, 0.9)',
+                            titleFont: { family: 'Inter', size: 13 },
+                            bodyFont: { family: 'Inter', size: 13 },
+                            padding: 10
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 110,
+                            title: {
+                                display: true,
+                                text: 'Relative Load (%)',
+                                font: { family: 'Inter', size: 12 }
+                            }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // 2. Residual Training Effects Chart
+            const ctxRte = document.getElementById('rteChart').getContext('2d');
+            new Chart(ctxRte, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        ['Aerobic Endurance', '(Capillarization, Enzymes)'], 
+                        ['Maximal Strength', '(Neural & Hypertrophy)'], 
+                        ['Anaerobic Glycolytic', '(Lactate Tolerance)'], 
+                        ['Strength Endurance', '(Local Muscular Endurance)'], 
+                        ['Alactic Speed', '(Neuromuscular Explosiveness)']
+                    ],
+                    datasets: [{
+                        label: 'Duration of Residual Effect (Days ± 5)',
+                        data: [30, 30, 18, 15, 5],
+                        backgroundColor: [
+                            '#2b6cb0', // Aerobic (blue)
+                            '#4a5568', // Max Strength (gray)
+                            '#d69e2e', // Glycolytic (yellow)
+                            '#e53e3e', // Strength End (red)
+                            '#38a169'  // Alactic (green)
+                        ],
+                        borderWidth: 0,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.raw + ' Days (± 5)';
+                                }
+                            },
+                            backgroundColor: 'rgba(44, 62, 80, 0.9)',
+                            titleFont: { family: 'Inter', size: 13 },
+                            bodyFont: { family: 'Inter', size: 13 },
+                            padding: 10
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 40,
+                            title: {
+                                display: true,
+                                text: 'Days Retained After Training Cessation',
+                                font: { family: 'Inter', size: 13, weight: 'bold' }
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                font: { family: 'Inter', size: 11 },
+                                autoSkip: false,
+                                maxRotation: 0,
+                                callback: function(value, index, values) {
+                                    // Wrap labels based on array provided in data.labels
+                                    return this.getLabelForValue(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Interaction Logic ---
+        
+        window.setAthlete = function(type) {
+            // Update Tab UI
+            const tabs = ['btn-endurance', 'btn-middle', 'btn-power'];
+            tabs.forEach(tabId => {
+                const el = document.getElementById(tabId);
+                el.classList.remove('tab-active', 'text-gray-500');
+                if(tabId === `btn-${type}`) {
+                    el.classList.add('tab-active');
+                } else {
+                    el.classList.add('text-gray-500');
+                }
+            });
+
+            // Update Text Content
+            document.getElementById('profile-title').innerText = profileContent[type].title;
+            document.getElementById('desc-accumulation').innerHTML = profileContent[type].acc;
+            document.getElementById('desc-transmutation').innerHTML = profileContent[type].trans;
+            document.getElementById('desc-realization').innerHTML = profileContent[type].real;
+
+            // Update Chart Data
+            if(loadChartInstance) {
+                loadChartInstance.data.datasets[0].data = chartData[type].volume;
+                loadChartInstance.data.datasets[1].data = chartData[type].intensity;
+                loadChartInstance.update();
+            }
+        };
+
+        // Initialize on load
+        window.onload = () => {
+            initCharts();
+            // Default to endurance is already set in HTML, just ensure UI matches
+            setAthlete('endurance');
+        };
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physiological Briefing: Planned Functional Overreaching</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Slate & Muted Accents (Slate-50 bg, Slate-800 text, Indigo/Emerald/Rose accents) -->
+    <!-- Application Structure Plan: 
+         - A narrative, dashboard-style flow. 
+         - Section 1: Introduction & Hormonal Foundation (C:T Ratio) to establish the physiological baseline.
+         - Section 2: Interactive Strategy Analysis. Users select a metabolic profile (Endurance, Mid-Distance, Power) to dynamically update charts and textual analysis, comparing strategy specifics without cluttering the screen.
+         - Section 3: Risk Assessment. A comparative radar chart to visualize the distinct pathways to Non-Functional Overreaching (NFOR) across the profiles.
+         - Rationale: This structure guides the user from theory to application to risk management, using interactivity to manage complex comparative data effectively within a single view. -->
+    <!-- Visualization & Content Choices: 
+         - Goal: Show hormonal stress trend over time. -> Viz: Dual-axis Line Chart (Chart.js) showing C:T ratio vs Performance. -> Interaction: Hover tooltips. -> Justification: Clearest way to show inverse relationship during overreach and rebound. (NO SVG/Mermaid)
+         - Goal: Compare specific overreach strategies (Volume/Intensity/Density). -> Viz: Mixed Bar/Line Chart (Chart.js) updated via JS tabs. -> Interaction: Tab clicking to swap datasets and descriptive text. -> Justification: Prevents visual overload, allows focused study of one metabolic profile's load/recovery curve at a time. (NO SVG/Mermaid)
+         - Goal: Compare NFOR risk factors across profiles. -> Viz: Radar Chart (Chart.js). -> Interaction: Dataset toggling via legend. -> Justification: Best for multi-variable profiling to see the "shape" of risk for each athlete type. (NO SVG/Mermaid) -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        
+        /* STRICT CHART CONTAINER STYLING */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh;
+            max-height: 450px;
+            min-height: 300px;
+        }
+
+        .tab-btn.active {
+            background-color: #312e81; /* Indigo-900 */
+            color: white;
+            border-color: #312e81;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-indigo-200 selection:text-indigo-900">
+
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded bg-indigo-900 text-white flex items-center justify-center font-bold font-mono">FOR</div>
+                    <span class="font-bold text-xl text-slate-800 tracking-tight">Applied Physiology Brief</span>
+                </div>
+                <div class="hidden md:flex space-x-8 text-sm font-medium text-slate-500">
+                    <a href="#endocrinology" class="hover:text-indigo-600 transition-colors">Endocrinology</a>
+                    <a href="#strategies" class="hover:text-indigo-600 transition-colors">Metabolic Strategies</a>
+                    <a href="#risk" class="hover:text-indigo-600 transition-colors">NFOR Risk Analysis</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
+
+        <!-- Header Section -->
+        <header class="max-w-3xl">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-4">
+                Planned Functional Overreaching (FOR)
+            </h1>
+            <p class="text-lg text-slate-600 leading-relaxed">
+                A strategic physiological manipulation designed to induce a temporary decrement in performance capacity, followed by a targeted taper. This process forces profound systemic adaptation, resulting in a supercompensatory "rebound" peak. Success relies on precise manipulation of load parameters specific to the athlete's metabolic profile.
+            </p>
+        </header>
+
+        <!-- Section 1: Endocrinology -->
+        <section id="endocrinology" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+            <div class="mb-8 max-w-4xl">
+                <h2 class="text-2xl font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-indigo-600 rounded-sm inline-block"></span>
+                    Endocrine Markers: The C:T Ratio
+                </h2>
+                <p class="text-slate-600">
+                    The primary biochemical indicator of training stress vs. adaptation is the <strong>Cortisol to Testosterone (C:T) ratio</strong>. Cortisol (C) represents catabolic, stress-driven tissue breakdown, while Testosterone (T) drives anabolic recovery. During a planned FOR block, we intentionally drive the C:T ratio <em>upward</em> (increasing catabolism). The subsequent taper allows Testosterone to surge while Cortisol clears, driving the ratio down and triggering the supercompensation rebound.
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8 items-center">
+                <div class="lg:col-span-2">
+                    <div class="chart-container">
+                        <canvas id="hormoneChart"></canvas>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                        <h4 class="font-bold text-slate-700 text-sm uppercase tracking-wider mb-1">Phase 1: Accumulation</h4>
+                        <p class="text-sm text-slate-600">Load increases. C:T ratio remains stable as the body copes with normal stress.</p>
+                    </div>
+                    <div class="p-4 bg-amber-50 rounded-lg border border-amber-100 border-l-4 border-l-amber-400">
+                        <h4 class="font-bold text-amber-800 text-sm uppercase tracking-wider mb-1">Phase 2: Overreach (FOR)</h4>
+                        <p class="text-sm text-amber-700">Intentional overload. Cortisol spikes, Testosterone drops. C:T ratio elevates significantly (>30% baseline change indicates deep FOR).</p>
+                    </div>
+                    <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-100 border-l-4 border-l-emerald-500">
+                        <h4 class="font-bold text-emerald-800 text-sm uppercase tracking-wider mb-1">Phase 3: Taper & Rebound</h4>
+                        <p class="text-sm text-emerald-700">Load drops. Cortisol plummets. Testosterone rebounds above baseline. Performance peaks as fatigue dissipates.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Metabolic Strategies -->
+        <section id="strategies">
+            <div class="mb-8 max-w-4xl">
+                <h2 class="text-2xl font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-blue-600 rounded-sm inline-block"></span>
+                    Metabolic Strategy Analysis
+                </h2>
+                <p class="text-slate-600">
+                    The mechanism of inducing FOR changes drastically depending on the target energy system. Select a metabolic profile below to analyze how the variables of Volume, Intensity, and Density are manipulated to create the 'Overreach and Rebound' effect, and observe the specific load/performance curve.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <!-- Tabs -->
+                <div class="flex flex-wrap border-b border-slate-200 bg-slate-50 p-2 gap-2" role="tablist">
+                    <button class="tab-btn active px-6 py-2.5 text-sm font-semibold rounded-lg border border-transparent text-slate-600 hover:bg-slate-200 transition-all focus:outline-none" onclick="switchProfile('endurance', this)">
+                        1. Endurance (Volume)
+                    </button>
+                    <button class="tab-btn px-6 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 transition-all focus:outline-none" onclick="switchProfile('midDistance', this)">
+                        2. Mid-Distance (Intensity)
+                    </button>
+                    <button class="tab-btn px-6 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 transition-all focus:outline-none" onclick="switchProfile('power', this)">
+                        3. Power (Density)
+                    </button>
+                </div>
+
+                <div class="p-6 md:p-8">
+                    <div class="grid lg:grid-cols-3 gap-8">
+                        <!-- Dynamic Text Content -->
+                        <div class="lg:col-span-1 space-y-6 fade-in" id="profileContent">
+                            <!-- Populated by JS -->
+                        </div>
+                        
+                        <!-- Dynamic Chart -->
+                        <div class="lg:col-span-2">
+                            <div class="chart-container">
+                                <canvas id="profileChart"></canvas>
+                            </div>
+                            <div class="mt-4 flex justify-center gap-6 text-xs text-slate-500 font-medium">
+                                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-slate-800"></span> Applied Training Load</div>
+                                <div class="flex items-center gap-2"><span class="w-4 h-1 bg-emerald-500"></span> Performance Capacity</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Risk Analysis (NFOR) -->
+        <section id="risk" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+            <div class="mb-8 max-w-4xl">
+                <h2 class="text-2xl font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-rose-600 rounded-sm inline-block"></span>
+                    Risk of Non-Functional Overreaching (NFOR)
+                </h2>
+                <p class="text-slate-600">
+                    If the overreach block is too severe or the taper too short, the athlete enters NFOR (characterized by long-term performance decrements, illness, or injury). The specific physiological systems that fail first differ fundamentally based on the metabolic profile being trained. Understanding these failure points is critical for avoiding burnout.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="chart-container !h-[50vh] !max-h-[500px]">
+                    <canvas id="radarChart"></canvas>
+                </div>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2 border-b border-slate-100 pb-2">Endurance Profile Risks</h3>
+                        <p class="text-sm text-slate-600">Primary risk is <strong>Metabolic Fatigue & Tissue Degradation</strong>. Prolonged volume overreach deeply depletes muscle glycogen, leading to parasympathetic exhaustion. Bone stress injuries and chronic tendinopathies are the physical manifestations of NFOR here.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2 border-b border-slate-100 pb-2">Mid-Distance Profile Risks</h3>
+                        <p class="text-sm text-slate-600">Primary risk is <strong>Endocrine Disruption & Acidosis</strong>. High-intensity overreaching (near VO2 max/high lactate) puts immense stress on the buffer systems and adrenal glands. NFOR presents as sympathetic hyperactivity (elevated resting heart rate, sleep disruption) and a crash in C:T ratio.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2 border-b border-slate-100 pb-2">Power Profile Risks</h3>
+                        <p class="text-sm text-slate-600">Primary risk is <strong>CNS Fatigue</strong>. Density-based overreaching (heavy loads, short rest) demands extreme neuromuscular drive. The peripheral muscle may be fine, but the Central Nervous System loses the ability to recruit high-threshold motor units. NFOR presents as a sudden, inexplicable drop in peak force generation and demotivation.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-8 text-center text-sm mt-12">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>Data visualization represents conceptual physiological models for educational purposes.</p>
+            <p class="mt-2 text-slate-500">Always consult a sports scientist or medical professional before implementing extreme overreaching protocols.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- DATA OBJECTS ---
+        
+        // Data for Section 2: Profiles
+        const profileData = {
+            endurance: {
+                title: "Volume-Based Overreach",
+                description: "Characterized by a massive accumulation of training volume (distance/time) at sub-maximal intensities. The goal is to maximize mitochondrial density, capillary networking, and aerobic enzyme activity.",
+                mechanism: "The FOR phase induces deep glycogen depletion and cumulative structural micro-trauma. The sheer time under tension forces the body to upregulate fuel storage capacities during the taper.",
+                taper: "Requires a slow, progressive taper (often 2-3 weeks). The body needs time to repair structural damage and supercompensate glycogen stores without losing aerobic enzymes.",
+                chartData: {
+                    labels: ['Wk 1 (Base)', 'Wk 2 (Build)', 'Wk 3 (FOR)', 'Wk 4 (FOR Peak)', 'Wk 5 (Taper)', 'Wk 6 (Race)'],
+                    load: [60, 75, 95, 110, 50, 30], // Represents Volume/Mileage
+                    performance: [90, 88, 82, 75, 95, 105] // Represents Aerobic Capacity / Speed at threshold
+                }
+            },
+            midDistance: {
+                title: "Intensity-Based Overreach",
+                description: "Characterized by a high concentration of workouts at or slightly above anaerobic threshold/VO2 max. Total volume may drop, but the physiological cost per minute is extreme.",
+                mechanism: "The FOR phase floods the system with metabolites (hydrogen ions, lactate) and challenges the cardiovascular system's maximal delivery rate. It forces adaptation in buffering capacity and stroke volume.",
+                taper: "Requires a sharper, highly sensitive taper (1-2 weeks). The CNS and endocrine systems are highly stressed. Volume drops sharply, but brief, high-intensity 'activations' are kept to maintain neuromuscular tension.",
+                chartData: {
+                    labels: ['Wk 1 (Base)', 'Wk 2 (Build)', 'Wk 3 (FOR)', 'Wk 4 (FOR Peak)', 'Wk 5 (Taper)', 'Wk 6 (Race)'],
+                    load: [40, 60, 85, 100, 40, 20], // Represents High-Intensity Interval Sessions
+                    performance: [85, 87, 80, 72, 98, 108] // Represents Time to Exhaustion / VO2 Max output
+                }
+            },
+            power: {
+                title: "Density-Based Overreach",
+                description: "Characterized by increasing the work-to-rest ratio with high mechanical loads. Performing the same heavy lifting volume but condensing it into a shorter timeframe (shorter rest intervals, more frequent sessions).",
+                mechanism: "The FOR phase heavily taxes the Central Nervous System (CNS) and the fast-twitch motor pool. It forces the nervous system to become more efficient at high-threshold recruitment under fatigue.",
+                taper: "Requires a very rapid, distinct taper (7-10 days). Muscle tissue damage might be low, but CNS fatigue is high. Complete rest or very light, highly explosive movements allow the CNS to 'rebound' quickly.",
+                chartData: {
+                    labels: ['Wk 1 (Base)', 'Wk 2 (Build)', 'Wk 3 (FOR)', 'Wk 4 (FOR Peak)', 'Wk 5 (Taper)', 'Wk 6 (Race)'],
+                    load: [50, 70, 90, 105, 30, 15], // Represents Tonnage/Density (Load x Reps / Time)
+                    performance: [95, 92, 85, 70, 102, 110] // Represents Peak Force / Rate of Force Development
+                }
+            }
+        };
+
+        // --- CHART INITIALIZATION ---
+
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748b'; // slate-500
+        Chart.defaults.scale.grid.color = '#f1f5f9'; // slate-100
+
+        // 1. Hormonal Chart (C:T Ratio)
+        const ctxHormone = document.getElementById('hormoneChart').getContext('2d');
+        const hormoneChart = new Chart(ctxHormone, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3 (FOR)', 'Week 4 (FOR)', 'Week 5 (Taper)', 'Week 6 (Rebound)'],
+                datasets: [
+                    {
+                        label: 'Cortisol (Stress)',
+                        data: [15, 16, 22, 28, 14, 12],
+                        borderColor: '#f59e0b', // amber-500
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        yAxisID: 'y',
+                        tension: 0.4,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Testosterone (Recovery)',
+                        data: [500, 480, 410, 350, 520, 600],
+                        borderColor: '#3b82f6', // blue-500
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        yAxisID: 'y1',
+                        tension: 0.4,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'C:T Ratio (Stress Index)',
+                        data: [0.030, 0.033, 0.053, 0.080, 0.026, 0.020], // C / T
+                        borderColor: '#ef4444', // red-500
+                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                        borderWidth: 3,
+                        borderDash: [5, 5],
+                        yAxisID: 'y2',
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6 } },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleFont: { size: 13 },
+                        bodyFont: { size: 13 },
+                        padding: 10,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.datasetIndex === 2) {
+                                    label += context.parsed.y.toFixed(3); // Ratio format
+                                } else {
+                                    label += context.parsed.y;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: {
+                        type: 'linear', display: true, position: 'left',
+                        title: { display: true, text: 'Cortisol (nmol/L)' },
+                        min: 0, max: 40
+                    },
+                    y1: {
+                        type: 'linear', display: true, position: 'right',
+                        title: { display: true, text: 'Testosterone (ng/dL)' },
+                        grid: { drawOnChartArea: false },
+                        min: 200, max: 800
+                    },
+                    y2: {
+                        type: 'linear', display: false, // Hidden axis for ratio scaling
+                        min: 0, max: 0.12
+                    }
+                }
+            }
+        });
+
+        // 2. Profile Chart (Interactive)
+        let currentProfileChart = null;
+        
+        function initProfileChart(profileKey) {
+            const data = profileData[profileKey].chartData;
+            const ctx = document.getElementById('profileChart').getContext('2d');
+            
+            if (currentProfileChart) {
+                currentProfileChart.destroy();
+            }
+
+            currentProfileChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Performance / Readiness',
+                            data: data.performance,
+                            borderColor: '#10b981', // emerald-500
+                            backgroundColor: '#10b981',
+                            borderWidth: 4,
+                            tension: 0.4,
+                            yAxisID: 'y1',
+                            pointBackgroundColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Applied Training Load',
+                            data: data.load,
+                            backgroundColor: '#1e293b', // slate-800
+                            borderRadius: 4,
+                            yAxisID: 'y',
+                            barPercentage: 0.6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }, // Custom legend used in HTML
+                        tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', padding: 10 }
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: {
+                            type: 'linear', display: true, position: 'left',
+                            title: { display: true, text: 'Relative Load' },
+                            min: 0, max: 120
+                        },
+                        y1: {
+                            type: 'linear', display: true, position: 'right',
+                            title: { display: true, text: 'Performance (%)' },
+                            grid: { drawOnChartArea: false },
+                            min: 60, max: 120
+                        }
+                    }
+                }
+            });
+        }
+
+        // 3. Radar Chart (NFOR Risks)
+        const ctxRadar = document.getElementById('radarChart').getContext('2d');
+        const radarChart = new Chart(ctxRadar, {
+            type: 'radar',
+            data: {
+                labels: ['Tissue Damage (Joints/Muscle)', 'Metabolic Fatigue (Glycogen)', 'CNS Fatigue (Neural Drive)', 'Endocrine Disruption', 'Psychological Burnout'],
+                datasets: [
+                    {
+                        label: 'Endurance',
+                        data: [9, 9, 4, 6, 7],
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)', // blue
+                        borderColor: '#3b82f6',
+                        pointBackgroundColor: '#3b82f6',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Mid-Distance',
+                        data: [6, 8, 8, 9, 8],
+                        backgroundColor: 'rgba(245, 158, 11, 0.2)', // amber
+                        borderColor: '#f59e0b',
+                        pointBackgroundColor: '#f59e0b',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Power',
+                        data: [7, 3, 10, 5, 5],
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)', // emerald
+                        borderColor: '#10b981',
+                        pointBackgroundColor: '#10b981',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: '#e2e8f0' },
+                        grid: { color: '#e2e8f0' },
+                        pointLabels: {
+                            font: { family: "'Inter', sans-serif", size: 11, weight: '600' },
+                            color: '#475569'
+                        },
+                        ticks: { display: false, min: 0, max: 10 }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) { return context[0].dataset.label; },
+                            label: function(context) { return context.label + ': ' + context.formattedValue + '/10 Severity'; }
+                        }
+                    }
+                }
+            }
+        });
+
+        // --- INTERACTIVITY LOGIC ---
+
+        function updateProfileContent(profileKey) {
+            const data = profileData[profileKey];
+            const contentDiv = document.getElementById('profileContent');
+            
+            // Trigger reflow for animation
+            contentDiv.classList.remove('fade-in');
+            void contentDiv.offsetWidth; 
+            contentDiv.classList.add('fade-in');
+
+            contentDiv.innerHTML = `
+                <div>
+                    <h3 class="text-xl font-extrabold text-slate-800 mb-2">${data.title}</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">${data.description}</p>
+                </div>
+                <div class="space-y-4 pt-4 border-t border-slate-100">
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-1 text-indigo-700">The FOR Mechanism</h4>
+                        <p class="text-sm text-slate-600 leading-relaxed">${data.mechanism}</p>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-1 text-emerald-700">Taper Requirement</h4>
+                        <p class="text-sm text-slate-600 leading-relaxed">${data.taper}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.switchProfile = function(profileKey, buttonElement) {
+            // Update button styles
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-indigo-900', 'text-white', 'border-indigo-900');
+                btn.classList.add('bg-white', 'text-slate-600', 'border-slate-200');
+            });
+            
+            buttonElement.classList.remove('bg-white', 'text-slate-600', 'border-slate-200');
+            buttonElement.classList.add('active'); // CSS handles the styling
+
+            // Update content and chart
+            updateProfileContent(profileKey);
+            initProfileChart(profileKey);
+        };
+
+        // Initialize default view
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialProfile = 'endurance';
+            updateProfileContent(initialProfile);
+            initProfileChart(initialProfile);
+        });
+
+    </script>
+</body>
+</html>

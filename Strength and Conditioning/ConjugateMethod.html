@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High-Performance Report: Conjugate Method in Field Sports</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Warm Neutrals (Stone/Slate) with Athletic Orange Accent -->
+    <!-- Application Structure Plan: A side-navigation dashboard structure. This architecture allows strength coaches and sports scientists to easily navigate between dense theoretical concepts (Microcycle physiology, Accommodation) and practical programming applications (Pendulum Waves, Special Exercises) in a non-linear fashion. It prevents overwhelming the user with a massive wall of text, breaking the report into digestible, interactive modules. -->
+    <!-- Visualization & Content Choices:
+         1. Microcycle Interplay: Goal -> Show ME/DE fatigue management. Viz -> Chart.js Combo Bar/Line. Justification -> Effectively contrasts applied mechanical load with central nervous system readiness over time.
+         2. Accommodation Law: Goal -> Illustrate neural stagnation vs adaptation. Viz -> Chart.js Line chart. Justification -> Clear visual representation of Zatsiorsky's biological principle.
+         3. Pendulum Waves: Goal -> Display progression parameters. Viz -> HTML Table + Chart.js Stacked Bar. Justification -> Meets the requirement for a table while visually explaining the ratio of bar weight to accommodating resistance.
+         4. Special Exercises: Goal -> Link biomechanical weak points to exercise prescription. Viz -> Interactive HTML UI Grid. Justification -> Allows interactive exploration of force-leakage points without relying on SVG body maps.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Oswald:wght@500;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fafaf9; /* Tailwind stone-50 */
+            color: #292524; /* Tailwind stone-800 */
+        }
+        
+        h1, h2, h3, .heading-font {
+            font-family: 'Oswald', sans-serif;
+        }
+
+        /* CRITICAL CHART CONTAINER STYLING */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 450px;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        .nav-link.active {
+            background-color: #ea580c; /* orange-600 */
+            color: white;
+            font-weight: 600;
+        }
+        
+        .nav-link {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Scrollbar for inner div */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f5f5f4; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d6d3d1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a8a29e; 
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden antialiased">
+
+    <aside class="w-64 bg-slate-900 text-stone-300 flex-shrink-0 flex flex-col hidden md:flex">
+        <div class="p-6 bg-slate-950 border-b border-slate-800">
+            <h1 class="text-2xl font-bold text-white tracking-wide uppercase">Athletic Kinetics</h1>
+            <p class="text-xs text-orange-500 font-semibold mt-1 tracking-widest">PERFORMANCE REPORT</p>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-4 custom-scrollbar">
+            <ul class="space-y-1 px-3">
+                <li><button onclick="navigate('overview')" id="nav-overview" class="nav-link active w-full text-left px-4 py-3 rounded-md hover:bg-slate-800">Executive Summary</button></li>
+                <li><button onclick="navigate('microcycle')" id="nav-microcycle" class="nav-link w-full text-left px-4 py-3 rounded-md hover:bg-slate-800">ME / DE Interplay</button></li>
+                <li><button onclick="navigate('accommodation')" id="nav-accommodation" class="nav-link w-full text-left px-4 py-3 rounded-md hover:bg-slate-800">Law of Accommodation</button></li>
+                <li><button onclick="navigate('pendulum')" id="nav-pendulum" class="nav-link w-full text-left px-4 py-3 rounded-md hover:bg-slate-800">Speed-Strength Waves</button></li>
+                <li><button onclick="navigate('special-exercises')" id="nav-special-exercises" class="nav-link w-full text-left px-4 py-3 rounded-md hover:bg-slate-800">Force Leakage & SPP</button></li>
+            </ul>
+        </nav>
+        <div class="p-4 text-xs text-slate-500 border-t border-slate-800">
+            Prepared by Dept. of Applied Sports Science
+        </div>
+    </aside>
+
+    <div class="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center z-50 absolute w-full top-0">
+        <h1 class="text-xl font-bold heading-font uppercase">Athletic Kinetics</h1>
+        <select id="mobile-nav" onchange="navigate(this.value)" class="bg-slate-800 text-white border-none rounded p-2 text-sm">
+            <option value="overview">Executive Summary</option>
+            <option value="microcycle">ME / DE Interplay</option>
+            <option value="accommodation">Law of Accommodation</option>
+            <option value="pendulum">Speed-Strength Waves</option>
+            <option value="special-exercises">Force Leakage</option>
+        </select>
+    </div>
+
+    <main class="flex-1 overflow-y-auto bg-stone-50 p-6 md:p-10 pt-20 md:pt-10 custom-scrollbar relative">
+        
+        <section id="overview" class="content-section active max-w-5xl mx-auto">
+            <div class="mb-8 border-b-4 border-orange-600 pb-4 inline-block">
+                <h2 class="text-4xl font-bold text-slate-900">The Conjugate Method in Elite Field Sports</h2>
+            </div>
+            
+            <p class="text-lg text-stone-700 leading-relaxed mb-6 font-medium">
+                This report analyzes the application of the Westside Barbell Conjugate System outside of powerlifting, specifically tailored for high-impact, multi-directional field sports such as Rugby and American Football. The core objective is not merely improving 1-Repetition Maximums (1RM), but maximizing Rate of Force Development (RFD), maintaining central nervous system (CNS) readiness, and building localized tissue resilience ('armor') to withstand collision forces.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <div class="text-orange-600 text-3xl mb-2 font-bold heading-font">01</div>
+                    <h3 class="text-xl font-bold mb-2">Maximal Effort (ME)</h3>
+                    <p class="text-stone-600 text-sm">Lifting >90% of 1RM to recruit high-threshold motor units via maximum load. Builds absolute strength limits.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <div class="text-orange-600 text-3xl mb-2 font-bold heading-font">02</div>
+                    <h3 class="text-xl font-bold mb-2">Dynamic Effort (DE)</h3>
+                    <p class="text-stone-600 text-sm">Lifting sub-maximal loads (50-60%) at maximal velocity. Recruits motor units via speed, developing explosive RFD.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <div class="text-orange-600 text-3xl mb-2 font-bold heading-font">03</div>
+                    <h3 class="text-xl font-bold mb-2">Repetition Method</h3>
+                    <p class="text-stone-600 text-sm">High volume accessory work to induce hypertrophy, correct structural imbalances, and enhance work capacity.</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 text-stone-100 p-8 rounded-xl shadow-md">
+                <h3 class="text-2xl font-bold heading-font mb-4 text-orange-500">Why Conjugate for Field Athletes?</h3>
+                <ul class="space-y-4">
+                    <li class="flex items-start">
+                        <span class="mr-3 text-orange-500 font-bold">✓</span>
+                        <span><strong>No Off-Season Peaking:</strong> Linear periodization requires peaking for one event. Field athletes must maintain peak strength, speed, and endurance concurrently over a 6-month season.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="mr-3 text-orange-500 font-bold">✓</span>
+                        <span><strong>Managing Fatigue:</strong> By splitting extreme neurological stressors (ME days) and extreme velocity stressors (DE days), athletes recover faster while continuously stimulating the CNS.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="mr-3 text-orange-500 font-bold">✓</span>
+                        <span><strong>Addressing Weaknesses:</strong> 80% of training volume is dedicated to 'Special Exercises' targeting individual biomechanical flaws, reducing injury risk on the field.</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="microcycle" class="content-section max-w-5xl mx-auto">
+            <div class="mb-8 border-b-4 border-orange-600 pb-4 inline-block">
+                <h2 class="text-4xl font-bold text-slate-900">Physiological Interplay: ME & DE Microcycle</h2>
+            </div>
+
+            <p class="text-stone-700 leading-relaxed mb-8">
+                The standard 7-day microcycle separates extreme physiological stressors. ME days tax the Central Nervous System heavily due to maximal intent against heavy loads. DE days tax the peripheral nervous system and muscle contractile speed. A minimum of 72 hours separates extreme workouts of the same body half to ensure complete neuro-muscular recovery.
+            </p>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-8">
+                <h3 class="text-lg font-bold mb-4 text-center">7-Day Neuromuscular Load & Readiness Model</h3>
+                <div class="chart-container">
+                    <canvas id="microcycleChart"></canvas>
+                </div>
+                <p class="text-xs text-center text-stone-500 mt-4 font-mono">X-Axis: Days | Bar: Mechanical/Neural Load | Line: Estimated CNS Readiness %</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-xl font-bold heading-font text-slate-800 mb-3 border-l-4 border-orange-500 pl-3">The Science of ME</h4>
+                    <p class="text-stone-600 text-sm mb-4">Maximal Effort utilizes the Size Principle of motor unit recruitment. To move a >90% load, the body must immediately bypass low-threshold, slow-twitch fibers and recruit fast-twitch, high-threshold motor units (HTMUs). Because the load is immense, mechanical tension is high, but time-under-tension is extremely low, causing intense CNS fatigue but relatively low muscle damage.</p>
+                </div>
+                <div>
+                    <h4 class="text-xl font-bold heading-font text-slate-800 mb-3 border-l-4 border-slate-500 pl-3">The Science of DE</h4>
+                    <p class="text-stone-600 text-sm mb-4">Dynamic Effort also recruits HTMUs, but achieves this via compensatory acceleration. Force = Mass x Acceleration. By moving a submaximal mass (50-60%) with maximal acceleration, force output peaks. Accommodating resistance (bands/chains) is crucial here to prevent deceleration at the top of the movement, ensuring HTMUs fire throughout the entire range of motion.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="accommodation" class="content-section max-w-5xl mx-auto">
+            <div class="mb-8 border-b-4 border-orange-600 pb-4 inline-block">
+                <h2 class="text-4xl font-bold text-slate-900">The Law of Accommodation & Rotation</h2>
+            </div>
+
+            <p class="text-stone-700 leading-relaxed mb-6">
+                Vladimir Zatsiorsky defined the Law of Accommodation as the decrease in response of a biological object to a continued stimulus. If a rugby player squats the same weight for the same reps for 4 weeks, physiological adaptation ceases. The CNS essentially "gets bored" and stops firing efficiently.
+            </p>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-8">
+                <div class="flex flex-col md:flex-row gap-8 items-center">
+                    <div class="flex-1 w-full">
+                         <div class="chart-container">
+                            <canvas id="accommodationChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-2xl font-bold heading-font text-slate-900 mb-4">Combating Neural Stagnation</h4>
+                        <p class="text-stone-600 mb-4">To prevent accommodation while continuing to train maximal strength, we utilize <strong>Exercise Rotation</strong>. Every 1-3 weeks, the ME main movement changes. </p>
+                        <div class="bg-stone-100 p-4 rounded-md border-l-4 border-orange-500">
+                            <p class="text-sm font-semibold text-slate-800 mb-2">Example Lower Body ME Rotation:</p>
+                            <ul class="list-disc pl-5 text-sm text-stone-700 space-y-1">
+                                <li>Week 1: Safety Squat Bar Box Squat</li>
+                                <li>Week 2: Deficit Trap Bar Deadlift</li>
+                                <li>Week 3: Cambered Bar Good Morning</li>
+                                <li>Week 4: Front Squat vs. Bands</li>
+                            </ul>
+                        </div>
+                        <p class="text-stone-600 mt-4 text-sm">The physiological trait being trained (Absolute Strength) remains constant, but the biomechanical angle and motor pattern change slightly, tricking the CNS into continued adaptation without stagnation.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pendulum" class="content-section max-w-5xl mx-auto">
+            <div class="mb-8 border-b-4 border-orange-600 pb-4 inline-block">
+                <h2 class="text-4xl font-bold text-slate-900">Speed-Strength: 3-Week Pendulum Waves</h2>
+            </div>
+
+            <p class="text-stone-700 leading-relaxed mb-6">
+                Dynamic Effort days operate on a 3-week pendulum wave. We undulate the volume and intensity to prevent overtraining while teaching the body to rapidly produce force against varying resistance. Accommodating resistance (bands/chains) accounts for roughly 25% of the total tension at lockout, teaching the athlete to accelerate entirely through the sticking point—a critical trait for tackling and driving through opponents.
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+                    <div class="bg-slate-900 px-6 py-4">
+                        <h3 class="text-white font-bold heading-font text-xl">Standard DE Lower Protocol (Squat)</h3>
+                    </div>
+                    <div class="p-0 overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-stone-100 text-stone-600 text-sm uppercase tracking-wider">
+                                    <th class="p-4 border-b">Week</th>
+                                    <th class="p-4 border-b">Sets x Reps</th>
+                                    <th class="p-4 border-b">Bar Weight (% of 1RM)</th>
+                                    <th class="p-4 border-b">Band/Chain Tension</th>
+                                    <th class="p-4 border-b text-right">Total Load Top</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-stone-800">
+                                <tr class="hover:bg-stone-50 transition-colors border-b">
+                                    <td class="p-4 font-bold text-orange-600">Week 1</td>
+                                    <td class="p-4">10 x 2</td>
+                                    <td class="p-4 font-mono bg-slate-100 rounded">50%</td>
+                                    <td class="p-4 text-slate-500 font-mono">25%</td>
+                                    <td class="p-4 text-right font-bold">75%</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50 transition-colors border-b">
+                                    <td class="p-4 font-bold text-orange-600">Week 2</td>
+                                    <td class="p-4">10 x 2</td>
+                                    <td class="p-4 font-mono bg-slate-100 rounded">55%</td>
+                                    <td class="p-4 text-slate-500 font-mono">25%</td>
+                                    <td class="p-4 text-right font-bold">80%</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50 transition-colors">
+                                    <td class="p-4 font-bold text-orange-600">Week 3</td>
+                                    <td class="p-4">10 x 2</td>
+                                    <td class="p-4 font-mono bg-slate-100 rounded">60%</td>
+                                    <td class="p-4 text-slate-500 font-mono">25%</td>
+                                    <td class="p-4 text-right font-bold">85%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="p-4 bg-orange-50 text-orange-800 text-sm border-t border-orange-100">
+                            * After Week 3, the wave resets back to 50% bar weight, but ideally, the athlete's true 1RM has increased, meaning the absolute load is slightly higher in the next wave.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 flex flex-col justify-center">
+                    <h3 class="text-center font-bold mb-2 text-slate-700">Load Composition Wave</h3>
+                    <div class="chart-container">
+                        <canvas id="pendulumChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="special-exercises" class="content-section max-w-5xl mx-auto">
+            <div class="mb-8 border-b-4 border-orange-600 pb-4 inline-block">
+                <h2 class="text-4xl font-bold text-slate-900">Special Exercises & Force Leakage</h2>
+            </div>
+
+            <p class="text-stone-700 leading-relaxed mb-8">
+                In field sports, absolute strength is useless if structural weaknesses cause 'force leakage' during athletic movement. If a rugby player has massive quads but a weak core and upper back, energy generated in the legs is lost before it transfers to the shoulder during a tackle. <strong>80% of Conjugate training volume is dedicated to Special Physical Preparedness (SPP) exercises to build 'armor' and plug these leaks.</strong>
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-slate-900 p-6 rounded-xl">
+                
+                <!-- Interactive Body Zone Selector -->
+                <div class="lg:col-span-5 flex flex-col gap-3 justify-center">
+                    <h3 class="text-white font-bold heading-font text-xl mb-2">Select Kinetic Zone:</h3>
+                    
+                    <button onclick="updateExerciseData('neck')" class="zone-btn w-full text-left bg-slate-800 hover:bg-slate-700 text-stone-200 px-5 py-4 rounded border-l-4 border-transparent hover:border-orange-500 transition-all flex justify-between items-center group">
+                        <span class="font-bold">Cervical Spine / Neck</span>
+                        <span class="text-slate-500 group-hover:text-orange-500">→</span>
+                    </button>
+                    
+                    <button onclick="updateExerciseData('upperBack')" class="zone-btn w-full text-left bg-slate-800 hover:bg-slate-700 text-stone-200 px-5 py-4 rounded border-l-4 border-transparent hover:border-orange-500 transition-all flex justify-between items-center group">
+                        <span class="font-bold">Thoracic Spine / Upper Back</span>
+                        <span class="text-slate-500 group-hover:text-orange-500">→</span>
+                    </button>
+                    
+                    <button onclick="updateExerciseData('core')" class="zone-btn w-full text-left bg-slate-800 hover:bg-slate-700 text-stone-200 px-5 py-4 rounded border-l-4 border-transparent hover:border-orange-500 transition-all flex justify-between items-center group">
+                        <span class="font-bold">Trunk / Core</span>
+                        <span class="text-slate-500 group-hover:text-orange-500">→</span>
+                    </button>
+                    
+                    <button onclick="updateExerciseData('posterior')" class="zone-btn active-zone w-full text-left bg-slate-800 hover:bg-slate-700 text-stone-200 px-5 py-4 rounded border-l-4 border-orange-500 transition-all flex justify-between items-center group">
+                        <span class="font-bold">Posterior Chain (Glutes/Hams)</span>
+                        <span class="text-slate-500 text-orange-500">→</span>
+                    </button>
+                </div>
+
+                <!-- Dynamic Content Display -->
+                <div class="lg:col-span-7 bg-white rounded-lg p-6 shadow-inner relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none text-9xl">⚙️</div>
+                    
+                    <h3 id="ex-title" class="text-2xl font-bold heading-font text-orange-600 mb-2">Posterior Chain (Glutes/Hams)</h3>
+                    
+                    <div class="mb-6">
+                        <h4 class="text-xs uppercase font-bold text-slate-500 tracking-wider mb-1">Field Sport Pathology (Force Leakage)</h4>
+                        <p id="ex-leakage" class="text-stone-800 font-medium">Poor acceleration mechanics, pulled hamstrings during top-speed sprinting, lack of 'drive' through contact in tackles.</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-xs uppercase font-bold text-slate-500 tracking-wider mb-2">Conjugate Corrective Exercises</h4>
+                        <ul id="ex-list" class="space-y-3">
+                            <li class="flex items-center bg-stone-50 p-3 rounded border border-stone-200"><span class="bg-orange-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-3 flex-shrink-0">1</span> <span class="text-sm font-semibold text-slate-800">Reverse Hyperextensions</span></li>
+                            <li class="flex items-center bg-stone-50 p-3 rounded border border-stone-200"><span class="bg-orange-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-3 flex-shrink-0">2</span> <span class="text-sm font-semibold text-slate-800">Glute-Ham Raises (GHR)</span></li>
+                            <li class="flex items-center bg-stone-50 p-3 rounded border border-stone-200"><span class="bg-orange-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-3 flex-shrink-0">3</span> <span class="text-sm font-semibold text-slate-800">Banded Good Mornings</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 text-center text-sm text-stone-500 italic">
+                *The primary goal of the Repetition Method (accessory work) is hypertrophy and structural integrity, not necessarily maximal nervous system output.
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- Navigation Logic ---
+        function navigate(sectionId) {
+            // Update active state on nav links (desktop)
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active', 'bg-slate-800');
+            });
+            const activeDesktopLink = document.getElementById(`nav-${sectionId}`);
+            if(activeDesktopLink) activeDesktopLink.classList.add('active');
+
+            // Sync mobile select
+            const mobileNav = document.getElementById('mobile-nav');
+            if(mobileNav) mobileNav.value = sectionId;
+
+            // Show active section
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Re-render charts if entering their sections to fix potential dimension bugs in SPAs
+            if(sectionId === 'microcycle' && window.chartMicrocycle) window.chartMicrocycle.update();
+            if(sectionId === 'accommodation' && window.chartAccommodation) window.chartAccommodation.update();
+            if(sectionId === 'pendulum' && window.chartPendulum) window.chartPendulum.update();
+        }
+
+        // --- Chart Configurations ---
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#57534e'; // stone-500
+
+        // 1. Microcycle Chart
+        const ctxMicrocycle = document.getElementById('microcycleChart').getContext('2d');
+        window.chartMicrocycle = new Chart(ctxMicrocycle, {
+            type: 'bar',
+            data: {
+                labels: ['Mon (ME Lower)', 'Tue (GPP)', 'Wed (DE Upper)', 'Thu (Rest)', 'Fri (DE Lower)', 'Sat (ME Upper)', 'Sun (Rest)'],
+                datasets: [
+                    {
+                        type: 'line',
+                        label: 'CNS Readiness (%)',
+                        data: [100, 40, 60, 85, 95, 80, 50],
+                        borderColor: '#ea580c', // orange-600
+                        backgroundColor: '#ea580c',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    },
+                    {
+                        type: 'bar',
+                        label: 'Training Stress (Load/Velocity)',
+                        data: [95, 30, 75, 0, 80, 90, 0],
+                        backgroundColor: '#1e293b', // slate-800
+                        borderRadius: 4,
+                        yAxisID: 'y'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        backgroundColor: '#1c1917',
+                        titleFont: { family: 'Oswald', size: 14 }
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear', display: true, position: 'left',
+                        title: { display: true, text: 'Training Stress (A.U.)' },
+                        grid: { color: '#e7e5e4' }
+                    },
+                    y1: {
+                        type: 'linear', display: true, position: 'right',
+                        title: { display: true, text: 'CNS Readiness (%)' },
+                        min: 0, max: 110,
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+
+        // 2. Accommodation Chart
+        const ctxAccommodation = document.getElementById('accommodationChart').getContext('2d');
+        window.chartAccommodation = new Chart(ctxAccommodation, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
+                datasets: [
+                    {
+                        label: 'Linear Model (Same Exercise)',
+                        data: [100, 105, 108, 108, 106, 105],
+                        borderColor: '#94a3b8', // slate-400
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Conjugate Rotation',
+                        data: [100, 105, 110, 115, 122, 128],
+                        borderColor: '#ea580c', // orange-600
+                        backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.1,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: false }
+                },
+                scales: {
+                    y: {
+                        title: { display: true, text: 'Force Output Capacity' },
+                        grid: { color: '#f5f5f4' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // 3. Pendulum Wave Chart
+        const ctxPendulum = document.getElementById('pendulumChart').getContext('2d');
+        window.chartPendulum = new Chart(ctxPendulum, {
+            type: 'bar',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3'],
+                datasets: [
+                    {
+                        label: 'Bar Weight (%)',
+                        data: [50, 55, 60],
+                        backgroundColor: '#334155', // slate-700
+                    },
+                    {
+                        label: 'Band/Chain Tension (%)',
+                        data: [25, 25, 25],
+                        backgroundColor: '#ea580c', // orange-600
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true, grid: { display: false } },
+                    y: { stacked: true, max: 100, title: { display: true, text: '% of 1RM' }, grid: { color: '#e7e5e4' } }
+                },
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // --- Interactive Special Exercises Data ---
+        const exerciseData = {
+            neck: {
+                title: "Cervical Spine / Neck Build",
+                leakage: "Concussion risk. Whiplash forces during collisions. Inability to maintain head posture during scrum/tackling.",
+                exercises: ["Neck Harness Extensions/Flexions", "Manual Isometric Resistance", "Shrug Variations (Heavy)"]
+            },
+            upperBack: {
+                title: "Thoracic Spine / Upper Back",
+                leakage: "Collapsing forward under heavy loads. Loss of arm drive in sprinting. Inability to wrap and finish tackles effectively.",
+                exercises: ["Chest Supported Rows", "Band Face Pulls", "Seated DB Power Cleans", "Lat Pulldowns (Various Grips)"]
+            },
+            core: {
+                title: "Trunk / Core",
+                leakage: "Loss of energy transfer between lower and upper body. Torsional weakness causing agility breakdown.",
+                exercises: ["Standing Band Crunches", "Heavy Farmer's Walks", "Suitcase Deadlifts", "Hanging Leg Raises"]
+            },
+            posterior: {
+                title: "Posterior Chain (Glutes/Hams)",
+                leakage: "Poor acceleration mechanics, pulled hamstrings during top-speed sprinting, lack of 'drive' through contact.",
+                exercises: ["Reverse Hyperextensions", "Glute-Ham Raises (GHR)", "Dimel Deadlifts", "Banded Good Mornings"]
+            }
+        };
+
+        function updateExerciseData(zone) {
+            // UI Update
+            document.querySelectorAll('.zone-btn').forEach(btn => {
+                btn.classList.remove('active-zone', 'border-orange-500');
+                btn.classList.add('border-transparent');
+                // Target the specific inner span for color reset
+                btn.querySelector('span:last-child').classList.remove('text-orange-500');
+            });
+            
+            // Re-apply active styles based on the clicked element
+            // Using a simple event delegation simulation since we don't pass 'event' directly
+            const buttons = document.querySelectorAll('.zone-btn');
+            let activeBtn;
+            if(zone === 'neck') activeBtn = buttons[0];
+            if(zone === 'upperBack') activeBtn = buttons[1];
+            if(zone === 'core') activeBtn = buttons[2];
+            if(zone === 'posterior') activeBtn = buttons[3];
+
+            if(activeBtn) {
+                activeBtn.classList.add('active-zone', 'border-orange-500');
+                activeBtn.classList.remove('border-transparent');
+                activeBtn.querySelector('span:last-child').classList.add('text-orange-500');
+            }
+
+            // Data Update
+            const data = exerciseData[zone];
+            document.getElementById('ex-title').textContent = data.title;
+            document.getElementById('ex-leakage').textContent = data.leakage;
+            
+            const listContainer = document.getElementById('ex-list');
+            listContainer.innerHTML = '';
+            
+            data.exercises.forEach((ex, index) => {
+                const li = document.createElement('li');
+                li.className = "flex items-center bg-stone-50 p-3 rounded border border-stone-200 opacity-0 transform translate-y-2 transition-all duration-300";
+                // Trigger animation reflow
+                setTimeout(() => { li.classList.remove('opacity-0', 'translate-y-2'); }, 50 * index);
+                
+                li.innerHTML = `<span class="bg-orange-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-3 flex-shrink-0">${index + 1}</span> <span class="text-sm font-semibold text-slate-800">${ex}</span>`;
+                listContainer.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>

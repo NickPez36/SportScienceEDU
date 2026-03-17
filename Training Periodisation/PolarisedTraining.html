@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polarized Training Model: Intensity & Autonomic Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #0f172a; /* slate-900 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        .active-tab {
+            background-color: #0f172a;
+            color: white;
+            border-color: #0f172a;
+        }
+        .inactive-tab {
+            background-color: white;
+            color: #475569;
+            border-color: #e2e8f0;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+<!-- Chosen Palette: Slate (Neutrals) with Emerald (Z1), Amber (Z2), and Rose (Z3) semantic accents -->
+
+<!-- Application Structure Plan: 
+    The SPA is structured sequentially to guide the user from foundational concepts to specific applications.
+    1. Introduction & Foundation: Establishes the 3-Zone model using a static/comparative bar chart.
+    2. Interactive Interactive Dashboard: The core tool. Users select an athlete profile (Endurance, Middle-Distance, Power). 
+       This updates a Doughnut chart (Zone Distribution) and a Line chart (HRV/Autonomic response) alongside contextual text.
+       This structure was chosen because it allows users to directly compare how the baseline "80/20" rule morphs based on physiological demands, keeping the UI clean and avoiding information overload. 
+-->
+
+<!-- Visualization & Content Choices: 
+    1. Goal: Compare Training Models -> Viz: Stacked Bar Chart -> Interaction: Hover tooltips -> Justification: Clearly contrasts Polarized vs Threshold volume distribution -> Library: Chart.js.
+    2. Goal: Show Proportions per Athlete -> Viz: Doughnut Chart -> Interaction: Dynamic update on tab click -> Justification: Ideal for showing percentage breakdowns of the 3 zones -> Library: Chart.js.
+    3. Goal: Show HRV/Autonomic Trends -> Viz: Line Chart -> Interaction: Dynamic update on tab click -> Justification: Illustrates parasympathetic/sympathetic shifts over a 7-day microcycle -> Library: Chart.js.
+-->
+
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    
+    <!-- Header Section -->
+    <header class="mb-12 border-b border-slate-200 pb-8">
+        <div class="uppercase tracking-widest text-sm text-slate-500 font-semibold mb-2">&#9679; Research Report</div>
+        <h1 class="text-4xl md:text-5xl font-bold text-slate-900 mb-4 tracking-tight">The Polarized Training Model</h1>
+        <p class="text-xl text-slate-600 max-w-3xl leading-relaxed">
+            An analysis of intensity distribution across Three-Zone models, exploring how the fundamental 80/20 split is physiologically adapted for Endurance, Middle-Distance, and Power athletes, and its impact on the Autonomic Nervous System.
+        </p>
+    </header>
+
+    <!-- Section 1: Foundation -->
+    <section class="mb-16">
+        <div class="mb-6">
+            <h2 class="text-2xl font-semibold text-slate-800 mb-2">1. Foundation: The Three-Zone Model</h2>
+            <p class="text-slate-600 max-w-4xl">
+                The Polarized model relies on physiological demarcations—primarily the first and second ventilatory/lactate thresholds (VT1/LT1 and VT2/LT2)—to divide intensity into three distinct zones. The core philosophy is to accumulate massive volume in Zone 1, utilize Zone 3 for potent adaptation, and largely avoid the "Black Hole" of Zone 2 where fatigue accumulates without proportional physiological benefit.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+            <div class="chart-container h-[300px] max-w-md">
+                <canvas id="modelComparisonChart"></canvas>
+            </div>
+            <div>
+                <ul class="space-y-4">
+                    <li class="flex items-start">
+                        <span class="inline-block w-4 h-4 rounded bg-emerald-400 mt-1 mr-3 flex-shrink-0"></span>
+                        <div>
+                            <strong class="text-slate-800">Zone 1 (Low Intensity):</strong> 
+                            <span class="text-slate-600 block text-sm">Below LT1/VT1. Talking pace. Drives peripheral adaptations, fat oxidation, and parasympathetic tone.</span>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="inline-block w-4 h-4 rounded bg-amber-400 mt-1 mr-3 flex-shrink-0"></span>
+                        <div>
+                            <strong class="text-slate-800">Zone 2 (Moderate / Threshold):</strong> 
+                            <span class="text-slate-600 block text-sm">Between LT1 and LT2. The "Black Hole". Highly fatiguing, sympathetic driver, but often lacks the specific stimulus of Z3 or the recovery of Z1.</span>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="inline-block w-4 h-4 rounded bg-rose-500 mt-1 mr-3 flex-shrink-0"></span>
+                        <div>
+                            <strong class="text-slate-800">Zone 3 (High Intensity):</strong> 
+                            <span class="text-slate-600 block text-sm">Above LT2/VT2. Severe exercise domain. Drives central cardiovascular adaptations and VO2max.</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Interactive Dashboard -->
+    <section class="mb-16">
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold text-slate-800 mb-2">2. Athlete Profiles & Autonomic Responses</h2>
+            <p class="text-slate-600 max-w-4xl">
+                While 80/20 is the baseline, strict adherence varies by discipline. Select an athlete profile below to explore how the intensity distribution is modified and how their Autonomic Nervous System (measured via Heart Rate Variability - HRV) responds across a standard training microcycle.
+            </p>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex flex-wrap gap-3 mb-8" id="athlete-controls" role="tablist">
+            <button onclick="updateDashboard('endurance')" id="btn-endurance" class="active-tab px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 border shadow-sm hover:shadow" role="tab" aria-selected="true">
+                &#127939; Endurance
+            </button>
+            <button onclick="updateDashboard('middle')" id="btn-middle" class="inactive-tab px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 border shadow-sm hover:shadow" role="tab" aria-selected="false">
+                &#9201; Middle-Distance
+            </button>
+            <button onclick="updateDashboard('power')" id="btn-power" class="inactive-tab px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 border shadow-sm hover:shadow" role="tab" aria-selected="false">
+                &#128170; Power & Speed
+            </button>
+        </div>
+
+        <!-- Dynamic Content Area -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
+            <div class="mb-8 border-b border-slate-100 pb-6">
+                <h3 id="profile-title" class="text-3xl font-bold text-slate-800 mb-3">Endurance Athletes (Marathon, Ironman)</h3>
+                <p id="profile-desc" class="text-slate-600 leading-relaxed text-lg">
+                    The purest application of the 80/20 model. Because race durations are long, total training volume must be exceptionally high. To sustain this volume without overtraining, intensities must be strictly polarized.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                
+                <!-- Doughnut Chart: Distribution -->
+                <div class="flex flex-col">
+                    <h4 class="text-sm uppercase tracking-wider font-semibold text-slate-500 mb-4 text-center">Intensity Distribution</h4>
+                    <div class="chart-container h-[250px] w-full max-w-[250px] mx-auto mb-6">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm text-slate-700" id="distribution-text">
+                        <strong>The 80/20 Rule:</strong> 80% of sessions (or time in zone) are kept strictly below LT1. Only 20% involve high-intensity work above LT2. Zone 2 is actively avoided to prevent unnecessary autonomic stress.
+                    </div>
+                </div>
+
+                <!-- Line Chart: HRV -->
+                <div class="flex flex-col">
+                    <h4 class="text-sm uppercase tracking-wider font-semibold text-slate-500 mb-4 text-center">HRV Trend (7-Day Microcycle)</h4>
+                    <div class="chart-container h-[250px] w-full max-w-lg mx-auto mb-6">
+                        <canvas id="hrvChart"></canvas>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm text-slate-700" id="hrv-text">
+                        <strong>Autonomic State:</strong> Dominated by parasympathetic activity. HRV remains high and stable. Following a strict Z3 session (Day 3), a brief dip occurs, but the high volume of Z1 work promotes rapid parasympathetic rebound.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    // --- Data Definitions ---
+    const appData = {
+        endurance: {
+            title: "Endurance Athletes (Marathon, Ironman, Grand Tour)",
+            desc: "The purest application of the 80/20 model. Because race durations are long, total training volume must be exceptionally high. To sustain this volume without overtraining, intensities must be strictly polarized.",
+            distData: [80, 5, 15],
+            distText: "<strong>The 80/20 Approach:</strong> ~80% of training time is kept strictly below LT1. Only 15-20% involves high-intensity work above LT2. Zone 2 is actively avoided to prevent unnecessary cumulative fatigue.",
+            hrvData: [65, 66, 50, 64, 67, 48, 65], // Dips on intense days (3, 6), rapid recovery
+            hrvText: "<strong>Autonomic State:</strong> Highly Parasympathetic. HRV remains stable and high. Following a strict Z3 session (Days 3 & 6), a brief sympathetic dip occurs, but the high volume of Z1 work promotes rapid parasympathetic rebound and recovery."
+        },
+        middle: {
+            title: "Middle-Distance Athletes (800m-5K, Track Cycling)",
+            desc: "A modified polarized or 'pyramidal' approach. Pure 80/20 is often insufficient because the specific race pace heavily demands the 'Black Hole' (Zone 2 / high-lactate threshold) and highly anaerobic power.",
+            distData: [65, 20, 15],
+            distText: "<strong>Balancing the Black Hole:</strong> Distribution shifts closer to 65/20/15 or a pyramidal structure. They *must* train in Zone 2/Threshold because that is their race specificity. The risk of overtraining is significantly higher.",
+            hrvData: [60, 58, 45, 42, 55, 38, 50], // Lower baseline, deeper dips, slower recovery
+            hrvText: "<strong>Autonomic State:</strong> Volatile. The inclusion of heavy Zone 2 and specific lactic-tolerance sessions creates significant sympathetic drive. HRV dips deeper and takes longer to return to baseline compared to pure endurance athletes."
+        },
+        power: {
+            title: "Power & Speed Athletes (Sprinters, Weightlifters)",
+            desc: "A completely different application of the zones. Their primary 'intensity' is neuromuscular and CNS-driven, not cardiovascular. Zone 1 is utilized almost exclusively as active recovery.",
+            distData: [85, 0, 15], // Z3 here represents CNS intensity
+            distText: "<strong>Active Recovery & CNS Spikes:</strong> Zone 1 is strictly for flushing metabolites and supporting recovery without fatiguing the CNS. Traditional Zone 2 is completely avoided. 'Zone 3' represents explosive, maximum CNS output sessions.",
+            hrvData: [55, 30, 40, 58, 25, 35, 55], // Massive drops on CNS days, relying on Z1 to bounce back
+            hrvText: "<strong>Autonomic State:</strong> Sympathetically Driven. Heavy CNS sessions (Days 2 & 5) cause massive acute drops in HRV. The high volume of Z1 (active recovery) is deployed specifically to force a parasympathetic shift and clear central fatigue."
+        }
+    };
+
+    // --- Chart Configurations ---
+    const colors = {
+        z1: '#34d399', // emerald-400
+        z2: '#fbbf24', // amber-400
+        z3: '#f43f5e', // rose-500
+        text: '#475569',
+        grid: '#f1f5f9'
+    };
+
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = colors.text;
+
+    // 1. Static Foundation Bar Chart
+    const ctxComparison = document.getElementById('modelComparisonChart').getContext('2d');
+    new Chart(ctxComparison, {
+        type: 'bar',
+        data: {
+            labels: ['Threshold Model', 'Polarized Model'],
+            datasets: [
+                {
+                    label: 'Zone 1 (Low)',
+                    data: [55, 80],
+                    backgroundColor: colors.z1,
+                    borderWidth: 0
+                },
+                {
+                    label: 'Zone 2 (Moderate)',
+                    data: [35, 5],
+                    backgroundColor: colors.z2,
+                    borderWidth: 0
+                },
+                {
+                    label: 'Zone 3 (High)',
+                    data: [10, 15],
+                    backgroundColor: colors.z3,
+                    borderWidth: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y', // Horizontal bars
+            scales: {
+                x: {
+                    stacked: true,
+                    max: 100,
+                    grid: { color: colors.grid },
+                    ticks: { callback: function(value) { return value + "%" } }
+                },
+                y: {
+                    stacked: true,
+                    grid: { display: false }
+                }
+            },
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    mode: 'index',
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.raw + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // 2. Dynamic Doughnut Chart (Initialization)
+    const ctxDist = document.getElementById('distributionChart').getContext('2d');
+    let distChart = new Chart(ctxDist, {
+        type: 'doughnut',
+        data: {
+            labels: ['Zone 1 (Low)', 'Zone 2 (Moderate)', 'Zone 3 (High/CNS)'],
+            datasets: [{
+                data: appData.endurance.distData,
+                backgroundColor: [colors.z1, colors.z2, colors.z3],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ' ' + context.label + ': ' + context.raw + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // 3. Dynamic Line Chart (HRV) (Initialization)
+    const ctxHrv = document.getElementById('hrvChart').getContext('2d');
+    let hrvChart = new Chart(ctxHrv, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue (Hard)', 'Wed', 'Thu', 'Fri (Hard)', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'HRV (RMSSD)',
+                data: appData.endurance.hrvData,
+                borderColor: '#0f172a',
+                backgroundColor: 'rgba(15, 23, 42, 0.1)',
+                borderWidth: 3,
+                pointBackgroundColor: '#0f172a',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    min: 20,
+                    max: 80,
+                    grid: { color: colors.grid },
+                    title: { display: true, text: 'HRV Score' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) { return 'HRV: ' + context.raw; }
+                    }
+                }
+            }
+        }
+    });
+
+    // --- State Management & Interactions ---
+    function updateDashboard(type) {
+        const data = appData[type];
+
+        // Update Text Content
+        document.getElementById('profile-title').innerText = data.title;
+        document.getElementById('profile-desc').innerText = data.desc;
+        document.getElementById('distribution-text').innerHTML = data.distText;
+        document.getElementById('hrv-text').innerHTML = data.hrvText;
+
+        // Update Charts
+        distChart.data.datasets[0].data = data.distData;
+        distChart.update();
+
+        hrvChart.data.datasets[0].data = data.hrvData;
+        hrvChart.update();
+
+        // Manage Button Styles
+        const buttons = ['endurance', 'middle', 'power'];
+        buttons.forEach(btn => {
+            const el = document.getElementById('btn-' + btn);
+            if (btn === type) {
+                el.classList.remove('inactive-tab');
+                el.classList.add('active-tab');
+                el.setAttribute('aria-selected', 'true');
+            } else {
+                el.classList.remove('active-tab');
+                el.classList.add('inactive-tab');
+                el.setAttribute('aria-selected', 'false');
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velocity-Based Training (VBT) Manual</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f4; /* stone-100 */
+            color: #292524; /* stone-800 */
+            margin: 0;
+            overflow: hidden; /* Prevent body scroll, manage in layout */
+        }
+
+        /* Essential Chart Container Styles */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Custom Scrollbar for the main content area */
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #e7e5e4; 
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #a8a29e; 
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #78716c; 
+        }
+
+        /* Navigation Animations */
+        .nav-item {
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-item.active {
+            background-color: #e0f2fe; /* sky-100 */
+            color: #0369a1; /* sky-700 */
+            border-right: 4px solid #0369a1;
+            font-weight: 600;
+        }
+
+        /* Section transition */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Data cards */
+        .data-card {
+            background: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            padding: 1.5rem;
+            border: 1px solid #e7e5e4;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col md:flex-row">
+
+    <!-- Chosen Palette: Warm Neutrals (Stone) with Deep Sky Blue Accents (#0369a1) -->
+    
+    <!-- Application Structure Plan: 
+         A modern dashboard-style SPA divided into 4 core thematic sections, navigated via a persistent sidebar (desktop) or top bar (mobile). 
+         1. The Daily 1RM Problem (Context): Establishes the 'why' of VBT using a comparative chart.
+         2. Velocity Zones (The 'What'): Defines the specific requested zones interactively.
+         3. Load-Velocity Profiling (The 'How' pt 1): Interactive scatter plot demonstrating individualization.
+         4. Fatigue Management (The 'How' pt 2): Interactive bar chart showing rep drop-offs and threshold implications.
+         This structure ensures a logical flow from problem identification -> framework definitions -> individual application -> daily session management, optimizing cognitive load for a professional coach or sports scientist. 
+    -->
+
+    <!-- Visualization & Content Choices: 
+         - Fluctuation Chart: Line chart comparing static % with daily readiness (Goal: Persuade/Inform. Interactive tooltip. Justification: Clearest way to show disparity over time. Library: Chart.js).
+         - Zones Chart: Horizontal Bar Chart colored by intensity (Goal: Organize/Inform. Justification: Easy to read m/s ranges side-by-side. Library: Chart.js).
+         - Profiling Chart: Mixed Scatter/Line chart (Goal: Show Relationships. Interactive toggles for different athlete types. Justification: Accurately represents how LVP regression lines are formed. Library: Chart.js).
+         - Fatigue Chart: Mixed Bar/Line chart (Goal: Change/Compare. Interactive toggle for 10% vs 30% loss. Justification: Visually demonstrates when a set should be terminated to meet physiological goals. Library: Chart.js).
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Sidebar / Top Nav -->
+    <nav class="bg-stone-50 w-full md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-stone-200 flex flex-col z-10 shadow-sm">
+        <div class="p-6 pb-4">
+            <h1 class="text-xl font-bold text-stone-900 tracking-tight"><span class="text-sky-700">&#9650;</span> VBT System</h1>
+            <p class="text-xs text-stone-500 mt-1 uppercase tracking-wider font-semibold">Implementation Manual</p>
+        </div>
+        <ul class="flex-1 flex md:flex-col overflow-x-auto md:overflow-hidden pb-2 md:pb-0 px-2 md:px-0">
+            <li class="min-w-max md:min-w-0">
+                <button onclick="navigate('intro')" id="nav-intro" class="nav-item active w-full text-left px-6 py-3 text-sm text-stone-600 hover:bg-stone-100 focus:outline-none">
+                    1. The Daily 1RM Problem
+                </button>
+            </li>
+            <li class="min-w-max md:min-w-0">
+                <button onclick="navigate('zones')" id="nav-zones" class="nav-item w-full text-left px-6 py-3 text-sm text-stone-600 hover:bg-stone-100 focus:outline-none">
+                    2. Velocity Zones (m/s)
+                </button>
+            </li>
+            <li class="min-w-max md:min-w-0">
+                <button onclick="navigate('lvp')" id="nav-lvp" class="nav-item w-full text-left px-6 py-3 text-sm text-stone-600 hover:bg-stone-100 focus:outline-none">
+                    3. Load-Velocity Profiling
+                </button>
+            </li>
+            <li class="min-w-max md:min-w-0">
+                <button onclick="navigate('fatigue')" id="nav-fatigue" class="nav-item w-full text-left px-6 py-3 text-sm text-stone-600 hover:bg-stone-100 focus:outline-none">
+                    4. Fatigue Management
+                </button>
+            </li>
+        </ul>
+        <div class="p-4 border-t border-stone-200 hidden md:block">
+            <div class="bg-stone-100 p-3 rounded text-xs text-stone-500">
+                <strong>Target:</strong> Professional Team S&C<br>
+                <strong>Focus:</strong> Autoregulation & CNS Readiness
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 custom-scroll overflow-y-auto bg-[#fdfdfc]">
+        
+        <!-- SECTION 1: Introduction & Daily 1RM -->
+        <section id="sec-intro" class="content-section active p-6 md:p-12 max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 mb-2">Solving the "Daily 1RM" Fluctuation</h2>
+                <p class="text-stone-600 leading-relaxed text-lg">
+                    Traditional percentage-based training assumes an athlete's 1-Repetition Maximum (1RM) is static. In a professional setting, factors like match fatigue, sleep, nutrition, and CNS stress cause the <em>actual</em> daily 1RM to fluctuate by up to 18%. Velocity-Based Training (VBT) uses real-time barbell speeds to autoregulate loads, ensuring the intended physiological stimulus matches daily readiness.
+                </p>
+            </header>
+
+            <div class="data-card mb-8">
+                <div class="flex justify-between items-end mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-stone-800">Percentage-Based vs. Autoregulated Readiness</h3>
+                        <p class="text-sm text-stone-500">Tracking a hypothetical athlete's readiness over a 14-day macrocycle block.</p>
+                    </div>
+                </div>
+                <!-- Chart Container Rule applied here -->
+                <div class="chart-container">
+                    <canvas id="chart-intro"></canvas>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-sky-50 p-6 rounded-xl border border-sky-100">
+                    <h4 class="font-bold text-sky-800 mb-2">&#9888; The Problem with Fixed %</h4>
+                    <p class="text-sm text-sky-900 leading-relaxed">
+                        If an athlete is prescribed 5x5 @ 85% based on a 1RM from 4 weeks ago, but is highly fatigued today, that 85% might actually be 95% of their <em>Daily 1RM</em>. This turns a speed/power session into a grinding, heavy session, further taxing an already drained CNS.
+                    </p>
+                </div>
+                <div class="bg-stone-100 p-6 rounded-xl border border-stone-200">
+                    <h4 class="font-bold text-stone-800 mb-2">&#10003; The VBT Solution</h4>
+                    <p class="text-sm text-stone-700 leading-relaxed">
+                        By prescribing a target velocity (e.g., "Work up to a load that moves at 0.50 m/s"), the absolute weight on the bar automatically adjusts. On a fresh day, the athlete lifts more weight at 0.50 m/s. On a fatigued day, they lift less. The physiological intent remains perfectly constant.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Velocity Zones -->
+        <section id="sec-zones" class="content-section p-6 md:p-12 max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 mb-2">Defining Velocity Zones</h2>
+                <p class="text-stone-600 leading-relaxed text-lg">
+                    Specific movement velocities correlate tightly with distinct physiological traits along the Force-Velocity curve. By targeting specific speed ranges in meters per second (m/s), coaches can predictably develop traits from absolute strength to pure speed, regardless of the weight on the bar.
+                </p>
+            </header>
+
+            <div class="data-card mb-8">
+                <h3 class="text-lg font-semibold text-stone-800 mb-1">Standardized VBT Zones (m/s)</h3>
+                <p class="text-sm text-stone-500 mb-6">General benchmarks for core compound lifts (e.g., Back Squat). Hover for details.</p>
+                
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="chart-zones"></canvas>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex items-start bg-white p-4 rounded-lg border border-stone-200 shadow-sm">
+                    <div class="h-6 w-6 rounded bg-[#1e293b] text-white flex items-center justify-center font-bold text-xs mt-0.5 mr-4 flex-shrink-0">&lt;</div>
+                    <div>
+                        <h4 class="font-bold text-stone-800">Lead-Strength (Absolute Strength) &bull; &lt; 0.50 m/s</h4>
+                        <p class="text-sm text-stone-600 mt-1">Maximum force output. Grinding reps used to increase the athlete's raw ceiling. High CNS demand. Typically 85-100% 1RM equivalents.</p>
+                    </div>
+                </div>
+                <div class="flex items-start bg-white p-4 rounded-lg border border-stone-200 shadow-sm">
+                    <div class="h-6 w-6 rounded bg-[#0369a1] text-white flex items-center justify-center font-bold text-xs mt-0.5 mr-4 flex-shrink-0">~</div>
+                    <div>
+                        <h4 class="font-bold text-stone-800">Strength-Speed &bull; 0.50 - 0.75 m/s</h4>
+                        <p class="text-sm text-stone-600 mt-1">Moving relatively heavy loads as fast as possible. Peak power optimization for stronger, larger athletes (e.g., Linemen, Forwards).</p>
+                    </div>
+                </div>
+                <div class="flex items-start bg-white p-4 rounded-lg border border-stone-200 shadow-sm">
+                    <div class="h-6 w-6 rounded bg-[#0ea5e9] text-white flex items-center justify-center font-bold text-xs mt-0.5 mr-4 flex-shrink-0">~</div>
+                    <div>
+                        <h4 class="font-bold text-stone-800">Speed-Strength &bull; 0.75 - 1.00 m/s</h4>
+                        <p class="text-sm text-stone-600 mt-1">Moving moderate loads highly explosively. Peak power optimization for speed/skill players (e.g., Wide Receivers, Guards).</p>
+                    </div>
+                </div>
+                <div class="flex items-start bg-white p-4 rounded-lg border border-stone-200 shadow-sm">
+                    <div class="h-6 w-6 rounded bg-[#38bdf8] text-white flex items-center justify-center font-bold text-xs mt-0.5 mr-4 flex-shrink-0">~</div>
+                    <div>
+                        <h4 class="font-bold text-stone-800">Starting Strength &bull; 1.00 - 1.30 m/s</h4>
+                        <p class="text-sm text-stone-600 mt-1">Overcoming inertia rapidly with light loads. Often involves ballistic variations (e.g., jumps with an empty bar or light DBs).</p>
+                    </div>
+                </div>
+                <div class="flex items-start bg-white p-4 rounded-lg border border-stone-200 shadow-sm">
+                    <div class="h-6 w-6 rounded bg-[#bae6fd] text-[#0369a1] flex items-center justify-center font-bold text-xs mt-0.5 mr-4 flex-shrink-0">&gt;</div>
+                    <div>
+                        <h4 class="font-bold text-stone-800">Reactive Strength &bull; &gt; 1.30 m/s</h4>
+                        <p class="text-sm text-stone-600 mt-1">Unloaded/very light plyometrics, bounding, and sprinting. Maximizing stretch-shortening cycle (SSC) efficiency and ground contact times.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: Load-Velocity Profiling -->
+        <section id="sec-lvp" class="content-section p-6 md:p-12 max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 mb-2">Creating Load-Velocity Profiles (LVP)</h2>
+                <p class="text-stone-600 leading-relaxed text-lg">
+                    Every athlete has a unique physiological signature. A Load-Velocity Profile maps an individual's specific speed at varying percentages of their 1RM. This allows us to establish an athlete's linear regression equation, generating highly accurate, customized training prescriptions without ever testing a true 1-Rep Max.
+                </p>
+            </header>
+
+            <div class="data-card mb-8">
+                <div class="flex flex-col md:flex-row justify-between md:items-end mb-6 gap-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-stone-800">Individual Profile Mapping</h3>
+                        <p class="text-sm text-stone-500">Select an athlete profile to view their distinct regression line.</p>
+                    </div>
+                    <div class="flex gap-2 bg-stone-100 p-1 rounded-lg">
+                        <button onclick="updateLVP('explosive')" id="btn-explosive" class="px-4 py-2 text-sm font-semibold rounded bg-white shadow-sm text-sky-700">Explosive Profile (Player A)</button>
+                        <button onclick="updateLVP('grinder')" id="btn-grinder" class="px-4 py-2 text-sm font-semibold rounded text-stone-600 hover:bg-stone-200">Strength Profile (Player B)</button>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="chart-lvp"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-stone-800 text-stone-100 p-6 rounded-xl">
+                <h4 class="font-bold text-lg mb-4 text-sky-400">The Profiling Process (4-Step Protocol)</h4>
+                <ol class="list-decimal list-inside space-y-3 text-sm leading-relaxed">
+                    <li><strong class="text-white">Warm-Up & Setup:</strong> Standardize the warm-up. Attach the linear position transducer (VBT unit) to the barbell.</li>
+                    <li><strong class="text-white">Sub-Maximal Data Collection:</strong> The athlete performs 1-2 reps at maximal intentional velocity at four distinct incremental loads (e.g., approx 40%, 60%, 75%, and 85% of estimated 1RM).</li>
+                    <li><strong class="text-white">Plot the Data:</strong> Record the Mean Concentric Velocity (MCV) for the fastest rep at each load. Plot Velocity (y-axis) against Load (x-axis).</li>
+                    <li><strong class="text-white">Determine MVT & Extrapolate:</strong> Apply a linear trendline. Identify the athlete's Minimal Velocity Threshold (MVT)—the speed of their 1RM (usually ~0.30 m/s for squats). The software extrapolates the trendline to the MVT to calculate the daily 1RM precisely.</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- SECTION 4: Fatigue Management -->
+        <section id="sec-fatigue" class="content-section p-6 md:p-12 max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 mb-2">Intra-Session Fatigue Management</h2>
+                <p class="text-stone-600 leading-relaxed text-lg">
+                    In-season professional sports require extreme CNS management. VBT introduces <strong>Velocity Loss Thresholds</strong>. Instead of prescribing a fixed number of reps (e.g., 4x8), coaches prescribe a starting load/velocity and cut the set once velocity drops by a specific percentage. This objectively manages metabolic fatigue and recovery times.
+                </p>
+            </header>
+
+            <div class="data-card mb-8">
+                <div class="flex flex-col md:flex-row justify-between md:items-end mb-6 gap-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-stone-800">Rep-by-Rep Velocity Drop-Off</h3>
+                        <p class="text-sm text-stone-500">Observe how sets are auto-terminated based on the chosen physiological goal.</p>
+                    </div>
+                    <div class="flex gap-2 bg-stone-100 p-1 rounded-lg">
+                        <button onclick="updateFatigue(10)" id="btn-10" class="px-4 py-2 text-sm font-semibold rounded bg-white shadow-sm text-sky-700">10% Cutoff (Power/Fresh)</button>
+                        <button onclick="updateFatigue(30)" id="btn-30" class="px-4 py-2 text-sm font-semibold rounded text-stone-600 hover:bg-stone-200">30% Cutoff (Hypertrophy)</button>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chart-fatigue"></canvas>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div id="desc-10" class="bg-white p-6 rounded-xl border-l-4 border-sky-500 shadow-sm transition-opacity duration-300">
+                    <h4 class="font-bold text-stone-800 text-lg mb-2">10% Loss: Power & CNS Maintenance</h4>
+                    <p class="text-sm text-stone-600 leading-relaxed mb-3">
+                        <strong>Goal:</strong> Maintain fast-twitch fiber firing rates without causing metabolic accumulation.
+                    </p>
+                    <p class="text-sm text-stone-600 leading-relaxed">
+                        <strong>Application:</strong> In-season or peaking phases. The set is terminated early (e.g., after 3 reps instead of 6). This ensures the athlete leaves the gym fresh, with high neuromuscular readiness for field practice or games within 24-48 hours.
+                    </p>
+                </div>
+                <div id="desc-30" class="bg-stone-50 p-6 rounded-xl border border-stone-200 opacity-50 transition-opacity duration-300">
+                    <h4 class="font-bold text-stone-800 text-lg mb-2">30% Loss: Hypertrophy & Work Capacity</h4>
+                    <p class="text-sm text-stone-600 leading-relaxed mb-3">
+                        <strong>Goal:</strong> Structural adaptation, muscular endurance, and metabolic stress.
+                    </p>
+                    <p class="text-sm text-stone-600 leading-relaxed">
+                        <strong>Application:</strong> Off-season or early pre-season. Allowing reps to grind down to a 30% loss forces recruitment of higher-threshold motor units under fatigue. Causes significant delayed onset muscle soreness (DOMS) and requires 48-72+ hours of CNS recovery.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Global variables for Chart instances
+        let introChart, zonesChart, lvpChart, fatigueChart;
+
+        // Base Chart Configuration Defaults for consistent Tailwind styling
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = "#78716c";
+        Chart.defaults.scale.grid.color = "#f5f5f4";
+
+        // Navigation Logic
+        function navigate(sectionId) {
+            // Update active state in nav
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active', 'bg-sky-100', 'text-sky-700', 'border-sky-700', 'font-semibold');
+                el.classList.add('text-stone-600');
+            });
+            const activeNav = document.getElementById('nav-' + sectionId);
+            activeNav.classList.add('active');
+            
+            // Manually replicate the CSS active state properties for Tailwind classes
+            activeNav.style.backgroundColor = '#e0f2fe';
+            activeNav.style.color = '#0369a1';
+            activeNav.style.borderRightColor = '#0369a1';
+            activeNav.style.fontWeight = '600';
+
+            // Reset other styles manually due to inline overwrite
+            document.querySelectorAll('.nav-item:not(.active)').forEach(el => {
+                el.style.backgroundColor = 'transparent';
+                el.style.color = '';
+                el.style.borderRightColor = 'transparent';
+                el.style.fontWeight = '400';
+            });
+
+            // Show target section
+            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('sec-' + sectionId).classList.add('active');
+
+            // Render/Update charts when their section becomes visible to ensure proper sizing
+            setTimeout(() => {
+                if(sectionId === 'intro' && !introChart) renderIntroChart();
+                if(sectionId === 'zones' && !zonesChart) renderZonesChart();
+                if(sectionId === 'lvp' && !lvpChart) renderLVPChart('explosive');
+                if(sectionId === 'fatigue' && !fatigueChart) renderFatigueChart(10);
+            }, 50);
+        }
+
+        // Section 1 Chart: The Fluctuation
+        function renderIntroChart() {
+            const ctx = document.getElementById('chart-intro').getContext('2d');
+            
+            const labels = ['Day 1', 'Day 3', 'Day 5', 'Day 7', 'Day 9', 'Day 11', 'Day 13'];
+            const static1RM = [150, 150, 150, 150, 150, 150, 150]; // kg
+            const actual1RM = [150, 142, 146, 135, 152, 155, 140]; // Fluctuating kg
+
+            introChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Assumed Static 1RM (Fixed % Program)',
+                            data: static1RM,
+                            borderColor: '#a8a29e',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Actual Daily 1RM (Autoregulated)',
+                            data: actual1RM,
+                            borderColor: '#0369a1',
+                            backgroundColor: 'rgba(3, 105, 161, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#0369a1',
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + ' kg';
+                                }
+                            }
+                        },
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Back Squat 1RM (kg)' },
+                            min: 120, max: 170
+                        }
+                    }
+                }
+            });
+        }
+
+        // Section 2 Chart: Zones
+        function renderZonesChart() {
+            const ctx = document.getElementById('chart-zones').getContext('2d');
+            
+            zonesChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Reactive Strength', 'Starting Strength', 'Speed-Strength', 'Strength-Speed', 'Lead-Strength'],
+                    datasets: [{
+                        label: 'Velocity Range (m/s)',
+                        data: [[1.3, 1.6], [1.0, 1.3], [0.75, 1.0], [0.50, 0.75], [0.25, 0.50]],
+                        backgroundColor: [
+                            '#bae6fd', // reactive
+                            '#38bdf8', // starting
+                            '#0ea5e9', // speed-str
+                            '#0369a1', // str-speed
+                            '#1e293b'  // lead
+                        ],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.raw[0] + ' to ' + context.raw[1] + ' m/s';
+                                }
+                            }
+                        },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Meters per Second (m/s)' },
+                            min: 0, max: 1.8
+                        }
+                    }
+                }
+            });
+        }
+
+        // Section 3: LVP Data and Update Logic
+        const lvpData = {
+            'explosive': {
+                points: [{x: 40, y: 1.35}, {x: 60, y: 1.05}, {x: 75, y: 0.75}, {x: 85, y: 0.55}],
+                line: [{x: 30, y: 1.55}, {x: 100, y: 0.25}], // Extrapolated to 100% at ~0.25
+                color: '#0ea5e9',
+                label: 'Explosive Athlete (Steep Drop-off)'
+            },
+            'grinder': {
+                points: [{x: 40, y: 1.05}, {x: 60, y: 0.85}, {x: 75, y: 0.65}, {x: 85, y: 0.50}],
+                line: [{x: 30, y: 1.18}, {x: 100, y: 0.30}], // Extrapolated to 100% at ~0.30
+                color: '#1e293b',
+                label: 'Strength Athlete (Flatter Profile)'
+            }
+        };
+
+        function renderLVPChart(type) {
+            const ctx = document.getElementById('chart-lvp').getContext('2d');
+            const data = lvpData[type];
+
+            if(lvpChart) lvpChart.destroy();
+
+            lvpChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Regression Line (Prediction)',
+                            data: data.line,
+                            borderColor: data.color,
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            type: 'scatter',
+                            label: 'Measured Reps (' + data.label + ')',
+                            data: data.points,
+                            backgroundColor: data.color,
+                            pointRadius: 6,
+                            pointHoverRadius: 8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.x + '% 1RM @ ' + context.parsed.y + ' m/s';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Load (% of 1RM)' },
+                            min: 30, max: 110
+                        },
+                        y: {
+                            title: { display: true, text: 'Mean Concentric Velocity (m/s)' },
+                            min: 0, max: 1.8
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateLVP(type) {
+            // Update Buttons
+            const btns = ['explosive', 'grinder'];
+            btns.forEach(b => {
+                const el = document.getElementById('btn-' + b);
+                if(b === type) {
+                    el.className = 'px-4 py-2 text-sm font-semibold rounded bg-white shadow-sm text-sky-700';
+                } else {
+                    el.className = 'px-4 py-2 text-sm font-semibold rounded text-stone-600 hover:bg-stone-200';
+                }
+            });
+            renderLVPChart(type);
+        }
+
+        // Section 4: Fatigue Data and Update Logic
+        const setVelocities = [0.85, 0.82, 0.79, 0.74, 0.68, 0.62, 0.55]; // simulated rep velocities
+        const startVel = setVelocities[0];
+        
+        function renderFatigueChart(threshold) {
+            const ctx = document.getElementById('chart-fatigue').getContext('2d');
+            const cutoffVel = startVel * (1 - (threshold/100));
+            
+            // Determine colors: highlight reps above cutoff, dim reps below
+            const bgColors = setVelocities.map((v, i) => {
+                if (v >= cutoffVel) return '#0369a1'; // Performed rep
+                // If it's the exact rep that breaks the threshold, color it red to signify STOP
+                if (i > 0 && setVelocities[i-1] >= cutoffVel && v < cutoffVel) return '#ef4444'; 
+                return '#e7e5e4'; // Unperformed / Cut reps
+            });
+
+            if(fatigueChart) fatigueChart.destroy();
+
+            fatigueChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Rep 1', 'Rep 2', 'Rep 3', 'Rep 4', 'Rep 5', 'Rep 6', 'Rep 7'],
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: threshold + '% Loss Cutoff',
+                            data: Array(7).fill(cutoffVel),
+                            borderColor: '#ef4444',
+                            borderWidth: 2,
+                            borderDash: [4, 4],
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Rep Velocity (m/s)',
+                            data: setVelocities,
+                            backgroundColor: bgColors,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if(context.datasetIndex === 0) return 'Cutoff: ' + context.parsed.y.toFixed(2) + ' m/s';
+                                    let loss = ((startVel - context.parsed.y) / startVel * 100).toFixed(1);
+                                    return context.parsed.y.toFixed(2) + ' m/s (-' + loss + '%)';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Velocity (m/s)' },
+                            min: 0.4, max: 0.9
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateFatigue(threshold) {
+            // Update Buttons
+            const btns = [10, 30];
+            btns.forEach(b => {
+                const el = document.getElementById('btn-' + b);
+                if(b === threshold) {
+                    el.className = 'px-4 py-2 text-sm font-semibold rounded bg-white shadow-sm text-sky-700';
+                } else {
+                    el.className = 'px-4 py-2 text-sm font-semibold rounded text-stone-600 hover:bg-stone-200';
+                }
+            });
+
+            // Update highlighting on descriptions
+            if(threshold === 10) {
+                document.getElementById('desc-10').classList.remove('opacity-50', 'border-stone-200', 'bg-stone-50');
+                document.getElementById('desc-10').classList.add('border-l-4', 'border-sky-500', 'bg-white');
+                
+                document.getElementById('desc-30').classList.add('opacity-50', 'border-stone-200', 'bg-stone-50');
+                document.getElementById('desc-30').classList.remove('border-l-4', 'border-sky-500', 'bg-white');
+            } else {
+                document.getElementById('desc-30').classList.remove('opacity-50', 'border-stone-200', 'bg-stone-50');
+                document.getElementById('desc-30').classList.add('border-l-4', 'border-sky-500', 'bg-white');
+                
+                document.getElementById('desc-10').classList.add('opacity-50', 'border-stone-200', 'bg-stone-50');
+                document.getElementById('desc-10').classList.remove('border-l-4', 'border-sky-500', 'bg-white');
+            }
+
+            renderFatigueChart(threshold);
+        }
+
+        // Initialize first chart on load
+        window.onload = function() {
+            renderIntroChart();
+            // Pre-initialize nav active styles manually
+            const activeNav = document.getElementById('nav-intro');
+            activeNav.style.backgroundColor = '#e0f2fe';
+            activeNav.style.color = '#0369a1';
+            activeNav.style.borderRightColor = '#0369a1';
+            activeNav.style.fontWeight = '600';
+        };
+    </script>
+</body>
+</html>

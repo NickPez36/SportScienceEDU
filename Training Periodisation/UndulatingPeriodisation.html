@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Undulating Periodization (DUP) Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom Styles for aesthetics and structural requirements */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Slate 50 */
+            color: #0f172a; /* Slate 900 */
+        }
+
+        .nav-btn.active {
+            border-bottom: 3px solid #3b82f6; /* Blue 500 */
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        /* Mandatory Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 450px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Toggle Switch CSS (No SVG) */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #3b82f6;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #3b82f6;
+        }
+
+        /* Section visibility */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Day card hover effect */
+        .day-card {
+            transition: all 0.2s ease;
+        }
+        .day-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+
+    <!-- Placeholder Comments Required by Prompt -->
+    <!-- Chosen Palette: Warm Neutrals with Athletic Accents (Slate 50 background, Slate 900 text, Blue 500 Primary, Amber 500 Secondary) -->
+    <!-- Application Structure Plan: The SPA uses a tabbed dashboard structure. 
+         1. 'Technical Breakdown' establishes foundational knowledge.
+         2. 'PPO vs Aerobic' uses a radar chart to compare physiological adaptations.
+         3. 'Microcycle Builder' is the interactive core, allowing users to switch between athlete profiles (Power, Endurance, Middle-Distance) to dynamically update a 7-day schedule grid and a combo chart showing volume/intensity undulations. 
+         4. 'Interference Effect' uses an interactive toggle to compare traditional concurrent training vs DUP mitigation strategies for the middle-distance athlete. 
+         This structure separates complex physiological concepts into digestible, task-oriented views to maximize user comprehension. -->
+    <!-- Visualization & Content Choices: 
+         - Breakdown -> CSS Grid Layout -> Goal: Inform -> Justification: Clear chunking of text. (No SVG).
+         - PPO vs Aerobic -> Radar Chart (Chart.js) -> Goal: Compare -> Justification: Shows multi-dimensional adaptation differences clearly.
+         - Microcycles -> Combo Bar/Line Chart (Chart.js) + DOM Grid -> Goal: Change/Organize -> Justification: Line/Bar perfectly illustrates the inverse relationship between Volume and Intensity across a timeline. DOM grid gives concrete daily examples.
+         - Interference Effect -> Line Chart (Chart.js) + Toggle -> Goal: Compare/Relationships -> Justification: Visualizes overlapping fatigue curves. Toggle allows A/B comparison of bad vs good planning. 
+         - Confirming NO SVG/Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased selection:bg-blue-200 selection:text-blue-900">
+
+    <!-- Header Navigation -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded bg-blue-600 text-white flex items-center justify-center font-bold text-xl mr-3">D</div>
+                    <span class="font-bold text-xl tracking-tight text-slate-800">DUP Explorer</span>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <button class="nav-btn active pb-4 pt-5 px-1 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors" data-target="breakdown">Technical Breakdown</button>
+                    <button class="nav-btn pb-4 pt-5 px-1 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors" data-target="efficacy">PPO vs Aerobic</button>
+                    <button class="nav-btn pb-4 pt-5 px-1 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors" data-target="microcycles">Microcycles</button>
+                    <button class="nav-btn pb-4 pt-5 px-1 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors" data-target="interference">Interference Effect</button>
+                </nav>
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-slate-500 hover:text-slate-700 focus:outline-none text-2xl">
+                        &#9776;
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Nav -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white border-t border-slate-100">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <button class="nav-btn active block w-full text-left px-3 py-2 text-base font-medium" data-target="breakdown">Technical Breakdown</button>
+                <button class="nav-btn block w-full text-left px-3 py-2 text-base font-medium" data-target="efficacy">PPO vs Aerobic</button>
+                <button class="nav-btn block w-full text-left px-3 py-2 text-base font-medium" data-target="microcycles">Microcycles</button>
+                <button class="nav-btn block w-full text-left px-3 py-2 text-base font-medium" data-target="interference">Interference Effect</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- SECTION 1: Technical Breakdown -->
+        <section id="breakdown" class="content-section active">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-slate-900 mb-4">The Science of Daily Undulating Periodization</h1>
+                <p class="text-lg text-slate-600 leading-relaxed max-w-4xl">
+                    This section breaks down the core mechanics of Daily Undulating Periodization (DUP). Unlike traditional linear periodization, which focuses on one physiological adaptation per block (e.g., a month of hypertrophy followed by a month of strength), DUP varies volume and intensity on a daily basis within the microcycle. This interactive overview allows you to understand the structural differences and physiological benefits of the undulating approach.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 border-l-4 border-l-slate-400">
+                    <h3 class="text-xl font-bold mb-3 text-slate-800">Linear Periodization (Traditional)</h3>
+                    <p class="text-slate-600 mb-4">Focuses on gradually increasing intensity while decreasing volume over weeks or months. Progresses through distinct phases.</p>
+                    <ul class="space-y-2 text-sm text-slate-500">
+                        <li class="flex items-start"><span class="text-slate-400 mr-2">&#9656;</span> Block 1: Hypertrophy (High Vol, Low Int)</li>
+                        <li class="flex items-start"><span class="text-slate-400 mr-2">&#9656;</span> Block 2: Strength (Mod Vol, Mod Int)</li>
+                        <li class="flex items-start"><span class="text-slate-400 mr-2">&#9656;</span> Block 3: Power (Low Vol, High Int)</li>
+                    </ul>
+                    <div class="mt-4 pt-4 border-t border-slate-100 text-sm font-semibold text-red-500">
+                        Risk: Loss of specific adaptations (e.g., losing hypertrophy during the power block).
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 border-l-4 border-l-blue-500">
+                    <h3 class="text-xl font-bold mb-3 text-slate-800">Daily Undulating Periodization (DUP)</h3>
+                    <p class="text-slate-600 mb-4">Alters volume and intensity on a session-by-session basis. Targets multiple physiological traits within the same week.</p>
+                    <ul class="space-y-2 text-sm text-slate-500">
+                        <li class="flex items-start"><span class="text-blue-500 mr-2">&#9656;</span> Monday: Hypertrophy focus</li>
+                        <li class="flex items-start"><span class="text-blue-500 mr-2">&#9656;</span> Wednesday: Strength focus</li>
+                        <li class="flex items-start"><span class="text-blue-500 mr-2">&#9656;</span> Friday: Power focus</li>
+                    </ul>
+                    <div class="mt-4 pt-4 border-t border-slate-100 text-sm font-semibold text-emerald-600">
+                        Benefit: Frequent stimulus maintains all adaptations simultaneously while managing fatigue.
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 rounded-xl p-6 border border-blue-100">
+                <h3 class="text-lg font-bold text-blue-900 mb-2">Key Mechanism: Frequent Neuromuscular Stimulation</h3>
+                <p class="text-blue-800 text-sm leading-relaxed">
+                    The efficacy of DUP lies in its frequency of practice. By exposing the central nervous system to heavy loads, explosive movements, and volume work multiple times a week without accumulating excessive localized fatigue, athletes experience enhanced motor unit recruitment and faster neural adaptations compared to block periodization.
+                </p>
+            </div>
+        </section>
+
+        <!-- SECTION 2: PPO vs Aerobic Efficacy -->
+        <section id="efficacy" class="content-section">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Efficacy: Peak Power Output vs. Aerobic Capacity</h2>
+                <p class="text-lg text-slate-600 leading-relaxed max-w-4xl">
+                    How does DUP impact different energy systems? This section compares the effectiveness of DUP for maintaining Peak Power Output (PPO) versus Aerobic Capacity. The radar chart visualizes the relative impact, showing that while DUP is highly optimal for neuromuscular adaptations like PPO, purely aerobic adaptations often require different volume distributions.
+                </p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-8 items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="w-full lg:w-1/2">
+                    <div class="chart-container">
+                        <canvas id="efficacyChart"></canvas>
+                    </div>
+                </div>
+                <div class="w-full lg:w-1/2 space-y-6">
+                    <div>
+                        <h4 class="text-xl font-bold text-slate-800 mb-2 border-b-2 border-blue-500 inline-block">Peak Power Output (PPO)</h4>
+                        <p class="text-slate-600 mt-2">
+                            <strong>Highly Effective.</strong> DUP is exceptional for maintaining and increasing PPO. PPO relies heavily on neural efficiency, rate of force development (RFD), and motor unit synchronization. DUP allows athletes to train these high-intensity, low-volume variables frequently (e.g., speed days, heavy strength days) without the cumulative fatigue that blunts power generation.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-bold text-slate-800 mb-2 border-b-2 border-amber-500 inline-block">Aerobic Capacity</h4>
+                        <p class="text-slate-600 mt-2">
+                            <strong>Moderately Effective / Context Dependent.</strong> While DUP can <i>maintain</i> aerobic capacity effectively (especially during in-season phases or mixed-sport prep), maximizing VO2 max and mitochondrial density typically requires progressive, high-volume overload (linear/block). However, incorporating DUP for strength/power while managing endurance volume prevents the "slow-down" effect often seen in purely endurance athletes.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: Microcycle Builder -->
+        <section id="microcycles" class="content-section">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Interactive Microcycle Builder</h2>
+                <p class="text-lg text-slate-600 leading-relaxed max-w-4xl">
+                    Select an athlete profile below to explore how a DUP weekly microcycle is structured. This section demonstrates the practical application of undulating volume and intensity across 7 days for Endurance, Middle-Distance, and Power athletes. The interactive chart maps the inverse relationship between intensity and volume.
+                </p>
+            </div>
+
+            <!-- Controls -->
+            <div class="mb-8 bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center space-x-3 w-full sm:w-auto">
+                    <label for="athleteSelect" class="font-semibold text-slate-700 whitespace-nowrap">Athlete Profile:</label>
+                    <select id="athleteSelect" class="form-select block w-full sm:w-64 px-4 py-2 text-base font-normal text-slate-700 bg-white bg-clip-padding bg-no-repeat border border-solid border-slate-300 rounded-md transition ease-in-out m-0 focus:text-slate-700 focus:bg-white focus:border-blue-600 focus:outline-none">
+                        <option value="power">Power Athlete (Hypertrophy/Strength/Speed)</option>
+                        <option value="endurance">Endurance Athlete (Low-Int/Threshold/Intervals)</option>
+                        <option value="middle">Middle-Distance (Mixed Modality)</option>
+                    </select>
+                </div>
+                <div id="profileDescription" class="text-sm text-slate-500 italic text-right sm:max-w-xs">
+                    Focuses on maximal force production, rate of force development, and muscle cross-sectional area.
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
+                <h3 class="text-lg font-bold text-center text-slate-800 mb-4">Volume vs Intensity Undulation</h3>
+                <div class="chart-container h-[300px]">
+                    <canvas id="microcycleChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 7-Day Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="daysGrid">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- SECTION 4: Interference Effect -->
+        <section id="interference" class="content-section">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Managing the Interference Effect</h2>
+                <p class="text-lg text-slate-600 leading-relaxed max-w-4xl">
+                    The "Interference Effect" occurs when concurrent training (endurance and strength) blunts adaptations, particularly in strength and power, due to conflicting molecular signaling (AMPK vs. mTOR). This section focuses on the <strong>Middle-Distance athlete</strong>. Use the toggle to compare a poorly planned concurrent schedule with a DUP-optimized schedule that minimizes interference.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+                
+                <div class="flex flex-col md:flex-row justify-between items-center mb-8 bg-slate-50 p-4 rounded-lg">
+                    <div class="mb-4 md:mb-0">
+                        <h3 class="text-xl font-bold text-slate-800">Middle-Distance Profile Planning</h3>
+                        <p class="text-sm text-slate-500">Compare molecular signaling and fatigue management.</p>
+                    </div>
+                    
+                    <!-- Toggle Switch -->
+                    <div class="flex items-center justify-center">
+                        <span class="mr-3 text-sm font-medium text-slate-700" id="toggleLabelBad">Poor Planning</span>
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="planningToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out z-10"/>
+                            <label for="planningToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer transition-colors duration-200 ease-in-out"></label>
+                        </div>
+                        <span class="text-sm font-medium text-blue-600" id="toggleLabelGood">DUP Optimized</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col lg:flex-row gap-8">
+                    <!-- Text explanation -->
+                    <div class="w-full lg:w-1/3">
+                        <div id="interferenceText" class="prose prose-slate">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- Chart -->
+                    <div class="w-full lg:w-2/3">
+                        <div class="chart-container">
+                            <canvas id="interferenceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-8 text-center mt-12">
+        <p class="text-sm">Interactive Analysis of Daily Undulating Periodization</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- NAVIGATION LOGIC ---
+            const navBtns = document.querySelectorAll('.nav-btn');
+            const sections = document.querySelectorAll('.content-section');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            navBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Update buttons
+                    navBtns.forEach(b => b.classList.remove('active', 'text-blue-600', 'border-b-2', 'border-blue-600'));
+                    
+                    // The matching buttons (desktop and mobile)
+                    const targetId = btn.getAttribute('data-target');
+                    const targetBtns = document.querySelectorAll(`.nav-btn[data-target="${targetId}"]`);
+                    targetBtns.forEach(tb => tb.classList.add('active'));
+
+                    // Update sections
+                    sections.forEach(sec => sec.classList.remove('active'));
+                    document.getElementById(targetId).classList.add('active');
+
+                    // Close mobile menu if open
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+
+            // --- CHART 1: EFFICACY RADAR CHART ---
+            const ctxEfficacy = document.getElementById('efficacyChart').getContext('2d');
+            const efficacyChart = new Chart(ctxEfficacy, {
+                type: 'radar',
+                data: {
+                    labels: ['Peak Power (PPO)', 'Hypertrophy', 'Strength Maintenence', 'Aerobic Capacity', 'Lactate Threshold', 'Fatigue Management'],
+                    datasets: [{
+                        label: 'Daily Undulating (DUP)',
+                        data: [9, 8, 9, 6, 7, 8],
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)', // Blue 500
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 2
+                    }, {
+                        label: 'Linear/Block',
+                        data: [6, 9, 7, 9, 8, 6],
+                        backgroundColor: 'rgba(245, 158, 11, 0.2)', // Amber 500
+                        borderColor: 'rgba(245, 158, 11, 1)',
+                        pointBackgroundColor: 'rgba(245, 158, 11, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.1)' },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            pointLabels: {
+                                font: { family: 'Inter', size: 12 },
+                                color: '#475569'
+                            },
+                            ticks: { display: false, min: 0, max: 10 }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'Inter' } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) { label += context.raw + '/10'; }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+
+            // --- CHART 2 & LOGIC: MICROCYCLE BUILDER ---
+            const microcycleData = {
+                power: {
+                    desc: "Focuses on maximal force production, rate of force development, and muscle cross-sectional area.",
+                    days: [
+                        { day: "Mon", title: "Hypertrophy", vol: 8, int: 6, color: "bg-blue-50 border-blue-200", detail: "High Vol, Mod Int. Ex: 4x10 Squats @ 70%" },
+                        { day: "Tue", title: "Active Recovery", vol: 2, int: 2, color: "bg-slate-50 border-slate-200", detail: "Mobility, light sled work." },
+                        { day: "Wed", title: "Max Strength", vol: 5, int: 9, color: "bg-amber-50 border-amber-200", detail: "Mod Vol, High Int. Ex: 5x3 Deadlifts @ 85-90%" },
+                        { day: "Thu", title: "Complete Rest", vol: 0, int: 0, color: "bg-slate-50 border-slate-200", detail: "Nervous system recovery." },
+                        { day: "Fri", title: "Power / Speed", vol: 3, int: 10, color: "bg-emerald-50 border-emerald-200", detail: "Low Vol, Max Neural Int. Ex: 6x2 Cleans @ 75% (Fast)" },
+                        { day: "Sat", title: "Accessory / Rest", vol: 4, int: 5, color: "bg-slate-50 border-slate-200", detail: "Weak point targeting." },
+                        { day: "Sun", title: "Complete Rest", vol: 0, int: 0, color: "bg-slate-50 border-slate-200", detail: "Recovery." }
+                    ]
+                },
+                endurance: {
+                    desc: "Focuses on aerobic base, clearing lactate, and pushing VO2 Max limits.",
+                    days: [
+                        { day: "Mon", title: "Long Slow Distance", vol: 10, int: 4, color: "bg-blue-50 border-blue-200", detail: "High Vol, Low Int. Zone 2 maintenance." },
+                        { day: "Tue", title: "Active Recovery", vol: 3, int: 3, color: "bg-slate-50 border-slate-200", detail: "Light spin or easy jog." },
+                        { day: "Wed", title: "Lactate Threshold", vol: 6, int: 7, color: "bg-amber-50 border-amber-200", detail: "Mod Vol, Mod-High Int. Tempo efforts." },
+                        { day: "Thu", title: "Active Recovery", vol: 3, int: 3, color: "bg-slate-50 border-slate-200", detail: "Easy movement, stretching." },
+                        { day: "Fri", title: "VO2 Max Intervals", vol: 4, int: 10, color: "bg-emerald-50 border-emerald-200", detail: "Low Vol, Max Int. Ex: 4x3min @ 105% FTP." },
+                        { day: "Sat", title: "Rest", vol: 0, int: 0, color: "bg-slate-50 border-slate-200", detail: "Complete recovery." },
+                        { day: "Sun", title: "Endurance Ride/Run", vol: 8, int: 5, color: "bg-blue-50 border-blue-200", detail: "Mod-High Vol, Mod Int." }
+                    ]
+                },
+                middle: {
+                    desc: "Balances speed endurance with strength maintenance. Manages interference effect closely.",
+                    days: [
+                        { day: "Mon", title: "Aerobic + Strength", vol: 7, int: 6, color: "bg-blue-50 border-blue-200", detail: "Mod Vol, Mod Int. AM: Zone 2 / PM: Heavy Lifting" },
+                        { day: "Tue", title: "Recovery", vol: 2, int: 2, color: "bg-slate-50 border-slate-200", detail: "Light mobility." },
+                        { day: "Wed", title: "Threshold + Power", vol: 6, int: 8, color: "bg-amber-50 border-amber-200", detail: "Mod Vol, High Int. Tempo running + plyometrics." },
+                        { day: "Thu", title: "Recovery", vol: 2, int: 2, color: "bg-slate-50 border-slate-200", detail: "Massage, active recovery." },
+                        { day: "Fri", title: "Specific Intervals", vol: 5, int: 10, color: "bg-emerald-50 border-emerald-200", detail: "Mod Vol, Max Int. Race pace repetitions." },
+                        { day: "Sat", title: "Long Aerobic", vol: 8, int: 4, color: "bg-blue-50 border-blue-200", detail: "High Vol, Low Int. Base building." },
+                        { day: "Sun", title: "Rest", vol: 0, int: 0, color: "bg-slate-50 border-slate-200", detail: "Complete off day." }
+                    ]
+                }
+            };
+
+            const ctxMicro = document.getElementById('microcycleChart').getContext('2d');
+            let microcycleChart = new Chart(ctxMicro, {
+                type: 'bar',
+                data: { labels: [], datasets: [] },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            max: 10,
+                            title: { display: true, text: 'Scale (0-10)' }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    // ensure we get the title from our array logic via index
+                                    return context[0].label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            function updateMicrocycle(profileKey) {
+                const data = microcycleData[profileKey];
+                
+                // Update Description
+                document.getElementById('profileDescription').innerText = data.desc;
+
+                // Update Grid
+                const grid = document.getElementById('daysGrid');
+                grid.innerHTML = '';
+                data.days.forEach(d => {
+                    grid.innerHTML += `
+                        <div class="day-card p-4 rounded-lg border ${d.color}">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-bold text-slate-800">${d.day}</span>
+                                <span class="text-xs font-semibold px-2 py-1 rounded bg-white text-slate-600 shadow-sm border border-slate-100">${d.title}</span>
+                            </div>
+                            <p class="text-sm text-slate-600">${d.detail}</p>
+                            <div class="mt-3 text-xs text-slate-500 flex justify-between">
+                                <span>Vol: ${d.vol}/10</span>
+                                <span>Int: ${d.int}/10</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                // Update Chart
+                microcycleChart.data = {
+                    labels: data.days.map(d => d.day),
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Intensity (Neural Demand)',
+                            data: data.days.map(d => d.int),
+                            borderColor: 'rgba(239, 68, 68, 1)', // Red 500
+                            backgroundColor: 'rgba(239, 68, 68, 1)',
+                            borderWidth: 3,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Volume (Metabolic Demand)',
+                            data: data.days.map(d => d.vol),
+                            backgroundColor: 'rgba(59, 130, 246, 0.7)', // Blue 500
+                            borderRadius: 4,
+                            yAxisID: 'y'
+                        }
+                    ]
+                };
+                microcycleChart.update();
+            }
+
+            // Init microcycle
+            document.getElementById('athleteSelect').addEventListener('change', (e) => updateMicrocycle(e.target.value));
+            updateMicrocycle('power');
+
+
+            // --- CHART 3 & LOGIC: INTERFERENCE EFFECT ---
+            const interferenceTexts = {
+                bad: `
+                    <h4 class="text-lg font-bold text-red-600 mb-2">The Concurrent Training Trap</h4>
+                    <p class="text-sm text-slate-600 mb-4">
+                        In "Poor Planning", the athlete attempts high-intensity interval training (HIIT) and heavy maximal strength work on the same day or back-to-back without recovery.
+                    </p>
+                    <ul class="text-sm text-slate-600 list-disc pl-5 mb-4 space-y-2">
+                        <li><strong>AMPK Activation:</strong> Endurance work highly activates AMPK, which acts to shut down mTOR (the primary driver for muscle growth and strength adaptation).</li>
+                        <li><strong>Residual Fatigue:</strong> Central Nervous System (CNS) fatigue from intervals limits force production during lifting.</li>
+                        <li><strong>Result:</strong> Blunted PPO adaptations. The athlete gets better at enduring, but loses explosive power.</li>
+                    </ul>
+                `,
+                good: `
+                    <h4 class="text-lg font-bold text-emerald-600 mb-2">DUP Mitigation Strategy</h4>
+                    <p class="text-sm text-slate-600 mb-4">
+                        In "DUP Optimized", the middle-distance athlete separates conflicting stimuli. Volume and intensity are undulated to allow specific pathways to clear.
+                    </p>
+                    <ul class="text-sm text-slate-600 list-disc pl-5 mb-4 space-y-2">
+                        <li><strong>Separation:</strong> High-intensity lifting is paired with low-intensity aerobic work (Zone 2) which doesn't drastically spike AMPK.</li>
+                        <li><strong>Consolidation:</strong> High-intensity stressors (Sprint work, Heavy lifts) are consolidated on specific days, followed by recovery, allowing complete CNS recovery.</li>
+                        <li><strong>Result:</strong> Strength and PPO are maintained or increased while aerobic capacity is simultaneously developed.</li>
+                    </ul>
+                `
+            };
+
+            const interferenceDatasets = {
+                bad: {
+                    strengthAdpt: [2, 3, 2, 4, 3, 5, 4], // Blunted
+                    ampkFatigue: [8, 7, 9, 8, 9, 7, 8]   // Constantly high
+                },
+                good: {
+                    strengthAdpt: [2, 5, 4, 7, 6, 9, 8], // Climbing
+                    ampkFatigue: [4, 8, 2, 7, 3, 9, 2]   // Undulating/Recovering
+                }
+            };
+
+            const ctxInterference = document.getElementById('interferenceChart').getContext('2d');
+            let interferenceChart = new Chart(ctxInterference, {
+                type: 'line',
+                data: {
+                    labels: ['Day 1', 'Day 3', 'Day 7', 'Day 10', 'Day 14', 'Day 18', 'Day 21'],
+                    datasets: []
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Level (Arbitrary Units)' },
+                            min: 0, max: 10
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            function updateInterference(isGood) {
+                const state = isGood ? 'good' : 'bad';
+                document.getElementById('interferenceText').innerHTML = interferenceTexts[state];
+                
+                interferenceChart.data.datasets = [
+                    {
+                        label: 'Strength/Power Adaptation (mTOR)',
+                        data: interferenceDatasets[state].strengthAdpt,
+                        borderColor: isGood ? 'rgba(16, 185, 129, 1)' : 'rgba(239, 68, 68, 1)', // Emerald / Red
+                        backgroundColor: isGood ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Interfering Fatigue (AMPK Pathway)',
+                        data: interferenceDatasets[state].ampkFatigue,
+                        borderColor: 'rgba(100, 116, 139, 1)', // Slate
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.4
+                    }
+                ];
+                interferenceChart.update();
+            }
+
+            // Init Interference toggle
+            const toggle = document.getElementById('planningToggle');
+            toggle.addEventListener('change', (e) => {
+                updateInterference(e.target.checked);
+            });
+            updateInterference(false); // Start with 'bad' state
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run-Specific Isometric Training (RSIST) Manual</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Base typography and smooth scrolling */
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        
+        /* Chart Container Mandatory Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+
+        /* Custom scrollbar for tables */
+        .table-scroll::-webkit-scrollbar { height: 8px; }
+        .table-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .table-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Transitions */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-emerald-200 selection:text-emerald-900">
+
+    <!-- Chosen Palette: Slate (Neutrals) and Emerald (Performance Accent) -->
+    <!-- Application Structure Plan: A linear, progressive dashboard format. It starts with foundational theory (PIMA vs HIMA), moves to biomechanical application (Joint Angles), then logical progression (Hierarchy), visualizes the physical impact (Force-Time Chart), and concludes with practical implementation (Microdosing Table). This guides the user from 'what and why' to 'how to apply'. -->
+    <!-- Visualization & Content Choices: 
+         1. Theory: Interactive Tabs for PIMA/HIMA (Goal: Compare without overwhelming text). 
+         2. Biomechanics: Highlighted text cards for joint angles (Goal: Organize specific numeric data clearly). 
+         3. Hierarchy: Accordion list (Goal: Organize sequential progression, expanding details on demand). 
+         4. Kinetics: Chart.js Line Chart (Goal: Compare Force-Time curves/RFD visually). 
+         5. Implementation: Filterable HTML Table (Goal: Organize practical loading parameters based on context). 
+         NO SVG/Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <div class="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <header class="mb-12 text-center">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-4">
+                Run-Specific Isometric Training <span class="text-emerald-600">(RSIST)</span>
+            </h1>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto">
+                An interactive high-performance coaching manual based on the methodologies of Alex Natera. Explore the physiological nuances, biomechanical specificities, and practical microdosing strategies to enhance Rate of Force Development (RFD) and tendon stiffness for sprint performance.
+            </p>
+        </header>
+
+        <!-- Section 1: PIMA vs HIMA -->
+        <section class="mb-16 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">1. Action Typology: PIMA vs. HIMA</h2>
+                <p class="text-slate-600">
+                    Understanding the intent behind the isometric contraction is critical. While no gross joint movement occurs in either, the neuromuscular mapping and resulting physiological adaptations differ significantly. Select an action below to compare.
+                </p>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <button id="btn-pima" class="flex-1 py-3 px-6 rounded-lg font-semibold text-center transition-all duration-200 bg-emerald-600 text-white shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2" onclick="toggleActionType('pima')">
+                    PIMA (Pushing Isometric)
+                </button>
+                <button id="btn-hima" class="flex-1 py-3 px-6 rounded-lg font-semibold text-center transition-all duration-200 bg-slate-100 text-slate-700 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2" onclick="toggleActionType('hima')">
+                    HIMA (Holding Isometric)
+                </button>
+            </div>
+
+            <div id="content-pima" class="fade-in grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                    <h3 class="font-bold text-lg mb-2 text-emerald-800">The Intent</h3>
+                    <p class="text-sm text-slate-700">Attempting to push or overcome an immovable resistance (e.g., pushing a barbell hard into safety pins). The intent is <strong>concentric</strong>.</p>
+                </div>
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                    <h3 class="font-bold text-lg mb-2 text-emerald-800">Physiological Impact</h3>
+                    <ul class="list-disc pl-5 text-sm text-slate-700 space-y-1">
+                        <li>Rapid motor unit recruitment (early phase neural drive).</li>
+                        <li>Superior for enhancing <strong>Rate of Force Development (RFD)</strong>.</li>
+                        <li>Slight fascicle shortening occurs as the tendon lengthens (series elastic component stretch).</li>
+                        <li>Faster relaxation rates post-contraction.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="content-hima" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                    <h3 class="font-bold text-lg mb-2 text-indigo-800">The Intent</h3>
+                    <p class="text-sm text-slate-700">Attempting to resist a load from moving you, preventing yielding (e.g., holding a heavy barbell steady in a lunge position). The intent is <strong>anti-eccentric</strong>.</p>
+                </div>
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                    <h3 class="font-bold text-lg mb-2 text-indigo-800">Physiological Impact</h3>
+                    <ul class="list-disc pl-5 text-sm text-slate-700 space-y-1">
+                        <li>Maintains sustained motor unit firing.</li>
+                        <li>Superior for increasing <strong>tendon stiffness</strong> and tissue robustness.</li>
+                        <li>Reduces cortical inhibition (golgi tendon organ down-regulation).</li>
+                        <li>Creates greater structural muscle damage if taken to failure (due to micro-yielding).</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Joint Angle Specificity -->
+        <section class="mb-16">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">2. Kinematic Specificity: The Stance Phase</h2>
+                <p class="text-slate-600">
+                    Isometrics are highly joint-angle specific (adaptations occur ±15 degrees from the training angle). RSIST specifically targets the biomechanics of the maximal velocity sprint stance phase to ensure transfer of training.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Hip -->
+                <div class="relative bg-white rounded-2xl p-6 border-t-4 border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="absolute -top-4 right-4 bg-slate-800 text-white text-xs font-bold px-3 py-1 rounded-full">HIP</div>
+                    <div class="text-4xl font-black text-slate-200 mb-2">~150°</div>
+                    <h3 class="text-xl font-bold mb-2">Slight Extension</h3>
+                    <p class="text-sm text-slate-600">Mimics the upright posture of max velocity. Requires massive gluteal and proximal hamstring isometric force to maintain pelvic stability against ground reaction forces.</p>
+                </div>
+                <!-- Knee -->
+                <div class="relative bg-white rounded-2xl p-6 border-t-4 border-emerald-500 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="absolute -top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">KNEE</div>
+                    <div class="text-4xl font-black text-emerald-100 mb-2">~140°</div>
+                    <h3 class="text-xl font-bold mb-2">Shallow Flexion</h3>
+                    <p class="text-sm text-slate-600">The critical 'amortization' angle. Training here builds the stiffness required to prevent knee collapse during ground contact, minimizing ground contact time.</p>
+                </div>
+                <!-- Ankle -->
+                <div class="relative bg-white rounded-2xl p-6 border-t-4 border-sky-500 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="absolute -top-4 right-4 bg-sky-500 text-white text-xs font-bold px-3 py-1 rounded-full">ANKLE</div>
+                    <div class="text-4xl font-black text-sky-100 mb-2">~90°</div>
+                    <h3 class="text-xl font-bold mb-2">Neutral Dorsiflexion</h3>
+                    <p class="text-sm text-slate-600">The Achilles must act as a rigid spring. Isometric training at neutral ensures the calf complex can handle massive forces without yielding into excessive dorsiflexion.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: The Progression Hierarchy -->
+        <section class="mb-16 bg-slate-900 text-slate-100 rounded-3xl p-8 shadow-xl">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-white mb-2">3. The RSIST Hierarchy</h2>
+                <p class="text-slate-400">
+                    Athletes must earn the right to progress. Moving to dynamic isometrics before establishing foundational stiffness leads to energy leaks and injury risk. Click to expand each phase.
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Phase 1 -->
+                <div class="border border-slate-700 rounded-xl overflow-hidden">
+                    <button class="w-full text-left px-6 py-4 bg-slate-800 hover:bg-slate-700 transition flex justify-between items-center focus:outline-none" onclick="toggleAccordion('phase1')">
+                        <span class="font-bold text-lg"><span class="text-emerald-400 mr-2">Phase 1:</span> Iso-Holds (HIMA)</span>
+                        <span class="text-xl font-bold text-slate-400" id="icon-phase1">+</span>
+                    </button>
+                    <div id="content-phase1" class="hidden px-6 py-4 bg-slate-900 border-t border-slate-700">
+                        <p class="text-sm text-slate-300 mb-2"><strong>Goal:</strong> Establish structural tolerance, tendon stiffness, and postural capacity.</p>
+                        <p class="text-sm text-slate-300"><strong>Action:</strong> Holding heavy loads (barbell or heavy bands) at specific sprint angles, fighting gravity to prevent yielding. Long durations (3-10 seconds) to build time-under-tension.</p>
+                    </div>
+                </div>
+
+                <!-- Phase 2 -->
+                <div class="border border-slate-700 rounded-xl overflow-hidden">
+                    <button class="w-full text-left px-6 py-4 bg-slate-800 hover:bg-slate-700 transition flex justify-between items-center focus:outline-none" onclick="toggleAccordion('phase2')">
+                        <span class="font-bold text-lg"><span class="text-emerald-400 mr-2">Phase 2:</span> Iso-Pushes (PIMA)</span>
+                        <span class="text-xl font-bold text-slate-400" id="icon-phase2">+</span>
+                    </button>
+                    <div id="content-phase2" class="hidden px-6 py-4 bg-slate-900 border-t border-slate-700">
+                        <p class="text-sm text-slate-300 mb-2"><strong>Goal:</strong> Maximize Rate of Force Development (RFD) and peak force generation.</p>
+                        <p class="text-sm text-slate-300"><strong>Action:</strong> Pushing maximally against an immovable object (e.g., barbell set under safety pins). Short durations (2-3 seconds) focusing entirely on the speed and intent of force application.</p>
+                    </div>
+                </div>
+
+                <!-- Phase 3 -->
+                <div class="border border-slate-700 rounded-xl overflow-hidden">
+                    <button class="w-full text-left px-6 py-4 bg-slate-800 hover:bg-slate-700 transition flex justify-between items-center focus:outline-none" onclick="toggleAccordion('phase3')">
+                        <span class="font-bold text-lg"><span class="text-amber-400 mr-2">Phase 3:</span> Iso-Switches</span>
+                        <span class="text-xl font-bold text-slate-400" id="icon-phase3">+</span>
+                    </button>
+                    <div id="content-phase3" class="hidden px-6 py-4 bg-slate-900 border-t border-slate-700">
+                        <p class="text-sm text-slate-300 mb-2"><strong>Goal:</strong> Inter-muscular coordination, rapid contraction/relaxation cycling.</p>
+                        <p class="text-sm text-slate-300"><strong>Action:</strong> Dynamic. Starting in an Iso-Hold (e.g., split stance), rapidly switching leg positions in the air, and instantly stabilizing back into the target isometric joint angles upon landing. High neural demand.</p>
+                    </div>
+                </div>
+
+                <!-- Phase 4 -->
+                <div class="border border-slate-700 rounded-xl overflow-hidden">
+                    <button class="w-full text-left px-6 py-4 bg-slate-800 hover:bg-slate-700 transition flex justify-between items-center focus:outline-none" onclick="toggleAccordion('phase4')">
+                        <span class="font-bold text-lg"><span class="text-red-400 mr-2">Phase 4:</span> Iso-Catches</span>
+                        <span class="text-xl font-bold text-slate-400" id="icon-phase4">+</span>
+                    </button>
+                    <div id="content-phase4" class="hidden px-6 py-4 bg-slate-900 border-t border-slate-700">
+                        <p class="text-sm text-slate-300 mb-2"><strong>Goal:</strong> Extreme eccentric-to-isometric force attenuation; extreme tendon stiffness demand.</p>
+                        <p class="text-sm text-slate-300"><strong>Action:</strong> Dynamic. A free-falling mass (barbell, or athlete's own bodyweight dropping from a box) is caught and arrested instantly at the specific joint angle. Mimics the brutal ground reaction forces of maximal sprinting.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Force-Time Characteristics (Chart) -->
+        <section class="mb-16">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">4. Kinetic Profiles: Force-Time Curves</h2>
+                <p class="text-slate-600">
+                    This visualization illustrates why specific actions are chosen. Notice the steep early incline (RFD) of the Iso-Push compared to the steady output of the Iso-Hold, and the extreme force spike required during an Iso-Catch.
+                </p>
+            </div>
+            
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <!-- CHART CONTAINER -->
+                <div class="chart-container">
+                    <canvas id="kineticChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Implementation & Microdosing -->
+        <section class="mb-16">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">5. Loading Parameters & Microdosing</h2>
+                <p class="text-slate-600">
+                    RSIST can be programmed as a primary central nervous system (CNS) stimulus in the gym, or 'microdosed' track-side to potentiate the neuromuscular system just prior to sprinting.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <!-- Tabs -->
+                <div class="flex border-b border-slate-200 bg-slate-50">
+                    <button id="tab-track" class="px-6 py-4 font-semibold text-emerald-700 border-b-2 border-emerald-500 focus:outline-none w-1/2 text-center" onclick="switchTableTab('track')">
+                        Track-Side (Potentiation)
+                    </button>
+                    <button id="tab-gym" class="px-6 py-4 font-semibold text-slate-500 border-b-2 border-transparent hover:text-slate-700 focus:outline-none w-1/2 text-center" onclick="switchTableTab('gym')">
+                        Gym (Primary Adaptation)
+                    </button>
+                </div>
+
+                <!-- Track Table -->
+                <div id="table-track" class="p-0 table-scroll overflow-x-auto fade-in">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-sm uppercase tracking-wider">
+                                <th class="p-4 border-b">Parameter</th>
+                                <th class="p-4 border-b">Guideline</th>
+                                <th class="p-4 border-b">Rationale</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm text-slate-700">
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                <td class="p-4 font-bold">Action Type</td>
+                                <td class="p-4">Iso-Push (PIMA) or low-volume Iso-Switch</td>
+                                <td class="p-4 text-slate-500">Maximize neural drive (Post-Activation Potentiation) without inducing fatigue.</td>
+                            </tr>
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                <td class="p-4 font-bold">Intensity</td>
+                                <td class="p-4">95-100% Intent (Fast push)</td>
+                                <td class="p-4 text-slate-500">Intent dictates early phase RFD recruitment.</td>
+                            </tr>
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                <td class="p-4 font-bold">Duration</td>
+                                <td class="p-4">1.5 - 3 seconds max</td>
+                                <td class="p-4 text-slate-500">Keep it short. Beyond 3s causes unnecessary metabolic buildup.</td>
+                            </tr>
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                <td class="p-4 font-bold">Volume</td>
+                                <td class="p-4">2-3 sets of 2-3 reps/leg</td>
+                                <td class="p-4 text-slate-500">Microdose. Just enough to prime the system.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-4 font-bold">Equipment</td>
+                                <td class="p-4">Bodyweight against partner, immovable fence, or heavy band.</td>
+                                <td class="p-4 text-slate-500">Must be practical on the track without heavy hardware.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Gym Table -->
+                <div id="table-gym" class="p-0 table-scroll overflow-x-auto hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-sm uppercase tracking-wider">
+                                <th class="p-4 border-b">Parameter</th>
+                                <th class="p-4 border-b">Guideline</th>
+                                <th class="p-4 border-b">Rationale</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm text-slate-700">
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                <td class="p-4 font-bold">Action Type</td>
+                                <td class="p-4">Heavy Iso-Hold (HIMA) or Iso-Catch</td>
+                                <td class="p-4 text-slate-500">Create structural change, tendon stiffness, and absolute force capacity.</td>
+                            </tr>
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                <td class="p-4 font-bold">Intensity</td>
+                                <td class="p-4">80-100% MVC or 150-250%+ Bodyweight</td>
+                                <td class="p-4 text-slate-500">Requires massive systemic load to force adaptation in stiff tissues (tendons).</td>
+                            </tr>
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                <td class="p-4 font-bold">Duration</td>
+                                <td class="p-4">3 - 6 seconds (Holds); Instantaneous (Catches)</td>
+                                <td class="p-4 text-slate-500">Longer time under high tension for tissue architectual changes.</td>
+                            </tr>
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                <td class="p-4 font-bold">Volume</td>
+                                <td class="p-4">3-5 sets of 3-5 reps/leg</td>
+                                <td class="p-4 text-slate-500">Primary session volume. Expect CNS fatigue post-session.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-4 font-bold">Equipment</td>
+                                <td class="p-4">Power rack, heavy barbell, safety pins, force plates (ideal).</td>
+                                <td class="p-4 text-slate-500">Controlled environment to safely apply and measure supramaximal loads.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // 1. PIMA vs HIMA Toggle Logic
+        function toggleActionType(type) {
+            const pimaBtn = document.getElementById('btn-pima');
+            const himaBtn = document.getElementById('btn-hima');
+            const pimaContent = document.getElementById('content-pima');
+            const himaContent = document.getElementById('content-hima');
+
+            if (type === 'pima') {
+                // Style Active PIMA
+                pimaBtn.classList.replace('bg-slate-100', 'bg-emerald-600');
+                pimaBtn.classList.replace('text-slate-700', 'text-white');
+                // Style Inactive HIMA
+                himaBtn.classList.replace('bg-emerald-600', 'bg-slate-100');
+                himaBtn.classList.replace('text-white', 'text-slate-700');
+                
+                pimaContent.classList.remove('hidden');
+                pimaContent.classList.add('fade-in');
+                himaContent.classList.add('hidden');
+            } else {
+                // Style Active HIMA
+                himaBtn.classList.replace('bg-slate-100', 'bg-emerald-600');
+                himaBtn.classList.replace('text-slate-700', 'text-white');
+                // Style Inactive PIMA
+                pimaBtn.classList.replace('bg-emerald-600', 'bg-slate-100');
+                pimaBtn.classList.replace('text-white', 'text-slate-700');
+
+                himaContent.classList.remove('hidden');
+                himaContent.classList.add('fade-in');
+                pimaContent.classList.add('hidden');
+            }
+        }
+
+        // 2. Accordion Logic for Hierarchy
+        function toggleAccordion(phase) {
+            const content = document.getElementById(`content-${phase}`);
+            const icon = document.getElementById(`icon-${phase}`);
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                content.classList.add('fade-in');
+                icon.innerText = '-';
+            } else {
+                content.classList.add('hidden');
+                content.classList.remove('fade-in');
+                icon.innerText = '+';
+            }
+        }
+
+        // 3. Table Tab Logic
+        function switchTableTab(tab) {
+            const trackTab = document.getElementById('tab-track');
+            const gymTab = document.getElementById('tab-gym');
+            const trackTable = document.getElementById('table-track');
+            const gymTable = document.getElementById('table-gym');
+
+            if (tab === 'track') {
+                trackTab.classList.add('text-emerald-700', 'border-emerald-500');
+                trackTab.classList.remove('text-slate-500', 'border-transparent');
+                
+                gymTab.classList.remove('text-emerald-700', 'border-emerald-500');
+                gymTab.classList.add('text-slate-500', 'border-transparent');
+
+                trackTable.classList.remove('hidden');
+                trackTable.classList.add('fade-in');
+                gymTable.classList.add('hidden');
+            } else {
+                gymTab.classList.add('text-emerald-700', 'border-emerald-500');
+                gymTab.classList.remove('text-slate-500', 'border-transparent');
+                
+                trackTab.classList.remove('text-emerald-700', 'border-emerald-500');
+                trackTab.classList.add('text-slate-500', 'border-transparent');
+
+                gymTable.classList.remove('hidden');
+                gymTable.classList.add('fade-in');
+                trackTable.classList.add('hidden');
+            }
+        }
+
+        // 4. Chart.js Initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('kineticChart').getContext('2d');
+            
+            // Mock conceptual data representing Force over Time (milliseconds)
+            const labels = Array.from({length: 30}, (_, i) => i * 100); // 0 to 3000ms
+            
+            // Generate conceptual curves
+            const dataHold = labels.map(t => {
+                if(t < 500) return (t/500) * 85; // Slower ramp
+                return 85; // Steady state holding force
+            });
+
+            const dataPush = labels.map(t => {
+                if(t < 200) return (t/200) * 95; // Extremely fast ramp (High RFD)
+                if(t < 2500) return 95; // Hold max intent
+                return Math.max(0, 95 - ((t-2500)/500)*95); // Drop off
+            });
+
+            const dataCatch = labels.map(t => {
+                if(t < 300) return 0; // Freefall
+                if(t < 400) return -20; // Eccentric dip
+                if(t < 500) return 120; // Massive amortization spike
+                if(t < 1500) return 90; // Settle into hold
+                return Math.max(0, 90 - ((t-1500)/300)*90); // Rapid drop
+            });
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Iso-Push (High RFD)',
+                            data: dataPush,
+                            borderColor: '#10b981', // emerald-500
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Iso-Hold (Sustained)',
+                            data: dataHold,
+                            borderColor: '#64748b', // slate-500
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.3,
+                            fill: false
+                        },
+                        {
+                            label: 'Iso-Catch (Spike)',
+                            data: dataCatch,
+                            borderColor: '#ef4444', // red-500
+                            borderWidth: 2,
+                            tension: 0.1,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { family: "'Inter', sans-serif" },
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleFont: { family: "'Inter', sans-serif" },
+                            bodyFont: { family: "'Inter', sans-serif" },
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label + ' ms';
+                                },
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + '% Max Force';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (milliseconds)',
+                                font: { weight: 'bold' }
+                            },
+                            grid: { display: false }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Relative Force Output',
+                                font: { weight: 'bold' }
+                            },
+                            suggestedMin: -25,
+                            suggestedMax: 130,
+                            grid: { color: '#e2e8f0' }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
