@@ -48,7 +48,7 @@
 <body class="antialiased">
 
 <!-- Chosen Palette: Slate (Neutrals) with Emerald (Z1), Amber (Z2), and Rose (Z3) semantic accents -->
-
+ 
 <!-- Application Structure Plan: 
     The SPA is structured sequentially to guide the user from foundational concepts to specific applications.
     1. Introduction & Foundation: Establishes the 3-Zone model using a static/comparative bar chart.
@@ -65,8 +65,24 @@
 
 <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     
+    <!-- Training Periodisation navigation strip -->
+    <div class="mb-8 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-[11px] font-black text-white">TP</span>
+            <span>Training Periodisation</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="index.html" class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-800 hover:bg-slate-100 transition-colors">
+                <span aria-hidden="true">←</span> Browse modules
+            </a>
+            <a href="../index.html" class="hidden sm:inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-800 hover:bg-slate-100 transition-colors">
+                <span aria-hidden="true">🏠</span> Learning Hub
+            </a>
+        </div>
+    </div>
+
     <!-- Header Section -->
     <header class="mb-12 border-b border-slate-200 pb-8">
         <div class="uppercase tracking-widest text-sm text-slate-500 font-semibold mb-2">&#9679; Research Report</div>

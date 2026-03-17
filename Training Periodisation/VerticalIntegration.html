@@ -69,11 +69,24 @@
     <!-- Navigation / Header -->
     <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-md">
         <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="text-xl font-bold tracking-tight">CF System <span class="text-slate-400 font-normal">| Training Architecture</span></div>
-            <nav class="hidden md:flex space-x-6 text-sm font-medium">
+            <div class="flex items-center gap-6">
+                <div class="text-xl font-bold tracking-tight">CF System <span class="text-slate-400 font-normal">| Training Architecture</span></div>
+                <span class="hidden md:inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300/80">
+                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500 text-[10px] font-black text-slate-950">TP</span>
+                    Training Periodisation
+                </span>
+            </div>
+            <nav class="hidden md:flex items-center space-x-4 text-sm font-medium">
                 <a href="#principles" class="hover:text-rose-400 transition-colors">Core Principles</a>
                 <a href="#high-low" class="hover:text-rose-400 transition-colors">High-Low Concept</a>
                 <a href="#stacks" class="hover:text-rose-400 transition-colors">Training Stacks</a>
+                <span class="h-5 w-px bg-slate-700 mx-1"></span>
+                <a href="index.html" class="inline-flex items-center gap-1.5 rounded-md border border-slate-600 bg-slate-800 px-3 py-1.5 text-[11px] font-semibold text-slate-50 hover:bg-slate-700 transition-colors">
+                    <span aria-hidden="true">←</span> Browse modules
+                </a>
+                <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-md border border-slate-600 bg-slate-800 px-3 py-1.5 text-[11px] font-semibold text-slate-50 hover:bg-slate-700 transition-colors">
+                    <span aria-hidden="true">🏠</span> Learning Hub
+                </a>
             </nav>
         </div>
     </header>
