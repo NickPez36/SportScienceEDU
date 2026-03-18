@@ -42,28 +42,31 @@
         ::-webkit-scrollbar-track { background: #0b0b0b; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #e10600; }
+
+        .tab-content {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="min-h-screen">
 
     <!-- Header -->
     <header class="border-b border-zinc-800 bg-zinc-900 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
-                <a href="index.html" class="inline-flex items-center gap-1.5 rounded border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-xs font-semibold text-zinc-200 hover:bg-zinc-700 transition-colors flex-shrink-0">
-                    <span aria-hidden="true">←</span> Analysis modules
-                </a>
                 <div class="f1-bg-red p-2 rounded-sm font-black text-white italic tracking-tighter text-xl">F1</div>
                 <h1 class="text-xl font-bold uppercase tracking-widest">Broadcast Data Architecture</h1>
             </div>
-            <nav class="flex gap-4 text-sm font-bold uppercase tracking-tighter">
+            <nav class="flex gap-4 md:gap-6 text-xs md:text-sm font-bold uppercase tracking-tighter">
                 <button onclick="showTab('collection')" id="tab-collection" class="tab-btn pb-1 border-b-4 border-transparent hover:text-white transition-all">Data Collection</button>
                 <button onclick="showTab('processing')" id="tab-processing" class="tab-btn pb-1 border-b-4 border-transparent hover:text-white transition-all">The Pipeline</button>
                 <button onclick="showTab('visuals')" id="tab-visuals" class="tab-btn pb-1 border-b-4 border-transparent hover:text-white transition-all">Broadcast Viz</button>
                 <button onclick="showTab('sectors')" id="tab-sectors" class="tab-btn pb-1 border-b-4 border-transparent hover:text-white transition-all">Sector Logic</button>
-                <a href="../index.html" class="hidden md:inline-flex items-center gap-1.5 rounded border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-[11px] font-semibold text-zinc-200 hover:bg-zinc-700 transition-colors flex-shrink-0">
-                    <span aria-hidden="true">🏠</span> Learning Hub
-                </a>
             </nav>
         </div>
     </header>
@@ -98,8 +101,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center justify-center bg-zinc-900 rounded-xl border border-zinc-800 p-8">
-                    <div class="text-center">
+                <div class="flex flex-col items-center justify-center bg-zinc-900 rounded-xl border border-zinc-800 p-8">
+                    <div class="text-center w-full">
                         <svg class="w-full max-w-md mx-auto mb-6 track-svg" viewBox="0 0 200 100">
                             <path d="M20,50 Q20,10 60,10 L140,10 Q180,10 180,50 Q180,90 140,90 L60,90 Q20,90 20,50" fill="none" stroke="#333" stroke-width="4"/>
                             <circle cx="20" cy="50" r="4" fill="#e10600" /> <!-- Start Line -->
@@ -174,7 +177,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                 <div>
                     <h2 class="text-3xl font-black italic mb-6 uppercase">The 3D Broadcast Layer</h2>
-                    <p class="text-zinc-400 mb-6">F1 uses **SMT (Sports Management Technology)** to power the dynamic graphics. They bridge the gap between raw data and the 3D augmented reality (AR) seen on screen.</p>
+                    <p class="text-zinc-400 mb-6">F1 uses *SMT (Sports Management Technology)* to power the dynamic graphics. They bridge the gap between raw data and the 3D augmented reality (AR) seen on screen.</p>
                     
                     <ul class="space-y-6">
                         <li class="flex gap-4">
@@ -201,29 +204,24 @@
                     </ul>
                 </div>
                 <div class="relative">
-                    <div class="card-gradient rounded-xl p-1 aspect-video flex items-center justify-center relative group overflow-hidden">
-                        <!-- Mock 3D Viz UI -->
-                        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1541447270888-83e8494f9c03?auto=format&fit=crop&q=80&w=1000')] bg-cover opacity-20"></div>
+                    <div class="card-gradient rounded-xl p-1 aspect-video flex items-center justify-center relative group overflow-hidden bg-black">
                         <div class="z-10 text-center">
                             <div class="mb-4 inline-block bg-black/80 px-4 py-2 rounded-full border border-zinc-700">
-                                <span class="text-purple-400 font-bold">FASTEST SECTOR: LEC 1:22.341</span>
+                                <span class="text-purple-400 font-bold uppercase tracking-widest text-xs">Fastest Sector Overlay</span>
                             </div>
                             <div class="flex flex-col items-center">
-                                <div class="w-64 h-32 border-4 border-dashed border-purple-500 rounded-lg flex items-center justify-center bg-purple-500/10 mb-2">
-                                    <span class="text-xs font-bold uppercase">AR Graphics Overlay Area</span>
+                                <div class="w-48 h-24 border-2 border-purple-500/50 rounded flex items-center justify-center bg-purple-500/5 mb-4">
+                                    <i class="fas fa-project-diagram text-purple-500/50 text-3xl"></i>
                                 </div>
-                                <div class="w-48 h-1 bg-zinc-700 relative">
-                                    <div class="absolute inset-0 bg-purple-500 w-2/3 shadow-[0_0_15px_rgba(177,49,255,0.8)]"></div>
+                                <div class="w-48 h-2 bg-zinc-800 rounded-full relative overflow-hidden">
+                                    <div class="absolute inset-0 bg-purple-500 w-3/4 shadow-[0_0_10px_rgba(177,49,255,0.8)]"></div>
                                 </div>
+                                <span class="text-[10px] text-zinc-500 mt-2 uppercase">Live Sector Progress</span>
                             </div>
-                        </div>
-                        <div class="absolute bottom-4 left-4 text-xs font-mono text-zinc-500">
-                            COORD: X:142.2 Y:-43.1 Z:10.5<br>
-                            CAM: HELI_01 (TRACKING)
                         </div>
                     </div>
                     <div class="mt-4 p-4 bg-zinc-900 border-l-4 f1-border-red">
-                        <p class="text-xs italic text-zinc-400">"The 3D course highlight is updated via a 5Hz (5 times per second) data stream from SMT, ensuring the visual syncs with the car's physical position on screen."</p>
+                        <p class="text-xs italic text-zinc-400 leading-relaxed">"The 3D course highlight is updated via a 5Hz data stream from SMT, ensuring the visual syncs with the car's physical position on screen."</p>
                     </div>
                 </div>
             </div>
@@ -234,53 +232,44 @@
             <h2 class="text-3xl font-black italic mb-6 uppercase text-center">Mini-Sectors & Color Coding</h2>
             
             <div class="max-w-4xl mx-auto">
-                <p class="text-zinc-400 text-center mb-10">While the broadcast shows 3 main sectors, the actual timing system uses up to **20-30 Mini-Sectors** per lap to provide the granular "Live Delta" you see on the driver's steering wheel and the TV screen.</p>
+                <p class="text-zinc-400 text-center mb-10">While the broadcast shows 3 main sectors, the actual timing system uses up to *20-30 Mini-Sectors* per lap to provide granular live deltas.</p>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="text-center">
-                        <div class="w-16 h-16 bg-purple-600/20 border-2 border-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-crown text-purple-600 text-2xl"></i>
+                    <div class="card-gradient p-6 rounded-xl text-center">
+                        <div class="w-12 h-12 bg-purple-600/20 border border-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-crown text-purple-600"></i>
                         </div>
-                        <h4 class="font-bold text-purple-500 mb-2">PURPLE</h4>
-                        <p class="text-xs text-zinc-500">Overall fastest mini-sector across all drivers during the session. Represents the absolute limit.</p>
+                        <h4 class="font-bold text-purple-500 mb-2 uppercase italic">Purple</h4>
+                        <p class="text-xs text-zinc-500">Overall fastest in session. The absolute limit.</p>
                     </div>
-                    <div class="text-center">
-                        <div class="w-16 h-16 bg-green-600/20 border-2 border-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-arrow-up text-green-600 text-2xl"></i>
+                    <div class="card-gradient p-6 rounded-xl text-center">
+                        <div class="w-12 h-12 bg-green-600/20 border border-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-arrow-up text-green-600"></i>
                         </div>
-                        <h4 class="font-bold text-green-500 mb-2">GREEN</h4>
-                        <p class="text-xs text-zinc-500">Personal best mini-sector for that specific driver. Better than their previous best, but not the fastest overall.</p>
+                        <h4 class="font-bold text-green-500 mb-2 uppercase italic">Green</h4>
+                        <p class="text-xs text-zinc-500">Personal best improvement. Faster than previous.</p>
                     </div>
-                    <div class="text-center">
-                        <div class="w-16 h-16 bg-yellow-600/20 border-2 border-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-minus text-yellow-600 text-2xl"></i>
+                    <div class="card-gradient p-6 rounded-xl text-center">
+                        <div class="w-12 h-12 bg-yellow-600/20 border border-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-minus text-yellow-600"></i>
                         </div>
-                        <h4 class="font-bold text-yellow-500 mb-2">YELLOW</h4>
-                        <p class="text-xs text-zinc-500">Slower than the driver's previous best. Indicates time lost due to tires, traffic, or driver error.</p>
+                        <h4 class="font-bold text-yellow-500 mb-2 uppercase italic">Yellow</h4>
+                        <p class="text-xs text-zinc-500">Slower than personal best. Time lost.</p>
                     </div>
                 </div>
 
-                <div class="mt-16 card-gradient p-8 rounded-xl">
-                    <h3 class="text-xl font-bold mb-6 italic underline decoration-red-600">The "Live Delta" Calculation</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                        <div>
-                            <p class="text-sm text-zinc-400 leading-relaxed">
-                                How does the broadcast know to highlight the track <i>before</i> the car finishes the sector? <br><br>
-                                <b>Micro-loop interpolation:</b> The SMT system holds a "Reference Lap" (usually the current Pole position). Every millisecond, it compares the car's current GPS position to the reference car's timestamp at that exact coordinate. <br><br>
-                                If Driver A is at Turn 4 at 15.221s and the Pole Sitter was there at 15.300s, the system calculates a <b>-0.079s Delta</b> and triggers the Purple overlay for that specific track segment.
-                            </p>
-                        </div>
-                        <div class="bg-black/50 p-6 rounded-lg font-mono text-xs text-green-400 border border-zinc-800">
-                            <div class="mb-1 text-zinc-600">// PSEUDO-CODE LOGIC</div>
-                            <div>IF (driver.current_pos == track.segment[x]) {</div>
-                            <div class="pl-4">delta = driver.timestamp - fastest_lap.timestamp_at(x);</div>
-                            <div class="pl-4">IF (delta < 0 && delta < all_drivers_best[x]) {</div>
-                            <div class="pl-8 text-purple-400">render_segment(x, COLOR_PURPLE);</div>
-                            <div class="pl-4">} ELSE IF (delta < driver.personal_best[x]) {</div>
-                            <div class="pl-8">render_segment(x, COLOR_GREEN);</div>
-                            <div class="pl-4">}</div>
-                            <div>}</div>
-                        </div>
+                <div class="mt-12 card-gradient p-8 rounded-xl border-t-2 f1-border-red">
+                    <h3 class="text-xl font-bold mb-4 italic uppercase">The Live Delta Engine</h3>
+                    <p class="text-sm text-zinc-400 leading-relaxed mb-6">
+                        The "Live Delta" you see on screen is calculated by comparing a driver's GPS position against a reference lap (usually the current pole lap). If the driver is ahead of the reference timestamp at their current track coordinate, the delta goes negative (green/purple).
+                    </p>
+                    <div class="bg-black/80 p-4 rounded font-mono text-[10px] md:text-xs text-zinc-500 overflow-x-auto">
+                        <span class="text-zinc-400">// SMT Backend Delta Engine</span><br>
+                        IF (driver.pos == segment[n]) {<br>
+                        &nbsp;&nbsp;current_delta = driver.time - reference.time_at(segment[n]);<br>
+                        &nbsp;&nbsp;UPDATE_HUD(driver_id, current_delta);<br>
+                        &nbsp;&nbsp;IF (current_delta < session_best[n]) TRIGGER_PURPLE_OVERLAY(segment[n]);<br>
+                        }
                     </div>
                 </div>
             </div>
@@ -288,22 +277,24 @@
     </main>
 
     <footer class="mt-12 border-t border-zinc-800 bg-zinc-900/50 py-12 px-4">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center opacity-50 text-xs gap-4">
-            <p>&copy; 2024 F1 BROADCAST RESEARCH DASHBOARD | BUILT FOR DEEP DIVE ANALYSIS</p>
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center opacity-50 text-[10px] gap-4">
+            <p uppercase tracking-widest>F1 Broadcast Tech Analysis Dashboard</p>
             <div class="flex gap-4">
-                <span>TECH STACK: SMT, VIZRT, ROLEX, MST</span>
-                <span>DATA REFRESH: 5HZ / 200MS</span>
+                <span>LATENCY: &lt;200MS</span>
+                <span>SYNC: FRAME-ACCURATE</span>
             </div>
         </div>
     </footer>
 
     <script>
         function showTab(tabId) {
-            // Hide all contents
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            
-            // Show selected content
             document.getElementById('content-' + tabId).classList.remove('hidden');
-            
-            // Update tab button styles
-            document
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('tab-active'));
+            document.getElementById('tab-' + tabId).classList.add('tab-active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        window.onload = () => showTab('collection');
+    </script>
+</body>
+</html>
