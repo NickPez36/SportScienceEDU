@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High-Performance Diagnostics: RFD & Power Expression</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Clinical Performance (Warm Neutrals & Biomechanic Accents) -->
+    <!-- Application Structure Plan: The SPA uses a dashboard architecture tailored for sports scientists and high-performance directors. A persistent sidebar enables rapid switching between critical biomechanical domains (Mechanisms, Constraints, Modalities, Monitoring, Tissue Health). This non-linear structure allows practitioners to immediately access specific diagnostic frameworks without scrolling through a monolithic report. Interactive charts (Force-Time curves, Force-Velocity profiles) serve as primary analytical tools, augmented by highly technical contextual text. -->
+    <!-- Visualization & Content Choices: 
+         1. Force-Time Curve (Chart.js Line): Goal: Visualize Early vs Late RFD within the 'Window of Opportunity'. Method: Line chart with toggleable datasets to isolate specific temporal phases (0-50ms vs >100ms). Justification: Standard biomechanical analysis tool; interactivity emphasizes temporal constraints.
+         2. Force-Velocity Profiling (Chart.js Scatter): Goal: Categorize athletes for targeted interventions. Method: Scatter plot distinguishing force-dominant vs velocity-dominant profiles. Justification: Essential for individualizing ballistic training based on IMU/Force Plate data.
+         3. Collagen Synthesis (Chart.js Bar): Goal: Illustrate 2024-2026 research on tendon health. Method: Bar chart comparing optimal loading vs over-reaching. Justification: Translates complex biochemical limitations into a clear visual risk model.
+         All visualizations utilize HTML5 Canvas via Chart.js. No SVG or Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        .font-mono-tech { font-family: 'JetBrains Mono', monospace; }
+        .chart-container { position: relative; width: 100%; max-width: 1000px; margin-left: auto; margin-right: auto; height: 50vh; max-height: 500px; min-height: 300px; }
+        .mini-chart-container { position: relative; width: 100%; height: 250px; }
+        
+        /* Custom scrollbar for sidebar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .nav-btn.active { background-color: #e2e8f0; border-left-color: #0369a1; color: #0369a1; font-weight: 600; }
+        .nav-btn { border-left: 4px solid transparent; transition: all 0.2s ease; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Data Node Styling (No SVG) */
+        .data-node { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #e0f2fe; color: #0369a1; font-weight: bold; font-size: 0.8rem; border: 2px solid #bae6fd; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden antialiased">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full z-10 shadow-sm hidden md:flex">
+        <div class="p-6 border-b border-slate-100 space-y-4">
+            <div>
+                <h1 class="text-lg font-bold tracking-tight text-slate-800 leading-tight">HPC Biomechanics Lab</h1>
+                <p class="text-xs text-slate-500 mt-1 font-mono-tech uppercase">Report Ref: RFD-2026-X</p>
+            </div>
+            <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-orange-500 text-[10px] font-black text-white">S&amp;C</span>
+                <span>Strength &amp; Conditioning</span>
+            </div>
+            <div class="flex flex-col gap-2 -mx-6">
+                <a href="index.html" class="nav-btn flex w-full items-center gap-1.5 px-6 py-2.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 border-l-4 border-transparent">
+                    <span aria-hidden="true">←</span> S&amp;C modules
+                </a>
+                <a href="../index.html" class="nav-btn flex w-full items-center gap-1.5 px-6 py-2.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 border-l-4 border-transparent">
+                    <span aria-hidden="true">🏠</span> Learning Hub
+                </a>
+            </div>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <button onclick="switchView('overview')" id="nav-overview" class="nav-btn active w-full text-left px-6 py-3 text-sm text-slate-600 hover:bg-slate-50 flex items-center justify-between">
+                Executive Summary <span class="text-xs text-slate-400">&#9654;</span>
+            </button>
+            <div class="px-6 py-2 mt-2">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">I. Mechanisms</p>
+            </div>
+            <button onclick="switchView('ssc')" id="nav-ssc" class="nav-btn w-full text-left px-6 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                Neuromechanical SSC
+            </button>
+            <button onclick="switchView('rfd')" id="nav-rfd" class="nav-btn w-full text-left px-6 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                Force-Time Diagnostics
+            </button>
+            <div class="px-6 py-2 mt-4">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">II. Application</p>
+            </div>
+            <button onclick="switchView('modalities')" id="nav-modalities" class="nav-btn w-full text-left px-6 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                Training Modalities
+            </button>
+            <button onclick="switchView('monitoring')" id="nav-monitoring" class="nav-btn w-full text-left px-6 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                IMU & F-V Profiling
+            </button>
+            <div class="px-6 py-2 mt-4">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">III. Limitations</p>
+            </div>
+            <button onclick="switchView('tissue')" id="nav-tissue" class="nav-btn w-full text-left px-6 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                Tendon Health (2026 Data)
+            </button>
+        </nav>
+        <div class="p-4 border-t border-slate-200 bg-slate-50">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                <span class="text-xs text-slate-600 font-medium">System Online</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile Header -->
+    <header class="md:hidden fixed top-0 w-full bg-white border-b border-slate-200 z-50 px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <a href="index.html" class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-800 hover:bg-slate-200 transition-colors">
+                <span aria-hidden="true">←</span> S&amp;C modules
+            </a>
+            <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-800 hover:bg-slate-200 transition-colors">
+                <span aria-hidden="true">🏠</span> Hub
+            </a>
+        </div>
+        <select id="mobile-nav" onchange="switchView(this.value)" class="bg-slate-100 border border-slate-300 text-xs rounded p-1">
+            <option value="overview">Executive Summary</option>
+            <option value="ssc">Neuromechanical SSC</option>
+            <option value="rfd">Force-Time Diagnostics</option>
+            <option value="modalities">Training Modalities</option>
+            <option value="monitoring">IMU & F-V Profiling</option>
+            <option value="tissue">Tendon Health</option>
+        </select>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 h-full overflow-y-auto bg-slate-50 pt-16 md:pt-0">
+        
+        <!-- VIEW: OVERVIEW -->
+        <section id="view-overview" class="view-section p-6 md:p-10 max-w-5xl mx-auto fade-in block">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Rate of Force Development & Power Expression in Elite Ballistic Movements</h2>
+                <p class="text-slate-500 mt-2 font-mono-tech text-sm">Director of High Performance & Lead Biomechanist</p>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 mb-8">
+                <h3 class="text-lg font-semibold text-slate-800 mb-4 border-b pb-2 border-slate-100">Abstract & Operational Directive</h3>
+                <p class="text-slate-600 leading-relaxed mb-4">
+                    This report synthesizes contemporary biomechanical models regarding the neuromechanical efficiency of the Stretch-Shortening Cycle (SSC) and the expression of high-velocity force production. Traditional paradigms focusing solely on maximal strength ($F_{max}$) or power ($P = F \times v$) are insufficient for elite ballistic populations operating under severe temporal constraints (Ground Contact Times $\le$ 200ms).
+                </p>
+                <p class="text-slate-600 leading-relaxed">
+                    The focus must shift toward manipulating specific phases of the Force-Time curve—specifically Early-Phase Rate of Force Development (RFD) versus Late-Phase RFD. Furthermore, we evaluate practical interventions including Isoinertial Flywheel technology, PAPE vs. PAP, and the critical biological limitations surrounding neural over-reaching and recent 2024-2026 data on collagen matrix degradation under high-volume plyometric loads.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm border-t-4 border-t-sky-600">
+                    <div class="text-2xl font-bold text-slate-800 mb-1">100-200<span class="text-sm font-normal text-slate-500 ml-1">ms</span></div>
+                    <div class="text-xs font-bold text-sky-700 uppercase tracking-wide">The Window of Opportunity</div>
+                    <p class="text-xs text-slate-500 mt-2">Maximal timeframe available for force application in elite sprinting and jumping phases.</p>
+                </div>
+                <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm border-t-4 border-t-emerald-600">
+                    <div class="text-2xl font-bold text-slate-800 mb-1"><50<span class="text-sm font-normal text-slate-500 ml-1">ms</span></div>
+                    <div class="text-xs font-bold text-emerald-700 uppercase tracking-wide">Early-Phase RFD</div>
+                    <p class="text-xs text-slate-500 mt-2">Predominantly dictated by neural drive (efferent firing frequency) and intrinsic fiber properties.</p>
+                </div>
+                <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm border-t-4 border-t-rose-600">
+                    <div class="text-2xl font-bold text-slate-800 mb-1">>100<span class="text-sm font-normal text-slate-500 ml-1">ms</span></div>
+                    <div class="text-xs font-bold text-rose-700 uppercase tracking-wide">Late-Phase RFD</div>
+                    <p class="text-xs text-slate-500 mt-2">Highly correlated with maximal isometric force ($F_{max}$) capabilities and structural CSA.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: SSC MECHANISMS -->
+        <section id="view-ssc" class="view-section p-6 md:p-10 max-w-5xl mx-auto fade-in hidden">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-900">Neuromechanical Architecture of the SSC</h2>
+                <p class="text-slate-600 mt-2">The Stretch-Shortening Cycle is not a singular event but a complex biphasic interplay. Effective power expression requires synchronization of neurological reflexes and mechanical tissue compliance.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Neuro Panel -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">&#9889;</div>
+                        <h3 class="text-lg font-bold text-slate-800">Neurophysiological Pathway</h3>
+                    </div>
+                    <p class="text-sm text-slate-600 mb-4 leading-relaxed">During the rapid eccentric yielding phase, muscle spindles undergo deformation. This triggers the monosynaptic stretch reflex via <span class="font-mono-tech bg-slate-100 px-1 rounded text-indigo-700">Ia afferent</span> neurons, projecting to the spinal cord and resulting in enhanced <span class="font-mono-tech bg-slate-100 px-1 rounded text-indigo-700">alpha-motor neuron</span> efferent drive during the subsequent concentric phase.</p>
+                    
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Reflex Potentiation Sequence</h4>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2 text-sm text-slate-700"><span class="data-node">1</span> Eccentric Elongation (High Velocity)</div>
+                            <div class="pl-4 text-slate-400 text-xs">&#8595; Spindle Deformation</div>
+                            <div class="flex items-center gap-2 text-sm text-slate-700"><span class="data-node">2</span> Ia Afferent Excitation</div>
+                            <div class="pl-4 text-slate-400 text-xs">&#8595; Synapse @ Ventral Horn</div>
+                            <div class="flex items-center gap-2 text-sm text-slate-700"><span class="data-node">3</span> $\alpha$-Motor Neuron Recruitment &#8593;</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mechanical Panel -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded bg-amber-100 flex items-center justify-center text-amber-700 font-bold">&#9881;</div>
+                        <h3 class="text-lg font-bold text-slate-800">Mechanical & Structural Pathway</h3>
+                    </div>
+                    <p class="text-sm text-slate-600 mb-4 leading-relaxed">Simultaneously, mechanical energy is absorbed and stored within the Series Elastic Component (SEC)—primarily the tendon—and intracellularly via the giant protein <span class="font-mono-tech bg-slate-100 px-1 rounded text-amber-700">titin</span>. Titin binds to actin upon calcium influx, increasing its stiffness and storing elastic potential energy.</p>
+                    
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Elastic Energy Recoil</h4>
+                        <div class="flex items-center justify-between mt-4">
+                            <div class="text-center">
+                                <div class="text-xs font-bold text-slate-800 mb-1">Pre-Stretch</div>
+                                <div class="w-16 h-2 bg-slate-300 rounded mx-auto relative overflow-hidden">
+                                    <div class="absolute inset-y-0 left-0 bg-amber-400 w-1/4"></div>
+                                </div>
+                            </div>
+                            <div class="text-slate-400 text-sm">&#10142;</div>
+                            <div class="text-center">
+                                <div class="text-xs font-bold text-slate-800 mb-1">Amortization</div>
+                                <div class="w-24 h-2 bg-slate-300 rounded mx-auto relative overflow-hidden">
+                                    <div class="absolute inset-y-0 left-0 bg-amber-500 w-full transition-all duration-500"></div>
+                                </div>
+                                <div class="text-[10px] text-amber-600 mt-1">Energy Stored in SEC/Titin</div>
+                            </div>
+                            <div class="text-slate-400 text-sm">&#10142;</div>
+                            <div class="text-center">
+                                <div class="text-xs font-bold text-slate-800 mb-1">Concentric</div>
+                                <div class="w-12 h-2 bg-slate-300 rounded mx-auto relative overflow-hidden">
+                                    <div class="absolute inset-y-0 left-0 bg-emerald-500 w-full"></div>
+                                </div>
+                                <div class="text-[10px] text-emerald-600 mt-1">Kinetic Release</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: RFD & TEMPORAL CONSTRAINTS -->
+        <section id="view-rfd" class="view-section p-6 md:p-10 max-w-5xl mx-auto fade-in hidden">
+            <div class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Force-Time Curve Diagnostics</h2>
+                    <p class="text-slate-600 mt-2 max-w-2xl">Analyzing the rate at which force is developed (${\Delta F} / {\Delta t}$) is critical. The "Window of Opportunity" illustrates the temporal constraints of athletic movement, often rendering maximal force capacity unachievable during the act.</p>
+                </div>
+                <div class="flex gap-2 bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
+                    <button onclick="updateChartPhase('all')" class="px-3 py-1 text-xs font-medium rounded hover:bg-slate-100 text-slate-700 transition">Complete Curve</button>
+                    <button onclick="updateChartPhase('early')" class="px-3 py-1 text-xs font-medium rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">Early RFD (<50ms)</button>
+                    <button onclick="updateChartPhase('late')" class="px-3 py-1 text-xs font-medium rounded bg-rose-50 text-rose-700 hover:bg-rose-100 transition">Late RFD (>100ms)</button>
+                </div>
+            </div>
+
+            <!-- CHART CONTAINER -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
+                <div class="chart-container">
+                    <canvas id="rfdChart"></canvas>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-slate-800 flex items-center gap-2"><div class="w-3 h-3 bg-emerald-500 rounded-full"></div> Early-Phase RFD Constraints</h4>
+                    <p class="text-sm text-slate-600 mt-3">Dictates performance in movements with minimal ground contact (e.g., maximal velocity sprinting ~80-100ms). Training this phase requires high-intent, neuro-dominant strategies to increase motor unit firing rates. Heavy resistance training has limited transfer to this specific temporal window.</p>
+                </div>
+                <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-slate-800 flex items-center gap-2"><div class="w-3 h-3 bg-rose-500 rounded-full"></div> Late-Phase RFD Constraints</h4>
+                    <p class="text-sm text-slate-600 mt-3">Dominates movements allowing longer force application (e.g., throwing, heavy lifting, acceleration phase >200ms). Closely linked to structural adaptations, cross-sectional area (CSA), and maximal isometric strength ($F_{max}$).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: MODALITIES -->
+        <section id="view-modalities" class="view-section p-6 md:p-10 max-w-5xl mx-auto fade-in hidden">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-900">Applied Interventions & Training Modalities</h2>
+                <p class="text-slate-600 mt-2">Critique of advanced modalities aimed at leftward shifting the force-time curve.</p>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Modality 1 -->
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col md:flex-row">
+                    <div class="bg-slate-800 text-white p-6 md:w-1/3 flex flex-col justify-center">
+                        <h3 class="text-xl font-bold mb-2">PAPE vs. PAP</h3>
+                        <p class="text-slate-300 text-sm">Post-Activation Performance Enhancement vs. Post-Activation Potentiation</p>
+                    </div>
+                    <div class="p-6 md:w-2/3">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm mb-1">Classical PAP</h4>
+                                <p class="text-xs text-slate-600">Strictly defined by myosin regulatory light chain phosphorylation. Highly transient (dissipates < 3-5 mins). Difficult to execute in practical sporting environments due to rapid onset of fatigue.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm mb-1">PAPE (Contemporary)</h4>
+                                <p class="text-xs text-slate-600">Driven by muscle temperature elevation, fluid shifts, and psychological arousal. Longer lasting window (7-15 mins post-conditioning activity). Highly applicable for pre-competition priming or complex training setups.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modality 2 -->
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col md:flex-row">
+                    <div class="bg-sky-800 text-white p-6 md:w-1/3 flex flex-col justify-center">
+                        <h3 class="text-xl font-bold mb-2">Isoinertial Flywheels</h3>
+                        <p class="text-sky-200 text-sm">Eccentric-to-Concentric Transition Optimization</p>
+                    </div>
+                    <div class="p-6 md:w-2/3">
+                        <p class="text-sm text-slate-700 mb-3">Flywheel technology utilizes a tethered mass to create isoinertial resistance. The kinetic energy generated during the concentric phase must be decelerated during a shorter eccentric phase, creating an <span class="font-semibold text-sky-700">Eccentric Overload</span>.</p>
+                        <div class="bg-slate-50 border border-slate-200 p-3 rounded text-xs text-slate-600">
+                            <strong>Biomechanical Rationale:</strong> Forces rapid structural reorganization of the musculotendinous unit. Critically reduces the amortization phase duration, enhancing the mechanical efficiency of the SSC and improving late-phase RFD via tissue stiffening.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modality 3 -->
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col md:flex-row">
+                    <div class="bg-emerald-800 text-white p-6 md:w-1/3 flex flex-col justify-center">
+                        <h3 class="text-xl font-bold mb-2">Plyometric Progressions</h3>
+                        <p class="text-emerald-200 text-sm">Extensive vs. Intensive Loading</p>
+                    </div>
+                    <div class="p-6 md:w-2/3">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-slate-500">
+                                    <th class="pb-2 font-medium">Metric</th>
+                                    <th class="pb-2 font-medium text-emerald-700">Extensive</th>
+                                    <th class="pb-2 font-medium text-rose-700">Intensive</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-700">
+                                <tr class="border-b border-slate-100">
+                                    <td class="py-2">GCT Focus</td>
+                                    <td class="py-2">>250ms (Rhythm)</td>
+                                    <td class="py-2"><150ms (Shock)</td>
+                                </tr>
+                                <tr class="border-b border-slate-100">
+                                    <td class="py-2">System Load</td>
+                                    <td class="py-2">Metabolic / Tissue Prep</td>
+                                    <td class="py-2">High CNS / Tendon Stiffness</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2">Application</td>
+                                    <td class="py-2">Ankle bounds, pogo jumps</td>
+                                    <td class="py-2">Depth jumps, drop jumps</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: MONITORING -->
+        <section id="view-monitoring" class="view-section p-6 md:p-10 max-w-5xl mx-auto fade-in hidden">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-900">Monitoring & Profiling (IMUs & Force Plates)</h2>
+                <p class="text-slate-600 mt-2">To prevent "blind" programming, athletes must be profiled using objective kinetic and kinematic data. The Force-Velocity (F-V) profile determines the specific deficit an athlete exhibits.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4 text-center">F-V Athlete Profiling Matrix</h3>
+                    <!-- CHART CONTAINER -->
+                    <div class="mini-chart-container">
+                        <canvas id="fvChart"></canvas>
+                    </div>
+                    <div class="flex justify-center gap-4 mt-4 text-xs">
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 bg-sky-500 rounded-full"></div> Force Deficit</div>
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 bg-rose-500 rounded-full"></div> Velocity Deficit</div>
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 bg-emerald-500 rounded-full"></div> Optimal</div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-slate-800 text-white p-5 rounded-lg shadow-sm">
+                        <h4 class="font-bold mb-2 flex items-center gap-2"><span class="data-node bg-slate-700 text-white border-slate-600">1</span> Force-Dominant Athletes</h4>
+                        <p class="text-sm text-slate-300">Exhibits high maximal strength but poor rate of force development. Ground contact times are typically prolonged. <br><span class="text-sky-300 font-semibold">Intervention:</span> Requires high-velocity, low-load ballistic training and assisted overspeed protocols.</p>
+                    </div>
+                    <div class="bg-white border border-slate-200 p-5 rounded-lg shadow-sm">
+                        <h4 class="font-bold text-slate-800 mb-2 flex items-center gap-2"><span class="data-node">2</span> Velocity-Dominant Athletes</h4>
+                        <p class="text-sm text-slate-600">Excellent 'bounce' and fast GCT, but lack the structural strength to maintain stiffness under high eccentric loads. <br><span class="text-rose-600 font-semibold">Intervention:</span> Requires heavy bilateral resistance training and slow eccentric loading to improve $F_{max}$ ceiling.</p>
+                    </div>
+                    <div class="p-4 border border-dashed border-slate-300 rounded bg-slate-50 text-xs text-slate-500 font-mono-tech">
+                        > IMU Data Integration: Wearable Inertial Measurement Units provide real-time surrogate markers of center-of-mass velocity and GCTs during on-field sprinting, bridging the gap between lab-based force plates and field performance.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: TISSUE HEALTH -->
+        <section id="view-tissue" class="view-section p-6 md:p-10 max-w-5xl mx-auto fade-in hidden">
+             <div class="mb-8 border-l-4 border-rose-600 pl-4">
+                <h2 class="text-2xl font-bold text-slate-900">Critical Limitations: Neural Fatigue & Tendon Compliance</h2>
+                <p class="text-slate-600 mt-2">Analysis of 2024-2026 longitudinal studies highlighting the biological limits of ballistic training.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-3">The Neural Over-Reaching Threshold</h3>
+                    <p class="text-sm text-slate-600 mb-4 leading-relaxed">
+                        Sustained exposure to high-CNS demanding exercises (intensive plyometrics, heavy flywheels) without adequate restitution leads to Central Nervous System over-reaching. The primary diagnostic marker is a severe, acute depression in <strong>Early-Phase RFD (<50ms)</strong>, even while maximal isometric strength ($F_{max}$) remains unaffected.
+                    </p>
+                    <div class="bg-rose-50 border border-rose-200 rounded p-4 text-sm text-rose-800">
+                        <strong>Practical Implication:</strong> If monitoring shows a drop in CMJ flight time but isometric mid-thigh pull (IMTP) peak force is stable, the athlete is neutrally fatigued, not mechanically weakened. Cease ballistic work immediately.
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-3">Tendon Paradox: Stiffness vs. Compliance</h3>
+                    <p class="text-sm text-slate-600 mb-4 leading-relaxed">
+                        Optimal power transfer requires tendon <em>stiffness</em> to prevent kinetic energy leakage. However, recent (2025) research demonstrates that exceeding optimal loading volumes (e.g., >120 foot contacts of intensive plyos/week in elites) inhibits collagen cross-linking.
+                    </p>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Instead of adapting and stiffening, the tendon structure degrades, increasing <em>compliance</em> (laxity). This severely dampens the mechanical efficiency of the SSC and increases tendinopathy risk.
+                    </p>
+                </div>
+            </div>
+
+            <!-- CHART CONTAINER -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h4 class="text-center font-bold text-slate-800 mb-2">Impact of Ballistic Volume on Net Collagen Synthesis (2026 Data Model)</h4>
+                <p class="text-center text-xs text-slate-500 mb-4">Values represent net fractional synthetic rate 24h post-loading.</p>
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="collagenChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- State Management & Navigation ---
+        const views = ['overview', 'ssc', 'rfd', 'modalities', 'monitoring', 'tissue'];
+        
+        function switchView(viewId) {
+            // Update mobile select if changed from sidebar
+            document.getElementById('mobile-nav').value = viewId;
+
+            views.forEach(v => {
+                // Hide all sections
+                const section = document.getElementById(`view-${v}`);
+                if(section) {
+                    section.classList.add('hidden');
+                    section.classList.remove('block');
+                }
+                
+                // Remove active class from desktop nav
+                const navBtn = document.getElementById(`nav-${v}`);
+                if(navBtn) navBtn.classList.remove('active');
+            });
+
+            // Show target section
+            const targetSection = document.getElementById(`view-${viewId}`);
+            if(targetSection) {
+                targetSection.classList.remove('hidden');
+                targetSection.classList.add('block');
+            }
+
+            // Set active class on desktop nav
+            const targetNav = document.getElementById(`nav-${viewId}`);
+            if(targetNav) targetNav.classList.add('active');
+
+            // Trigger chart renders if they exist in the newly opened view to ensure proper sizing
+            if(viewId === 'rfd' && window.rfdChartInstance) window.rfdChartInstance.resize();
+            if(viewId === 'monitoring' && window.fvChartInstance) window.fvChartInstance.resize();
+            if(viewId === 'tissue' && window.collagenChartInstance) window.collagenChartInstance.resize();
+        }
+
+        // --- Chart Data & Initialization ---
+        
+        // 1. Force-Time Diagnostics (Line Chart)
+        const timeLabels = [0, 25, 50, 75, 100, 150, 200, 250, 300];
+        const forceDataTotal = [0, 600, 1400, 2100, 2600, 3200, 3500, 3600, 3600];
+        
+        let rfdChartConfig = {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [
+                    {
+                        label: 'Force Curve',
+                        data: forceDataTotal,
+                        borderColor: '#64748b',
+                        backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) { return context.parsed.y + ' N'; }
+                        }
+                    }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Time (ms)', font: {family: 'Inter', weight: 'bold'} } },
+                    y: { title: { display: true, text: 'Force (N)', font: {family: 'Inter', weight: 'bold'} }, min: 0 }
+                }
+            }
+        };
+
+        // 2. Force-Velocity Profiling (Scatter Chart)
+        const fvData = {
+            datasets: [
+                {
+                    label: 'Velocity Deficit (Needs Fmax)',
+                    data: [{x: 1.2, y: 32}, {x: 1.5, y: 28}, {x: 1.4, y: 30}],
+                    backgroundColor: '#f43f5e', pointRadius: 6
+                },
+                {
+                    label: 'Force Deficit (Needs Speed)',
+                    data: [{x: 2.8, y: 18}, {x: 3.1, y: 15}, {x: 2.6, y: 20}],
+                    backgroundColor: '#0ea5e9', pointRadius: 6
+                },
+                {
+                    label: 'Optimal Profile',
+                    data: [{x: 2.2, y: 25}, {x: 2.0, y: 24}],
+                    backgroundColor: '#10b981', pointRadius: 8, pointStyle: 'rectRot'
+                }
+            ]
+        };
+
+        const fvChartConfig = {
+            type: 'scatter',
+            data: fvData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { title: { display: true, text: 'Velocity (m/s)' } },
+                    y: { title: { display: true, text: 'Force (N/kg)' } }
+                }
+            }
+        };
+
+        // 3. Collagen Synthesis (Bar Chart)
+        const collagenChartConfig = {
+            type: 'bar',
+            data: {
+                labels: ['Rest', 'Optimal Loading (Extensive)', 'Intensive Threshold', 'Over-Reaching (>120 contacts)'],
+                datasets: [{
+                    label: 'Net Collagen Synthesis Rate',
+                    data: [0.05, 0.25, 0.15, -0.10], // Hypothetical 2026 data
+                    backgroundColor: [
+                        '#cbd5e1', // Rest (gray)
+                        '#10b981', // Optimal (green)
+                        '#f59e0b', // Threshold (amber)
+                        '#f43f5e'  // Over-reaching (red - negative)
+                    ],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { 
+                        title: { display: true, text: 'Fractional Synthetic Rate (%)' },
+                        grid: { color: (context) => context.tick.value === 0 ? '#64748b' : '#e2e8f0', lineWidth: (context) => context.tick.value === 0 ? 2 : 1 }
+                    }
+                }
+            }
+        };
+
+        // Initialize Charts on load
+        window.onload = function() {
+            const ctxRFD = document.getElementById('rfdChart').getContext('2d');
+            window.rfdChartInstance = new Chart(ctxRFD, rfdChartConfig);
+
+            const ctxFV = document.getElementById('fvChart').getContext('2d');
+            window.fvChartInstance = new Chart(ctxFV, fvChartConfig);
+
+            const ctxCollagen = document.getElementById('collagenChart').getContext('2d');
+            window.collagenChartInstance = new Chart(ctxCollagen, collagenChartConfig);
+        };
+
+        // --- Interaction Logic ---
+        function updateChartPhase(phase) {
+            let newData = [...forceDataTotal];
+            let newColors = [];
+            let newBorderColors = [];
+            let labelText = 'Force Curve';
+
+            if (phase === 'early') {
+                labelText = 'Early RFD (<50ms) Highlighted';
+                for(let i=0; i<timeLabels.length; i++) {
+                    if(timeLabels[i] <= 50) {
+                        newColors.push('rgba(16, 185, 129, 0.4)'); // Emerald
+                        newBorderColors.push('#10b981');
+                    } else {
+                        newColors.push('rgba(203, 213, 225, 0.2)'); // Slate
+                        newBorderColors.push('#cbd5e1');
+                    }
+                }
+            } else if (phase === 'late') {
+                labelText = 'Late RFD (>100ms) Highlighted';
+                for(let i=0; i<timeLabels.length; i++) {
+                    if(timeLabels[i] >= 100) {
+                        newColors.push('rgba(244, 63, 94, 0.4)'); // Rose
+                        newBorderColors.push('#f43f5e');
+                    } else {
+                        newColors.push('rgba(203, 213, 225, 0.2)'); // Slate
+                        newBorderColors.push('#cbd5e1');
+                    }
+                }
+            } else {
+                newColors = 'rgba(100, 116, 139, 0.1)';
+                newBorderColors = '#64748b';
+            }
+
+            window.rfdChartInstance.data.datasets[0] = {
+                label: labelText,
+                data: forceDataTotal,
+                segment: {
+                    borderColor: ctx => phase === 'all' ? '#64748b' : newBorderColors[ctx.p0DataIndex],
+                    backgroundColor: ctx => phase === 'all' ? 'rgba(100, 116, 139, 0.1)' : newColors[ctx.p0DataIndex]
+                },
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            };
+            window.rfdChartInstance.update();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physiological Optimization Roadmap | Elite Endurance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Warm Neutrals & Performance Accents (Background: #F9F8F6, Surfaces: White, Sidebar: #2C2C2A, Accents: #9E5B43 Rust, #4A6C6F Teal) -->
+    
+    <!-- Application Structure Plan: A dashboard-style SPA with a persistent left sidebar for navigation. This structure was chosen because physiological optimization involves distinct, complex systems (Hematological, Cardiovascular, Peripheral, etc.). Segmenting them into discrete 'modules' prevents cognitive overload. The main content area updates dynamically, presenting text analysis alongside interactive Chart.js visualizations and standardized Protocol Tables, allowing the High-Performance Director or Athlete to focus on one physiological mechanism at a time. -->
+    
+    <!-- Visualization & Content Choices: 
+         1. Hematological: Bar Chart comparing Hb mass gains (LHTL vs LHTH) - Goal: Compare efficacy. Library: Chart.js.
+         2. Cardiovascular: Bubble/Scatter Chart showing Intensity vs Duration vs SV Stimulus - Goal: Relate training prescription to cardiac remodeling. Library: Chart.js.
+         3. Peripheral: Line Chart showing PGC-1a mRNA response over time (SIT vs MICT) - Goal: Show temporal physiological response. Library: Chart.js.
+         4. Advanced Modalities: Radar Chart comparing Heat Stress vs BFR profiles - Goal: Multi-variable comparison of physiological load/benefit. Library: Chart.js.
+    -->
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        /* Specific Chart Container Styling as per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 450px;
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        @media (min-width: 1024px) {
+            .chart-container {
+                max-width: 1000px;
+            }
+        }
+
+        /* Custom Scrollbar for sleekness */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+        
+        .tab-active { border-bottom: 2px solid #9E5B43; color: #9E5B43; font-weight: 600; }
+        .nav-active { background-color: #434341; border-left: 4px solid #9E5B43; }
+        
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #F9F8F6; color: #333333; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <header class="w-full bg-white border-b border-gray-200 fixed top-0 left-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+                <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500 text-[10px] font-black text-gray-900">SP</span>
+                <span>Aerobic Metabolism</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="index.html" class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-gray-100 px-3 py-1.5 text-[11px] font-semibold text-gray-800 hover:bg-gray-200 transition-colors">
+                    <span aria-hidden="true">←</span> Aerobic modules
+                </a>
+                <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-gray-100 px-3 py-1.5 text-[11px] font-semibold text-gray-800 hover:bg-gray-200 transition-colors">
+                    <span aria-hidden="true">←</span> Sports Physiology
+                </a>
+                <a href="../../index.html" class="hidden sm:inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-gray-100 px-3 py-1.5 text-[11px] font-semibold text-gray-800 hover:bg-gray-200 transition-colors">
+                    <span aria-hidden="true">🏠</span> Learning Hub
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <nav class="w-64 bg-[#2C2C2A] text-gray-300 flex flex-col h-full shadow-xl z-20 flex-shrink-0 pt-14">
+        <div class="p-6">
+            <h1 class="text-white text-xl font-bold leading-tight tracking-wider">PHYSIO<br><span class="text-[#9E5B43]">OPTIMA</span></h1>
+            <p class="text-xs text-gray-400 mt-2 uppercase tracking-widest">Endurance Roadmap</p>
+        </div>
+        <ul class="flex-1 mt-6">
+            <li class="cursor-pointer nav-item nav-active px-6 py-4 hover:bg-[#3D3D3A] transition-colors flex items-center gap-3" data-target="dashboard">
+                <span class="text-xl">◱</span> Overview
+            </li>
+            <li class="cursor-pointer nav-item px-6 py-4 hover:bg-[#3D3D3A] transition-colors flex items-center gap-3" data-target="hematological">
+                <span class="text-xl">🩸</span> Hematological
+            </li>
+            <li class="cursor-pointer nav-item px-6 py-4 hover:bg-[#3D3D3A] transition-colors flex items-center gap-3" data-target="cardiovascular">
+                <span class="text-xl">🫀</span> Cardiovascular
+            </li>
+            <li class="cursor-pointer nav-item px-6 py-4 hover:bg-[#3D3D3A] transition-colors flex items-center gap-3" data-target="peripheral">
+                <span class="text-xl">🧬</span> Peripheral (Muscular)
+            </li>
+            <li class="cursor-pointer nav-item px-6 py-4 hover:bg-[#3D3D3A] transition-colors flex items-center gap-3" data-target="advanced">
+                <span class="text-xl">🔥</span> Adv. Modalities
+            </li>
+        </ul>
+        <div class="p-6 text-xs text-gray-500 border-t border-gray-700">
+            Literature Sync: 2020-2026<br>
+            Director: Lead Sport Scientist
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 h-full overflow-y-auto p-8 lg:p-12 pt-24">
+        
+        <!-- SECTION: Dashboard Overview -->
+        <section id="dashboard" class="content-section block">
+            <header class="mb-10">
+                <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">Physiological Optimization Roadmap</h2>
+                <p class="text-lg text-gray-600 mt-2">Executive summary of evidence-based interventions for elite endurance performance.</p>
+            </header>
+            
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 mb-8">
+                <p class="text-gray-700 leading-relaxed text-lg">
+                    This interactive roadmap synthesizes current (2020-2026) literature regarding the optimal stimulation of physiological mechanisms critical to endurance performance. 
+                    Navigate through the specific systems using the sidebar. Each module details "Gold Standard" methodologies, interaction variables, and concrete <strong>Performance Protocols</strong>.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Summary Cards -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-[#9E5B43] cursor-pointer hover:shadow-md transition-shadow" onclick="switchSection('hematological')">
+                    <div class="text-2xl mb-2">🩸</div>
+                    <h3 class="font-bold text-gray-900">Hematological</h3>
+                    <p class="text-sm text-gray-500 mt-1">Hb mass, Hypoxic Dose, LHTL vs LHTH, Ferritin.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-[#4A6C6F] cursor-pointer hover:shadow-md transition-shadow" onclick="switchSection('cardiovascular')">
+                    <div class="text-2xl mb-2">🫀</div>
+                    <h3 class="font-bold text-gray-900">Cardiovascular</h3>
+                    <p class="text-sm text-gray-500 mt-1">Cardiac remodeling, Stroke Volume, Plasma Volume Expansion.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-[#D9A05B] cursor-pointer hover:shadow-md transition-shadow" onclick="switchSection('peripheral')">
+                    <div class="text-2xl mb-2">🧬</div>
+                    <h3 class="font-bold text-gray-900">Peripheral</h3>
+                    <p class="text-sm text-gray-500 mt-1">Mitochondrial biogenesis, Capillarization, Glycogen depletion.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-[#7A6B7E] cursor-pointer hover:shadow-md transition-shadow" onclick="switchSection('advanced')">
+                    <div class="text-2xl mb-2">🔥</div>
+                    <h3 class="font-bold text-gray-900">Advanced</h3>
+                    <p class="text-sm text-gray-500 mt-1">Heat stress therapies, HSPs, Blood Flow Restriction.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Hematological -->
+        <section id="hematological" class="content-section hidden">
+            <header class="mb-8">
+                <div class="inline-block px-3 py-1 bg-[#9E5B43] bg-opacity-10 text-[#9E5B43] font-semibold text-sm rounded-full mb-3">System 1</div>
+                <h2 class="text-3xl font-extrabold text-gray-900">Hematological Optimization (Hb<sub>mass</sub>)</h2>
+                <p class="text-gray-600 mt-2">Maximizing oxygen carrying capacity through strategic hypoxic exposure.</p>
+            </header>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+                <h3 class="text-xl font-bold mb-4 border-b pb-2">LHTL vs. LHTH & The Hypoxic Dose</h3>
+                <p class="mb-4 text-gray-700">
+                    Increasing total hemoglobin mass (Hb<sub>mass</sub>) is a primary driver of absolute VO<sub>2</sub>max. Current literature strongly supports <strong>Live High-Train Low (LHTL)</strong> over Live High-Train High (LHTH). LHTL permits the maintenance of absolute training velocities and mechanical power outputs at sea level, avoiding the detraining effect often seen when intense sessions are compromised by hypoxia in LHTH.
+                </p>
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                    <p class="text-sm text-blue-800 font-semibold mb-1">Critical Prerequisite: Iron Status</p>
+                    <p class="text-sm text-blue-700">Erythropoiesis is heavily iron-dependent. Athletes must commence hypoxic exposure with a minimum serum ferritin of <strong>>50 ng/mL</strong>. Oral iron supplementation (liquid ferrous sulfate or liposomal iron) paired with Vitamin C is mandatory during the altitude block to support the required iron turnover.</p>
+                </div>
+                
+                <!-- Chart Container -->
+                <div class="w-full mb-6">
+                    <h4 class="text-center font-semibold text-gray-700 mb-2">Expected Hb<sub>mass</sub> Increase (%) based on Paradigm</h4>
+                    <div class="chart-container shadow-inner border border-gray-50">
+                        <canvas id="hemoChart"></canvas>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 italic text-center">Data modeled on cumulative meta-analyses of hypoxic dosing. LHTL consistently yields higher mean increases with lower standard deviation in elite cohorts.</p>
+            </div>
+
+            <!-- Protocol Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                    <h3 class="font-bold text-gray-800 uppercase tracking-wide text-sm">Performance Protocol: LHTL (Normobaric or Hypobaric)</h3>
+                </div>
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 text-sm">
+                            <th class="p-4 border-b w-1/4">Variable</th>
+                            <th class="p-4 border-b">Gold Standard Prescription (2020-2026)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700 text-sm">
+                        <tr>
+                            <td class="p-4 border-b font-semibold bg-gray-50">Frequency / Duration</td>
+                            <td class="p-4 border-b">Daily continuous exposure for <strong>21 to 28 consecutive days</strong>.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 border-b font-semibold bg-gray-50">Intensity (Dose)</td>
+                            <td class="p-4 border-b">Target "Hypoxic Dose" of <strong>>300 hours</strong> total. Minimum 12-14 hours/day.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 border-b font-semibold bg-gray-50">Environmental Cond.</td>
+                            <td class="p-4 border-b">Living Altitude: <strong>2,200m to 2,500m</strong>. Training Altitude: < 1,000m (or normoxia).</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 font-semibold bg-gray-50">Adjunct Therapy</td>
+                            <td class="p-4">100-200mg elemental Iron daily, taken away from hepcidin peaks (e.g., morning, away from training).</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECTION: Cardiovascular -->
+        <section id="cardiovascular" class="content-section hidden">
+            <header class="mb-8">
+                <div class="inline-block px-3 py-1 bg-[#4A6C6F] bg-opacity-10 text-[#4A6C6F] font-semibold text-sm rounded-full mb-3">System 2</div>
+                <h2 class="text-3xl font-extrabold text-gray-900">Cardiovascular Capacity (SV & Q)</h2>
+                <p class="text-gray-600 mt-2">Driving eccentric cardiac hypertrophy and optimizing blood delivery.</p>
+            </header>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+                
+                <div class="flex space-x-4 border-b mb-6">
+                    <button class="pb-2 px-2 tab-btn tab-active" data-tab="sv-tab">Stroke Volume Training</button>
+                    <button class="pb-2 px-2 tab-btn text-gray-500 hover:text-gray-800 transition-colors" data-tab="pv-tab">Plasma Volume Expansion</button>
+                </div>
+
+                <div id="sv-tab" class="tab-content">
+                    <h3 class="text-xl font-bold mb-3">Long Intervals vs. HVLI for Eccentric Remodeling</h3>
+                    <p class="mb-4 text-gray-700">
+                        Maximizing Stroke Volume (SV) and Cardiac Output (Q) requires sustained diastolic filling pressure and high myocardial contractility.
+                        <strong>Long Interval Training (LIT)</strong>, specifically formats like 4x8 minutes at 90-95% HRmax, creates optimal hemodynamics. The heart fills maximally and pumps maximally against a manageable afterload for prolonged periods.
+                        Conversely, <strong>High-Volume Low-Intensity (HVLI / Zone 2)</strong> training provides the sheer volume necessary for long-term eccentric hypertrophy (enlargement of the left ventricular cavity) without excessive autonomic fatigue.
+                    </p>
+                    
+                    <!-- Chart Container -->
+                    <div class="w-full mb-4">
+                        <div class="chart-container shadow-inner border border-gray-50">
+                            <canvas id="cardioChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pv-tab" class="tab-content hidden">
+                    <h3 class="text-xl font-bold mb-3">Heat Acclimation: The "Pseudo-Altitude"</h3>
+                    <p class="mb-4 text-gray-700">
+                        An acute, highly effective method to increase Q is via <strong>Plasma Volume (PV) Expansion</strong>. Heat acclimation protocols drive a hypervolemic response. By increasing PV, venous return is enhanced, increasing end-diastolic volume and consequently Stroke Volume (Frank-Starling mechanism). This is often utilized pre-competition as it yields aerobic benefits similar to a mild altitude block but in a shorter timeframe (5-10 days).
+                    </p>
+                    <div class="p-4 bg-orange-50 border border-orange-200 rounded text-sm text-orange-800 mb-4">
+                        💡 <strong>Mechanism:</strong> Heat stress -> sweating/dehydration -> aldosterone release -> renal sodium retention -> increased osmotic pressure -> fluid retention/PV expansion.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Protocol Tables (Dynamic based on Tab) -->
+            <div id="sv-protocol" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-800 uppercase tracking-wide text-sm">Performance Protocol: Long Intervals (SV Focus)</h3>
+                </div>
+                <table class="w-full text-left border-collapse">
+                    <tbody class="text-gray-700 text-sm">
+                        <tr>
+                            <td class="p-4 border-b font-semibold bg-gray-50 w-1/4">Frequency</td>
+                            <td class="p-4 border-b">1-2 sessions per microcycle (week) during build phase.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 border-b font-semibold bg-gray-50">Intensity</td>
+                            <td class="p-4 border-b"><strong>90-92% HRmax</strong>. Steady effort, avoiding high lactate accumulation early in the bout.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 border-b font-semibold bg-gray-50">Duration</td>
+                            <td class="p-4 border-b">Work: <strong>4 x 8 minutes</strong>. Rest: 2-3 minutes active recovery (keep HR elevated >70%).</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="pv-protocol" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hidden mt-4">
+                 <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                    <h3 class="font-bold text-gray-800 uppercase tracking-wide text-sm">Performance Protocol: Heat Acclimation (PV Focus)</h3>
+                </div>
+                <table class="w-full text-left border-collapse">
+                    <tbody class="text-gray-700 text-sm">
+                        <tr>
+                            <td class="p-4 border-b font-semibold bg-gray-50 w-1/4">Frequency</td>
+                            <td class="p-4 border-b">Daily consecutive sessions for <strong>5 to 10 days</strong>.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 border-b font-semibold bg-gray-50">Intensity</td>
+                            <td class="p-4 border-b">Low intensity (e.g., 50-60% VO2max) to generate internal heat without extreme fatigue.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 border-b font-semibold bg-gray-50">Duration & Env.</td>
+                            <td class="p-4 border-b"><strong>60-90 mins</strong> per session. Environment: >35°C (95°F), >50% Humidity. Target core temp 38.5°C.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </section>
+
+        <!-- SECTION: Peripheral -->
+        <section id="peripheral" class="content-section hidden">
+             <header class="mb-8">
+                <div class="inline-block px-3 py-1 bg-[#D9A05B] bg-opacity-20 text-[#B87C33] font-semibold text-sm rounded-full mb-3">System 3</div>
+                <h2 class="text-3xl font-extrabold text-gray-900">Peripheral & Muscular Efficiency</h2>
+                <p class="text-gray-600 mt-2">Mitochondrial biogenesis, capillarization, and metabolic flexibility.</p>
+            </header>
+
+            <div class="grid lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-xl font-bold mb-4">Signaling Pathways: SIT vs. MICT</h3>
+                    <p class="mb-4 text-gray-700 text-sm">
+                        Mitochondrial biogenesis is primarily governed by the master regulator <strong>PGC-1α</strong>. 
+                        <strong>Sprint Interval Training (SIT)</strong> rapidly activates PGC-1α via high-intensity metabolic stress (AMPK) and mechanical stress (p38 MAPK). 
+                        Conversely, <strong>Moderate Intensity Continuous Training (MICT)</strong> activates it primarily through sustained calcium release (CaMK) over long durations. Both are necessary, but SIT provides a potent, time-efficient molecular trigger.
+                    </p>
+                    
+                    <!-- Chart Container -->
+                    <div class="chart-container shadow-inner border border-gray-50 mt-4">
+                        <canvas id="peripheralChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-[#2C2C2A] text-white p-6 rounded-xl shadow-sm border border-gray-700">
+                    <h3 class="text-xl font-bold mb-3 text-[#D9A05B]">Train-Low, Compete-High</h3>
+                    <p class="text-sm text-gray-300 mb-4">
+                        A critical strategy to amplify peripheral adaptations. By restricting carbohydrate availability prior to or during a session ("Train-Low"), glycogen depletion is exacerbated.
+                    </p>
+                    <ul class="text-sm space-y-3 text-gray-300">
+                        <li class="flex items-start gap-2"><span class="text-[#D9A05B]">▸</span> Increased AMPK activation due to low energy status.</li>
+                        <li class="flex items-start gap-2"><span class="text-[#D9A05B]">▸</span> Greater PGC-1α transcription post-exercise compared to glycogen-loaded states.</li>
+                        <li class="flex items-start gap-2"><span class="text-[#D9A05B]">▸</span> Enhanced fat oxidation capacity over time.</li>
+                    </ul>
+                    <div class="mt-6 p-3 bg-white bg-opacity-10 rounded text-xs">
+                        <strong>Caution:</strong> Immunosuppressive and autonomic stress is high. Limit to 1-2 sessions/week during base phases.
+                    </div>
+                </div>
+            </div>
+
+             <!-- Protocol Table -->
+             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <h3 class="font-bold text-gray-800 uppercase tracking-wide text-sm">Performance Protocol: SIT (Mitochondrial Focus)</h3>
+                    <button id="toggleNutritionBtn" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded transition-colors">Toggle 'Train-Low' State</button>
+                </div>
+                <table class="w-full text-left border-collapse" id="sitProtocolTable">
+                    <tbody class="text-gray-700 text-sm">
+                        <tr>
+                            <td class="p-4 border-b font-semibold bg-gray-50 w-1/4">Frequency</td>
+                            <td class="p-4 border-b">1 session per week (due to high neuromuscular fatigue).</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 border-b font-semibold bg-gray-50">Intensity</td>
+                            <td class="p-4 border-b"><strong>"All-Out" Maximal Effort</strong> (Wingate-style).</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 border-b font-semibold bg-gray-50">Duration</td>
+                            <td class="p-4 border-b">Work: <strong>4 to 6 x 30 seconds</strong>. Rest: 4 minutes passive/very light recovery.</td>
+                        </tr>
+                        <tr class="nutrition-row hidden bg-[#fff9f0]">
+                            <td class="p-4 border-b font-bold text-[#D9A05B]">Nutritional Cond.</td>
+                            <td class="p-4 border-b text-[#936329]"><strong>Sleep-Low Strategy:</strong> Perform intense session evening prior, withhold CHO overnight, perform SIT fasted in morning.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECTION: Advanced Modalities -->
+        <section id="advanced" class="content-section hidden">
+            <header class="mb-8">
+                <div class="inline-block px-3 py-1 bg-[#7A6B7E] bg-opacity-20 text-[#6B5A6E] font-semibold text-sm rounded-full mb-3">System 4</div>
+                <h2 class="text-3xl font-extrabold text-gray-900">Advanced Modalities</h2>
+                <p class="text-gray-600 mt-2">Leveraging environmental stress and hemodynamics for marginal gains.</p>
+            </header>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-2xl">🧖‍♂️</span>
+                        <h3 class="text-xl font-bold">Post-Exercise Heat Stress</h3>
+                    </div>
+                    <p class="mb-4 text-gray-700 text-sm">
+                        Sitting in a sauna or hot bath immediately following training capitalizes on the already elevated core temperature. This amplifies the expression of <strong>Heat Shock Proteins (HSPs)</strong>, which aid in cellular repair and mitochondrial biogenesis, while also driving robust plasma volume expansion independent of active training load.
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                     <div class="flex items-center gap-3 mb-4">
+                        <span class="text-2xl">🩸</span>
+                        <h3 class="text-xl font-bold">Blood Flow Restriction (BFR)</h3>
+                    </div>
+                    <p class="mb-4 text-gray-700 text-sm">
+                        While primarily known for strength, BFR combined with low-intensity cycling or walking traps metabolites locally. This creates severe local hypoxia and metabolic stress, triggering capillarization and mitochondrial responses with near-zero central cardiovascular or joint load. <strong>Highly valid during injury or extreme tapering.</strong>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Chart Container for Radar -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8 w-full flex justify-center">
+                <div class="chart-container shadow-inner border border-gray-50" style="max-width: 600px;">
+                    <canvas id="advancedChart"></canvas>
+                </div>
+            </div>
+
+             <!-- Protocol Table -->
+             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                    <h3 class="font-bold text-gray-800 uppercase tracking-wide text-sm">Performance Protocols: Environmental & BFR</h3>
+                </div>
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 text-sm">
+                            <th class="p-4 border-b w-1/4">Modality</th>
+                            <th class="p-4 border-b">Application / Intensity</th>
+                            <th class="p-4 border-b">Duration & Conditions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700 text-sm">
+                        <tr>
+                            <td class="p-4 border-b font-semibold bg-gray-50">Post-Ex Sauna</td>
+                            <td class="p-4 border-b">Passive sitting immediately after moderate/hard session.</td>
+                            <td class="p-4 border-b"><strong>20-30 mins</strong> @ ~80°C. No fluid intake during exposure to maximize osmotic stress.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 font-semibold bg-gray-50">Aerobic BFR</td>
+                            <td class="p-4">Cycling/Walking @ <strong>30-40% VO2max</strong>. Cuff pressure ~60-80% Arterial Occlusion Pressure.</td>
+                            <td class="p-4"><strong>15-20 mins</strong> continuous or 5x3 min intervals. Mild discomfort expected.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        // --- Navigation Logic ---
+        function switchSection(targetId) {
+            // Update Navigation UI
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('nav-active');
+                if(el.dataset.target === targetId) el.classList.add('nav-active');
+            });
+
+            // Update Content Visibility
+            document.querySelectorAll('.content-section').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('block');
+            });
+            document.getElementById(targetId).classList.remove('hidden');
+            document.getElementById(targetId).classList.add('block');
+
+            // Re-render charts slightly after display block to ensure canvas sizes correctly
+            setTimeout(() => {
+                resizeCharts();
+            }, 50);
+        }
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                switchSection(e.currentTarget.dataset.target);
+            });
+        });
+
+        // --- Cardiovascular Tabs Logic ---
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // UI Tabs
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove('tab-active');
+                    b.classList.add('text-gray-500');
+                });
+                e.target.classList.add('tab-active');
+                e.target.classList.remove('text-gray-500');
+
+                // Content
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                document.getElementById(e.target.dataset.tab).classList.remove('hidden');
+
+                // Protocols
+                if(e.target.dataset.tab === 'sv-tab') {
+                    document.getElementById('sv-protocol').classList.remove('hidden');
+                    document.getElementById('pv-protocol').classList.add('hidden');
+                } else {
+                    document.getElementById('sv-protocol').classList.add('hidden');
+                    document.getElementById('pv-protocol').classList.remove('hidden');
+                }
+            });
+        });
+
+        // --- Peripheral Nutrition Toggle ---
+        const toggleBtn = document.getElementById('toggleNutritionBtn');
+        const nutritionRow = document.querySelector('.nutrition-row');
+        let isNutritionActive = false;
+        
+        toggleBtn.addEventListener('click', () => {
+            isNutritionActive = !isNutritionActive;
+            if(isNutritionActive) {
+                nutritionRow.classList.remove('hidden');
+                toggleBtn.classList.replace('bg-gray-200', 'bg-[#D9A05B]');
+                toggleBtn.classList.replace('text-gray-700', 'text-white');
+                toggleBtn.innerText = "Disable 'Train-Low'";
+                // Update chart data to reflect amplification
+                peripheralChartInst.data.datasets[0].data = [1, 2.5, 9.5, 4.0, 1.8]; // Amplified SIT
+                peripheralChartInst.update();
+            } else {
+                nutritionRow.classList.add('hidden');
+                toggleBtn.classList.replace('bg-[#D9A05B]', 'bg-gray-200');
+                toggleBtn.classList.replace('text-white', 'text-gray-700');
+                toggleBtn.innerText = "Toggle 'Train-Low' State";
+                // Revert chart data
+                peripheralChartInst.data.datasets[0].data = [1, 2.0, 7.5, 3.2, 1.5]; // Normal SIT
+                peripheralChartInst.update();
+            }
+        });
+
+        // --- CHART.JS Implementations ---
+        // Global defaults for cleaner look
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#666';
+
+        let hemoChartInst, cardioChartInst, peripheralChartInst, advancedChartInst;
+
+        function initCharts() {
+            // 1. Hematological Bar Chart
+            const ctxHemo = document.getElementById('hemoChart').getContext('2d');
+            hemoChartInst = new Chart(ctxHemo, {
+                type: 'bar',
+                data: {
+                    labels: ['Control (Sea Level)', 'LHTH (Live/Train High)', 'LHTL (Live High/Train Low)'],
+                    datasets: [{
+                        label: 'Mean Hb Mass Increase (%)',
+                        data: [0.5, 2.1, 3.8],
+                        backgroundColor: ['#E0E0E0', '#B0C4DE', '#9E5B43'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (ctx) => ctx.raw + '%' } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: '% Increase in Hb Mass' } }
+                    }
+                }
+            });
+
+            // 2. Cardiovascular Scatter/Bubble
+            const ctxCardio = document.getElementById('cardioChart').getContext('2d');
+            cardioChartInst = new Chart(ctxCardio, {
+                type: 'bubble',
+                data: {
+                    datasets: [
+                        {
+                            label: 'HVLI (Zone 2)',
+                            data: [{ x: 65, y: 120, r: 15 }], // x: %HRmax, y: Duration, r: SV Stimulus
+                            backgroundColor: 'rgba(74, 108, 111, 0.6)',
+                            borderColor: '#4A6C6F'
+                        },
+                        {
+                            label: 'Long Intervals (4x8m)',
+                            data: [{ x: 92, y: 32, r: 25 }], 
+                            backgroundColor: 'rgba(158, 91, 67, 0.6)',
+                            borderColor: '#9E5B43'
+                        },
+                        {
+                            label: 'Short Intervals (30/15s)',
+                            data: [{ x: 95, y: 20, r: 10 }], 
+                            backgroundColor: 'rgba(122, 107, 126, 0.6)',
+                            borderColor: '#7A6B7E'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'Intensity vs Duration vs SV Stimulus (Bubble Size)' },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `${ctx.dataset.label}: HR ${ctx.raw.x}%, Dur: ${ctx.raw.y}m`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Intensity (% HRmax)' }, min: 50, max: 100 },
+                        y: { title: { display: true, text: 'Total Work Duration (mins)' }, min: 0, max: 150 }
+                    }
+                }
+            });
+
+            // 3. Peripheral Line Chart (PGC-1a)
+            const ctxPeriph = document.getElementById('peripheralChart').getContext('2d');
+            peripheralChartInst = new Chart(ctxPeriph, {
+                type: 'line',
+                data: {
+                    labels: ['Baseline', 'Post-Ex (0h)', 'Post-Ex (3h)', 'Post-Ex (8h)', 'Post-Ex (24h)'],
+                    datasets: [
+                        {
+                            label: 'SIT (Sprint Interval)',
+                            data: [1, 2.0, 7.5, 3.2, 1.5],
+                            borderColor: '#D9A05B',
+                            backgroundColor: 'rgba(217, 160, 91, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3
+                        },
+                        {
+                            label: 'MICT (Moderate Continuous)',
+                            data: [1, 1.2, 3.8, 4.2, 1.8],
+                            borderColor: '#4A6C6F',
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'PGC-1α mRNA Fold Change (Hypothetical Kinetics)' }
+                    },
+                    scales: {
+                        y: { title: { display: true, text: 'Fold Change from Baseline' }, beginAtZero: true }
+                    }
+                }
+            });
+
+            // 4. Advanced Radar Chart
+            const ctxAdv = document.getElementById('advancedChart').getContext('2d');
+            advancedChartInst = new Chart(ctxAdv, {
+                type: 'radar',
+                data: {
+                    labels: ['Plasma Vol. Exp.', 'Local Capillarization', 'Central Fatigue (Low is Better)', 'Joint Load (Low is Better)', 'Mitochondrial Signal'],
+                    datasets: [
+                        {
+                            label: 'Post-Ex Heat (Sauna)',
+                            data: [9, 2, 8, 10, 6], // Scored 1-10 (Inverted for fatigue/load where low is better = higher score visually)
+                            backgroundColor: 'rgba(158, 91, 67, 0.2)',
+                            borderColor: '#9E5B43',
+                            pointBackgroundColor: '#9E5B43'
+                        },
+                        {
+                            label: 'Aerobic BFR',
+                            data: [3, 9, 9, 9, 8],
+                            backgroundColor: 'rgba(122, 107, 126, 0.2)',
+                            borderColor: '#7A6B7E',
+                            pointBackgroundColor: '#7A6B7E'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: { 
+                            angleLines: { color: 'rgba(0,0,0,0.1)' },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            pointLabels: { font: { size: 11 } },
+                            ticks: { display: false, min: 0, max: 10 }
+                        }
+                    },
+                    plugins: {
+                        tooltip: { enabled: false } // Disabled tooltip for radar to focus on shape
+                    }
+                }
+            });
+        }
+
+        function resizeCharts() {
+            if(hemoChartInst) hemoChartInst.resize();
+            if(cardioChartInst) cardioChartInst.resize();
+            if(peripheralChartInst) peripheralChartInst.resize();
+            if(advancedChartInst) advancedChartInst.resize();
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            // Handle window resize for canvas responsiveness within Tailwind constraints
+            window.addEventListener('resize', resizeCharts);
+        });
+
+    </script>
+</body>
+</html>

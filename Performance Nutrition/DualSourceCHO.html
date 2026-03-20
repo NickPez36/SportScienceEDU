@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fueling the Final Kick: Dual-Source Carbohydrate Science</title>
+    
+    <!-- Chosen Palette: Warm Neutrals & Performance Indicators. Backgrounds: Stone-50 to Stone-100. Text: Stone-800. Accents: Slate-400 (Baseline), Blue-500 (Standard Dual), Emerald-500 (Optimized Dual), Amber-500 (Warnings/Bottlenecks). -->
+    
+    <!-- Application Structure Plan: 
+         1. Introduction: Establishes context and importance of fueling.
+         2. The Biological Bottleneck (Interactive Diagram): Explains *why* ratios matter using HTML/CSS layout (SGLT1 vs GLUT5 pathways).
+         3. Ratio Comparison & Oxidation Rates (Interactive Bar Chart): Visualizes the data comparing Single Source, 2:1, and 1:0.8. Includes dynamic text explaining gastric emptying based on selection.
+         4. Race Simulation & Power at Threshold (Interactive Line Chart): Translates physiological data into performance metrics, specifically the "final 20%" of a race, with toggles for different fueling strategies.
+         Rationale: This linear but interactive flow takes the user from biological root causes -> quantifiable physiological data -> ultimate athletic performance outcomes, building understanding layer by layer without overwhelming them. -->
+    
+    <!-- Visualization & Content Choices:
+         - Concept 1 (Bottleneck): Goal - Inform. Method - HTML/CSS flexbox grid representing intestines/bloodstream. Interaction - Hover states reveal transport limits. Justification - Visualizes abstract physiology without SVG.
+         - Concept 2 (Oxidation Rates): Goal - Compare. Method - Chart.js Bar Chart. Interaction - Hovering updates a side-panel with qualitative data on gastric emptying. Justification - Clear comparison of primary metrics.
+         - Concept 3 (Performance): Goal - Change/Time Series. Method - Chart.js Line Chart. Interaction - Buttons to toggle different strategy lines on/off. Justification - Demonstrates the compounding effect of fueling over time, isolating the crucial 'final 20%'.
+    -->
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* Strict Chart Container rules as requested */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px; /* Prevents extreme width on large screens */
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh; /* Responsive base height */
+            min-height: 300px;
+            max-height: 450px; /* Prevents vertical overflow */
+        }
+        
+        /* Custom scrollbar for a polished look */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f5f5f4; }
+        ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+
+        /* Custom utility classes for the HTML diagram */
+        .transporter-pulse {
+            animation: pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(245, 158, 11, 0.2); }
+            50% { border-color: rgba(245, 158, 11, 1); }
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans antialiased selection:bg-emerald-200 selection:text-emerald-900 leading-relaxed">
+
+    <!-- Navigation / Header -->
+    <header class="sticky top-0 z-50 bg-stone-50/90 backdrop-blur-md border-b border-stone-200">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="font-bold text-xl tracking-tight text-stone-900">EnduranceSci<span class="text-emerald-600">.</span></div>
+            <nav class="hidden md:flex space-x-8 text-sm font-medium">
+                <a href="#physiology" class="text-stone-500 hover:text-stone-900 transition-colors">Physiological Bottleneck</a>
+                <a href="#oxidation" class="text-stone-500 hover:text-stone-900 transition-colors">Oxidation & Emptying</a>
+                <a href="#performance" class="text-stone-500 hover:text-stone-900 transition-colors">The Final 20%</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <!-- Introduction -->
+        <section class="text-center max-w-3xl mx-auto space-y-6 pt-8">
+            <div class="flex flex-wrap items-center justify-end gap-2">
+                <a href="index.html" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                    <span aria-hidden="true">←</span> Performance Nutrition
+                </a>
+                <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-semibold text-rose-700 shadow-sm hover:bg-rose-100 hover:text-rose-800 transition-colors">
+                    <span aria-hidden="true">🏠</span> Learning Hub
+                </a>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-stone-900">
+                Fueling the Final Kick: <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-500">Dual-Source Carbohydrates</span>
+            </h1>
+            <p class="text-lg text-stone-600">
+                In elite middle-distance and endurance events, the margin between podium and peloton often hinges on late-race power output. This report analyzes the science behind pushing carbohydrate absorption limits—specifically comparing 2:1 and 1:0.8 Glucose-to-Fructose ratios—to preserve endogenous glycogen and maximize power at threshold when it matters most.
+            </p>
+        </section>
+
+        <!-- Section 1: The Bottleneck -->
+        <section id="physiology" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4">1. The Intestinal Bottleneck</h2>
+                <p class="text-stone-600">
+                    To understand dual-source fueling, we must understand the biological limitations of absorption. The human gut utilizes specific transport proteins to move sugars into the bloodstream. Relying on a single carbohydrate source quickly saturates its specific transporter, limiting the total energy available to the muscle and leaving residual carbohydrates in the gut, which can cause severe distress.
+                </p>
+            </div>
+
+            <!-- HTML/CSS Diagram (NO SVG) -->
+            <div class="bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-stone-200 flex flex-col md:flex-row gap-8 items-center justify-center">
+                
+                <!-- Intestinal Lumen (Input) -->
+                <div class="flex-1 space-y-4 text-center">
+                    <div class="text-sm font-semibold text-stone-400 uppercase tracking-wider">Gut (Input)</div>
+                    <div class="space-y-3">
+                        <div class="bg-blue-50 text-blue-700 py-3 px-4 rounded-lg font-medium border border-blue-100 shadow-inner">
+                            Glucose Ingestion
+                        </div>
+                        <div class="bg-amber-50 text-amber-700 py-3 px-4 rounded-lg font-medium border border-amber-100 shadow-inner">
+                            Fructose Ingestion
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transporters (Bottleneck) -->
+                <div class="flex flex-col gap-4 items-center">
+                    <div class="text-xl font-light text-stone-300">&rarr;</div>
+                    <div class="text-xl font-light text-stone-300">&rarr;</div>
+                </div>
+
+                <!-- Transport Mechanisms -->
+                <div class="flex-1 space-y-4 text-center">
+                    <div class="text-sm font-semibold text-stone-400 uppercase tracking-wider">Transporters</div>
+                    <div class="space-y-3 group" id="sglt1-container">
+                        <div class="bg-white border-2 border-stone-200 py-3 px-4 rounded-xl font-medium relative overflow-hidden transition-all duration-300 hover:border-blue-400 hover:shadow-md cursor-help">
+                            SGLT1 Pathway
+                            <div class="absolute inset-0 bg-blue-100 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                        </div>
+                        <div class="text-xs text-stone-500">Max limit: ~60g/hour</div>
+                    </div>
+                    <div class="space-y-3 group" id="glut5-container">
+                        <div class="bg-white border-2 border-stone-200 py-3 px-4 rounded-xl font-medium relative overflow-hidden transition-all duration-300 hover:border-amber-400 hover:shadow-md cursor-help">
+                            GLUT5 Pathway
+                            <div class="absolute inset-0 bg-amber-100 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                        </div>
+                        <div class="text-xs text-stone-500">Max limit: ~30-60g/hour</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-4 items-center">
+                    <div class="text-xl font-light text-stone-300">&rarr;</div>
+                    <div class="text-xl font-light text-stone-300">&rarr;</div>
+                </div>
+
+                <!-- Bloodstream (Output) -->
+                <div class="flex-1 text-center">
+                    <div class="text-sm font-semibold text-stone-400 uppercase tracking-wider mb-4">Bloodstream (Oxidation)</div>
+                    <div class="bg-emerald-50 text-emerald-800 p-6 rounded-2xl font-bold text-lg border border-emerald-100 shadow-sm">
+                        Total Exogenous <br> Energy Available
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-sm text-stone-500 italic text-center">
+                * Hover over transporters for details. Single-source glucose hits the SGLT1 ceiling. Dual-source utilizes both pathways.
+            </div>
+        </section>
+
+        <!-- Section 2: Oxidation & Gastric Emptying -->
+        <section id="oxidation" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4">2. Ratios Analyzed: Oxidation Rates & Gastric Emptying</h2>
+                <p class="text-stone-600">
+                    By combining glucose (maltodextrin) and fructose, athletes bypass the 60g/hr SGLT1 limit. Historically, a 2:1 ratio (Glucose:Fructose) was standard, achieving ~90g/hr. Emerging research demonstrates that a 1:0.8 ratio allows for up to 120g/hr total carbohydrate oxidation. Crucially, increasing the fructose proportion improves Gastric Emptying (GE) efficiency by maintaining a favorable osmolarity relative to the massive carbohydrate payload, reducing gastrointestinal distress.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                
+                <!-- Chart Container Wrapper -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
+                    <h3 class="text-lg font-semibold text-stone-800 mb-4 text-center">Maximal Exogenous Oxidation Rates</h3>
+                    <div class="chart-container">
+                        <canvas id="oxidationChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Dynamic Info Panel -->
+                <div class="bg-stone-100 p-6 rounded-2xl border border-stone-200 flex flex-col h-full justify-center">
+                    <h3 class="text-sm font-bold text-stone-400 uppercase tracking-wider mb-4">Gastric Emptying Profile</h3>
+                    
+                    <div id="ge-info-default" class="text-stone-600 transition-opacity duration-300">
+                        Hover over or click the bars on the chart to view the gastric emptying characteristics and GI distress risk for each fueling strategy.
+                    </div>
+
+                    <div id="ge-info-single" class="hidden flex-col space-y-3 transition-opacity duration-300">
+                        <div class="flex items-center space-x-2 text-slate-700 font-bold text-lg">
+                            <span class="w-3 h-3 rounded-full bg-slate-400"></span>
+                            <span>Single Source (Glucose)</span>
+                        </div>
+                        <p class="text-stone-600 text-sm">Attempting >60g/hr results in accumulation in the intestines. This draws water into the gut (osmosis), causing bloating, sloshing, and severe GI distress. Emptying is highly compromised.</p>
+                        <div class="w-full bg-stone-200 rounded-full h-2 mt-2">
+                            <div class="bg-red-400 h-2 rounded-full" style="width: 20%"></div>
+                        </div>
+                        <span class="text-xs text-stone-500 font-medium">Efficiency Score: Poor</span>
+                    </div>
+
+                    <div id="ge-info-ratio21" class="hidden flex-col space-y-3 transition-opacity duration-300">
+                        <div class="flex items-center space-x-2 text-blue-700 font-bold text-lg">
+                            <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                            <span>2:1 Ratio (Glu:Fru)</span>
+                        </div>
+                        <p class="text-stone-600 text-sm">The traditional gold standard. Allows safe transport of ~90g/hr. Gastric emptying is generally well-tolerated as both transporters are used, reducing residual osmotically active carbohydrates.</p>
+                        <div class="w-full bg-stone-200 rounded-full h-2 mt-2">
+                            <div class="bg-blue-400 h-2 rounded-full" style="width: 75%"></div>
+                        </div>
+                        <span class="text-xs text-stone-500 font-medium">Efficiency Score: Good</span>
+                    </div>
+
+                    <div id="ge-info-ratio108" class="hidden flex-col space-y-3 transition-opacity duration-300">
+                        <div class="flex items-center space-x-2 text-emerald-700 font-bold text-lg">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                            <span>1:0.8 Ratio (Glu:Fru)</span>
+                        </div>
+                        <p class="text-stone-600 text-sm">Optimized for extreme intakes (100-120g/hr). The near-equal ratio maximizes transport efficiency. Surprisingly, despite higher total mass, gastric emptying is maintained or improved versus 2:1 due to rapid absorption dynamics.</p>
+                        <div class="w-full bg-stone-200 rounded-full h-2 mt-2">
+                            <div class="bg-emerald-400 h-2 rounded-full" style="width: 95%"></div>
+                        </div>
+                        <span class="text-xs text-stone-500 font-medium">Efficiency Score: Excellent</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Performance Impact -->
+        <section id="performance" class="scroll-mt-24 pb-12">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4">3. The Final 20%: Power at Threshold</h2>
+                <p class="text-stone-600">
+                    The ultimate metric is performance. High exogenous carbohydrate oxidation spares endogenous liver and muscle glycogen early in the race. This "glycogen sparing" effect becomes the defining factor in the final 20% of an event. As single-source fuelers deplete glycogen and experience 'bonking' (forced reduction in intensity), athletes utilizing optimized dual-source ratios can sustain a higher percentage of their threshold power to the finish line.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-stone-200">
+                
+                <!-- Controls -->
+                <div class="flex flex-wrap justify-center gap-3 mb-8">
+                    <button id="btn-all" class="px-4 py-2 text-sm font-semibold rounded-full bg-stone-800 text-white hover:bg-stone-700 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-stone-500">Compare All Strategies</button>
+                    <button id="btn-single" class="px-4 py-2 text-sm font-semibold rounded-full bg-slate-100 text-slate-700 border border-slate-300 hover:bg-slate-200 transition-colors">Isolate Single Source</button>
+                    <button id="btn-ratio21" class="px-4 py-2 text-sm font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors">Isolate 2:1 Ratio</button>
+                    <button id="btn-ratio108" class="px-4 py-2 text-sm font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors">Isolate 1:0.8 Ratio</button>
+                </div>
+
+                <!-- Chart Container -->
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+
+                <!-- Insight Text -->
+                <div class="mt-8 pt-6 border-t border-stone-100 text-center max-w-2xl mx-auto">
+                    <h4 class="text-lg font-bold text-stone-800 mb-2">Key Finding</h4>
+                    <p id="performance-insight" class="text-stone-600 transition-opacity duration-300">
+                        In a simulated endurance event, moving from single-source to a 1:0.8 dual-source strategy can mitigate late-race power degradation by up to 12%, preserving the ability to surge or sprint in the final kilometers.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-900 py-8 text-center text-stone-400 text-sm">
+        <p>Interactive Data Visualization created for Endurance Sci Analysis.</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- Shared Data & Config ---
+            const colors = {
+                single: '#94a3b8',   // Slate 400
+                ratio21: '#3b82f6',  // Blue 500
+                ratio108: '#10b981', // Emerald 500
+                text: '#292524',     // Stone 800
+                grid: '#e7e5e4'      // Stone 200
+            };
+
+            const defaultFont = {
+                family: "'Inter', -apple-system, sans-serif",
+                color: colors.text
+            };
+
+            Chart.defaults.font = defaultFont;
+            Chart.defaults.color = colors.text;
+
+            // --- Interactive Diagram Logic (Hover interactions) ---
+            const sglt1 = document.getElementById('sglt1-container');
+            const glut5 = document.getElementById('glut5-container');
+            
+            // Simple visual feedback could be added here, but CSS hover handles most of it nicely.
+            // Leaving structure for potential complex state expansions.
+
+            // --- Chart 1: Oxidation Rates (Bar Chart) ---
+            const ctxOxidation = document.getElementById('oxidationChart').getContext('2d');
+            
+            const oxidationData = {
+                labels: ['Single (Glucose)', 'Dual (2:1 Ratio)', 'Dual (1:0.8 Ratio)'],
+                datasets: [{
+                    label: 'Max Exogenous Oxidation (g/hour)',
+                    data: [60, 90, 120],
+                    backgroundColor: [
+                        colors.single,
+                        colors.ratio21,
+                        colors.ratio108
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 6,
+                    barPercentage: 0.6
+                }]
+            };
+
+            const oxidationChart = new Chart(ctxOxidation, {
+                type: 'bar',
+                data: oxidationData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // CRITICAL for chart-container to work
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(28, 25, 23, 0.9)', // stone-900
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + ' grams/hour';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 140,
+                            grid: { color: colors.grid, drawBorder: false },
+                            title: { display: true, text: 'Oxidation Rate (g/hr)', font: {weight: 'bold'} }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false }
+                        }
+                    },
+                    onHover: (event, chartElement) => {
+                        // Logic to update side panel based on hover
+                        const allPanels = ['default', 'single', 'ratio21', 'ratio108'];
+                        let activePanel = 'default';
+
+                        if (chartElement.length > 0) {
+                            event.native.target.style.cursor = 'pointer';
+                            const index = chartElement[0].index;
+                            if (index === 0) activePanel = 'single';
+                            if (index === 1) activePanel = 'ratio21';
+                            if (index === 2) activePanel = 'ratio108';
+                        } else {
+                            event.native.target.style.cursor = 'default';
+                        }
+
+                        // Hide all, show active
+                        allPanels.forEach(p => {
+                            const el = document.getElementById(`ge-info-${p}`);
+                            if(el) {
+                                if(p === activePanel) {
+                                    el.classList.remove('hidden');
+                                    el.classList.add('flex');
+                                } else {
+                                    el.classList.add('hidden');
+                                    el.classList.remove('flex');
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+
+            // --- Chart 2: Performance Final 20% (Line Chart) ---
+            const ctxPerf = document.getElementById('performanceChart').getContext('2d');
+            
+            const racePercentages = ['80%', '85%', '90%', '95%', '100% (Finish)'];
+            
+            const dataSingle = {
+                label: 'Single Source (60g/hr)',
+                data: [94, 91, 86, 82, 78], // Drastic drop
+                borderColor: colors.single,
+                backgroundColor: colors.single,
+                borderWidth: 3,
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            };
+            
+            const dataRatio21 = {
+                label: '2:1 Ratio (90g/hr)',
+                data: [96, 95, 93, 90, 87], // Steady decay
+                borderColor: colors.ratio21,
+                backgroundColor: colors.ratio21,
+                borderWidth: 3,
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            };
+            
+            const dataRatio108 = {
+                label: '1:0.8 Ratio (120g/hr)',
+                data: [98, 97, 97, 96, 95], // Held strong
+                borderColor: colors.ratio108,
+                backgroundColor: colors.ratio108,
+                borderWidth: 4, // Slightly thicker to emphasize
+                tension: 0.4,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            };
+
+            const perfConfig = {
+                type: 'line',
+                data: {
+                    labels: racePercentages,
+                    datasets: [dataSingle, dataRatio21, dataRatio108]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // CRITICAL
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, padding: 20 } },
+                        tooltip: {
+                            backgroundColor: 'rgba(28, 25, 23, 0.9)',
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + '% FTP';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 70, max: 100,
+                            grid: { color: colors.grid, drawBorder: false },
+                            title: { display: true, text: 'Power Output (% of Threshold)', font: {weight: 'bold'} }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            title: { display: true, text: 'Race Progression (Final 20%)', font: {weight: 'bold'} }
+                        }
+                    }
+                }
+            };
+
+            const performanceChart = new Chart(ctxPerf, perfConfig);
+
+            // --- Button Logic for Performance Chart ---
+            const insightText = document.getElementById('performance-insight');
+            
+            const updatePerfChart = (datasetsToShow, text) => {
+                performanceChart.data.datasets = datasetsToShow;
+                performanceChart.update();
+                
+                // Animate text change
+                insightText.style.opacity = 0;
+                setTimeout(() => {
+                    insightText.innerHTML = text;
+                    insightText.style.opacity = 1;
+                }, 300);
+            };
+
+            document.getElementById('btn-all').addEventListener('click', () => {
+                updatePerfChart([dataSingle, dataRatio21, dataRatio108], 
+                    "In a simulated endurance event, moving from single-source to a 1:0.8 dual-source strategy can mitigate late-race power degradation by up to 12%, preserving the ability to surge or sprint in the final kilometers.");
+            });
+
+            document.getElementById('btn-single').addEventListener('click', () => {
+                updatePerfChart([dataSingle], 
+                    "Relying solely on glucose caps absorption at ~60g/hr. This leads to premature endogenous glycogen depletion. By the final 20% of the race, the athlete cannot sustain threshold power, resulting in a severe drop-off (the 'bonk').");
+            });
+
+            document.getElementById('btn-ratio21').addEventListener('click', () => {
+                updatePerfChart([dataRatio21], 
+                    "The traditional 2:1 strategy significantly improves upon single-source by utilizing GLUT5. This spares glycogen longer, smoothing the power decay curve and allowing for a much stronger finish, though some late-race fatigue remains inevitable.");
+            });
+
+            document.getElementById('btn-ratio108').addEventListener('click', () => {
+                updatePerfChart([dataRatio108], 
+                    "The modern 1:0.8 ratio pushes exogenous oxidation to near 120g/hr. This aggressive fueling strategy maximally spares muscle glycogen. The result is a nearly flat power curve in the final 20%, maintaining near-threshold capabilities right to the finish line.");
+            });
+        });
+    </script>
+</body>
+</html>

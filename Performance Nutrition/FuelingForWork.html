@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fuel for the Work Required: S&C Carbohydrate Framework</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.x8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chosen Palette: Warm Neutrals (Stone/Slate) with Athletic Accents (Emerald, Amber, Rose) -->
+    <!-- Application Structure Plan: The SPA uses a top-down educational flow. It begins with core theoretical concepts (FFTWR and Glycogen Threshold), utilizing a conceptual Chart.js visualization to illustrate the threshold theory. The core of the application is a centralized interactive dashboard allowing the user to switch between three distinct athlete profiles (Marathon, 800m, 100m). This dashboard updates both a macronutrient titration chart and detailed contextual analysis blocks, allowing S&C coaches to compare and contrast periodization strategies dynamically. A concluding section provides actionable takeaways. This structure was chosen to move from abstract theory to applied, athlete-specific programming. -->
+    <!-- Visualization & Content Choices: 
+         1. Glycogen Threshold: Dual-axis Line Chart (Chart.js Canvas) -> Goal: Inform/Analyze -> Justification: Clearly shows the intersection of metabolic signaling and training quality, visualizing the abstract "threshold" concept.
+         2. Macrocycle CHO Titration: Interactive Bar Chart (Chart.js Canvas) -> Goal: Compare/Change -> Justification: Allows coaches to see the dynamic shift in CHO $g/kg/day$ across training phases, visually emphasizing the differences between endurance, mid-distance, and sprint demands.
+         3. Dynamic Text Blocks -> Goal: Inform -> Justification: Provides the necessary physiological rationale for the data presented in the charts, strictly triggered by user interaction to avoid information overload.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fafaf9;
+            color: #1c1917;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .nav-button.active {
+            background-color: #1c1917;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .math-inline {
+            font-family: "KaTeX_Math", "Times New Roman", serif;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body class="antialiased leading-relaxed">
+
+    <nav class="sticky top-0 z-50 glass-panel border-b border-stone-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center font-bold text-xl tracking-tight text-stone-800">
+                    <span class="mr-2">&#x26A1;</span> S&C Fuel Framework
+                </div>
+                <div class="hidden md:flex space-x-8 text-sm font-medium text-stone-500">
+                    <a href="#theory" class="hover:text-stone-900 transition-colors">Theoretical Basis</a>
+                    <a href="#dashboard" class="hover:text-stone-900 transition-colors">Athlete Dashboard</a>
+                    <a href="#practical" class="hover:text-stone-900 transition-colors">Practical Application</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-stone-900 text-stone-50 py-20 px-4 text-center">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex flex-wrap items-center justify-end gap-2 mb-6">
+                <a href="index.html" class="inline-flex items-center gap-1.5 rounded-full border border-stone-700 bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-stone-50 shadow-sm hover:bg-white/15 transition-colors">
+                    <span aria-hidden="true">←</span> Performance Nutrition
+                </a>
+                <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-full border border-rose-400/30 bg-rose-500/20 px-3 py-1.5 text-[11px] font-semibold text-rose-100 shadow-sm hover:bg-rose-500/30 hover:text-rose-200 transition-colors">
+                    <span aria-hidden="true">🏠</span> Learning Hub
+                </a>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
+                Fuel for the Work Required
+            </h1>
+            <p class="text-xl md:text-2xl text-stone-300 font-light mb-8">
+                A strategic framework for titrating carbohydrate availability ($3\text{--}12\text{ g/kg/day}$) to maximize high-intensity training quality and metabolic adaptation across the macrocycle.
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <section id="theory" class="space-y-12">
+            <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-stone-800 mb-4">The Glycogen Threshold Hypothesis</h2>
+                <p class="text-stone-600 text-lg">
+                    The "Fuel for the Work Required" (FFTWR) paradigm moves away from chronic high-carbohydrate diets. Instead, it strategically periods endogenous glycogen and exogenous CHO based on the specific demands of the day's session. The core of this is understanding the <strong>Glycogen Threshold</strong>.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="chart-container">
+                        <canvas id="thresholdChart"></canvas>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                        <h3 class="text-xl font-bold text-stone-800 mb-2">&#x1F52C; Metabolic Adaptation</h3>
+                        <p class="text-stone-600">
+                            Training with <em>low</em> glycogen amplifies cellular signaling cascades (e.g., AMPK, p38 MAPK, PGC-1$\alpha$). This forces the body to adapt by increasing mitochondrial density and fat oxidation capacity. However, extreme depletion destroys mechanical output.
+                        </p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                        <h3 class="text-xl font-bold text-stone-800 mb-2">&#x1F4AA; Training Quality</h3>
+                        <p class="text-stone-600">
+                            Training with <em>high</em> glycogen ensures maximum glycolytic flux, neural drive, and absolute power output. The "Threshold" is the absolute minimum glycogen concentration required to maintain this high-intensity quality while still securing enhanced molecular adaptation.
+                        </p>
+                    </div>
+                    <div class="bg-stone-100 p-6 rounded-xl border-l-4 border-stone-800">
+                        <p class="font-medium text-stone-800">
+                            <strong>The S&C Goal:</strong> Identify this threshold (~150-250 mmol/kg dw) and manipulate daily CHO ($3\text{--}12\text{ g/kg/day}$) so athletes hit high-intensity sessions <em>just above</em> the threshold, and endurance/recovery sessions <em>below</em> it.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="w-full h-px bg-stone-200"></div>
+
+        <section id="dashboard" class="space-y-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h2 class="text-3xl font-bold text-stone-800 mb-4">Macrocycle Titration Dashboard</h2>
+                <p class="text-stone-600 text-lg">
+                    Select an athlete profile to explore how CHO availability ($g/kg/day$) shifts across the macrocycle phases: General Physical Preparedness (GPP/Base), Specific Physical Preparedness (SPP/Build), Pre-Competition (Taper), and Competition (Peak).
+                </p>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <button id="btn-marathon" class="nav-button bg-white text-stone-700 font-bold py-3 px-8 rounded-full border border-stone-200 transition-all active" onclick="updateDashboard('marathon')">
+                    &#x1F3C3; Marathoner
+                </button>
+                <button id="btn-800m" class="nav-button bg-white text-stone-700 font-bold py-3 px-8 rounded-full border border-stone-200 transition-all" onclick="updateDashboard('800m')">
+                    &#x1F4A8; 800m Runner
+                </button>
+                <button id="btn-100m" class="nav-button bg-white text-stone-700 font-bold py-3 px-8 rounded-full border border-stone-200 transition-all" onclick="updateDashboard('100m')">
+                    &#x26A1; 100m Sprinter
+                </button>
+            </div>
+
+            <div class="glass-panel p-6 md:p-10 rounded-3xl">
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-12">
+                    
+                    <div class="lg:col-span-3">
+                        <div class="mb-6 flex justify-between items-end">
+                            <div>
+                                <h3 id="chart-title" class="text-2xl font-bold text-stone-800">Carbohydrate Titration</h3>
+                                <p class="text-stone-500 text-sm mt-1">Daily CHO intake target ($g/kg/day$) per phase.</p>
+                            </div>
+                            <div id="stat-badge" class="bg-emerald-100 text-emerald-800 px-4 py-2 rounded-lg font-bold text-xl">
+                                5-12 g/kg
+                            </div>
+                        </div>
+                        <div class="chart-container bg-white p-4 rounded-xl shadow-sm border border-stone-100">
+                            <canvas id="titrationChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 flex flex-col justify-center space-y-6">
+                        <div id="info-profile" class="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 transition-opacity duration-300">
+                            <h4 class="text-sm font-bold tracking-wider text-stone-400 uppercase mb-2">Athlete Profile Analysis</h4>
+                            <h3 id="info-title" class="text-2xl font-bold text-stone-800 mb-4">The Marathoner</h3>
+                            <p id="info-desc" class="text-stone-600 mb-4">
+                                Marathon training requires extreme aerobic volume. The goal of CHO titration here is to maximize lipid oxidation during the base phase while ensuring vast glycogen stores are available for race day to prevent hitting the wall.
+                            </p>
+                            <ul id="info-bullets" class="space-y-3 text-stone-700 text-sm">
+                                <li class="flex items-start">
+                                    <span class="mr-2 text-emerald-500">&#x25B6;</span>
+                                    <span><strong>Base (5-7 g/kg):</strong> Incorporates 'train-low' sessions. Deliberate glycogen depletion to spike PGC-1$\alpha$ and mitochondrial biogenesis.</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="mr-2 text-emerald-500">&#x25B6;</span>
+                                    <span><strong>Build (7-9 g/kg):</strong> Volume and intensity increase. CHO is titrated up to meet the threshold required for high-quality tempo runs.</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="mr-2 text-emerald-500">&#x25B6;</span>
+                                    <span><strong>Comp (10-12 g/kg):</strong> Massive carbohydrate supercompensation. The absolute priority is maximizing endogenous glycogen stores prior to the 26.2 miles.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section id="practical" class="py-12">
+            <div class="bg-stone-900 rounded-3xl p-8 md:p-12 text-stone-50">
+                <h2 class="text-3xl font-bold mb-8">Practical Implementation for S&C</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    
+                    <div>
+                        <div class="text-2xl mb-4">&#x1F4CA;</div>
+                        <h3 class="text-xl font-bold mb-2">1. Assess the Session</h3>
+                        <p class="text-stone-400 text-sm">
+                            Before prescribing nutrition, classify the session. Is it a neural activation day (sprints)? A metabolic conditioning day (lactic threshold)? Or an aerobic base day? The biological goal dictates the fuel.
+                        </p>
+                    </div>
+
+                    <div>
+                        <div class="text-2xl mb-4">&#x2696;&#xFE0F;</div>
+                        <h3 class="text-xl font-bold mb-2">2. Manage the Weight</h3>
+                        <p class="text-stone-400 text-sm">
+                            Every $1\text{g}$ of stored glycogen binds approximately $3\text{g}$ of water. Over-fueling a 100m sprinter ($10\text{+ g/kg}$) during competition week will increase body mass, destroy power-to-weight ratios, and slow them down.
+                        </p>
+                    </div>
+
+                    <div>
+                        <div class="text-2xl mb-4">&#x1F3AF;</div>
+                        <h3 class="text-xl font-bold mb-2">3. Hit the Sweet Spot</h3>
+                        <p class="text-stone-400 text-sm">
+                            For 800m runners facing brutal specific prep (e.g., $6 \times 300\text{m}$ at race pace), starting with low glycogen guarantees failure. Acidosis buffering and absolute power require high glycolytic flux. Fuel the work required.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-100 py-8 text-center text-stone-500 border-t border-stone-200">
+        <p>Interactive Research Application &copy; S&C Information Architecture</p>
+    </footer>
+
+    <script>
+        const chartColors = {
+            marathon: { bg: 'rgba(16, 185, 129, 0.2)', border: 'rgb(16, 185, 129)', hex: '#10b981', badge: 'bg-emerald-100 text-emerald-800' },
+            eightHundred: { bg: 'rgba(245, 158, 11, 0.2)', border: 'rgb(245, 158, 11)', hex: '#f59e0b', badge: 'bg-amber-100 text-amber-800' },
+            hundred: { bg: 'rgba(225, 29, 72, 0.2)', border: 'rgb(225, 29, 72)', hex: '#e11d48', badge: 'bg-rose-100 text-rose-800' }
+        };
+
+        const athleteData = {
+            marathon: {
+                title: "The Marathoner",
+                range: "5-12 g/kg",
+                colorProfile: chartColors.marathon,
+                data: [6, 8, 10, 12],
+                desc: "Marathon training requires extreme aerobic volume. The goal of CHO titration here is to maximize lipid oxidation during the base phase while ensuring vast glycogen stores are available for race day to prevent hitting the wall.",
+                bullets: [
+                    { title: "GPP/Base (5-7 g/kg)", text: "Incorporates 'train-low' sessions. Deliberate glycogen depletion to spike PGC-1$\\alpha$ and mitochondrial biogenesis." },
+                    { title: "SPP/Build (7-9 g/kg)", text: "Volume and intensity increase. CHO is titrated up to meet the threshold required for high-quality tempo runs." },
+                    { title: "Competition (10-12 g/kg)", text: "Massive carbohydrate supercompensation. The absolute priority is maximizing endogenous glycogen stores prior to the 26.2 miles." }
+                ]
+            },
+            '800m': {
+                title: "The 800m Runner",
+                range: "4-8 g/kg",
+                colorProfile: chartColors.eightHundred,
+                data: [5, 7, 8, 6],
+                desc: "The 800m is arguably the most physiologically demanding track event, requiring immense aerobic capacity coupled with extreme anaerobic/glycolytic power. Fueling must balance high-flux demands without causing water-weight lethargy.",
+                bullets: [
+                    { title: "GPP/Base (5-6 g/kg)", text: "Standard aerobic development. Fueling supports moderate volume without aggressive loading." },
+                    { title: "SPP/Build (7-8 g/kg)", text: "High glycolytic demand (e.g., intensive intervals). Extremely high CHO needed to maintain power output and buffer massive acidosis." },
+                    { title: "Competition (5-6 g/kg)", text: "As training volume drops drastically during the taper, CHO needs fall. Lowering intake prevents feeling 'heavy' from glycogen-bound water." }
+                ]
+            },
+            '100m': {
+                title: "The 100m Sprinter",
+                range: "3-6 g/kg",
+                colorProfile: chartColors.hundred,
+                data: [5, 4, 3, 3],
+                desc: "100m sprinting is alactic and heavily reliant on the phosphocreatine system and neural drive. Total energy expenditure and volume are low. Excessive carbohydrates are detrimental due to the associated water weight gain.",
+                bullets: [
+                    { title: "GPP/Base (4-6 g/kg)", text: "Higher volume accumulation and hypertrophy blocks require moderate CHO to support structural tissue remodeling and CNS recovery." },
+                    { title: "SPP/Build (3-4 g/kg)", text: "Volume drops, intensity peaks. The limiting factor is neural, not metabolic. CHO is kept low to maintain an optimal power-to-weight ratio." },
+                    { title: "Competition (3 g/kg)", text: "Absolute minimum effective dose. Focus is purely on neural readiness. High CHO would add useless weight (1g glycogen = 3g water)." }
+                ]
+            }
+        };
+
+        const ctxThreshold = document.getElementById('thresholdChart').getContext('2d');
+        const thresholdChart = new Chart(ctxThreshold, {
+            type: 'line',
+            data: {
+                labels: ['100', '200', '300', '400', '500', '600'],
+                datasets: [
+                    {
+                        label: 'Metabolic Adaptation (AMPK)',
+                        data: [100, 70, 40, 20, 10, 5],
+                        borderColor: 'rgba(56, 189, 248, 1)',
+                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        yAxisID: 'y',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'High-Intensity Quality',
+                        data: [20, 60, 95, 100, 100, 100],
+                        borderColor: 'rgba(244, 63, 94, 1)',
+                        yAxisID: 'y1',
+                        tension: 0.4,
+                        borderDash: [5, 5]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Glycogen Concentration vs. Training Outcome',
+                        font: { size: 16, family: 'sans-serif' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) { return 'Glycogen: ' + context[0].label + ' mmol/kg dw'; }
+                        }
+                    },
+                    annotation: {
+                        annotations: {
+                            line1: {
+                                type: 'line',
+                                xMin: 2,
+                                xMax: 2,
+                                borderColor: 'rgb(28, 25, 23)',
+                                borderWidth: 2,
+                                label: {
+                                    content: 'The Threshold (~250-300)',
+                                    enabled: true,
+                                    position: 'top'
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Muscle Glycogen Content (mmol/kg dw)' }
+                    },
+                    y: {
+                        type: 'linear', display: true, position: 'left',
+                        title: { display: true, text: 'Adaptation Signal Strength' },
+                        grid: { drawOnChartArea: false }
+                    },
+                    y1: {
+                        type: 'linear', display: true, position: 'right',
+                        title: { display: true, text: 'Max Power Output %' },
+                        grid: { drawOnChartArea: false },
+                        min: 0, max: 110
+                    }
+                }
+            }
+        });
+
+        const ctxTitration = document.getElementById('titrationChart').getContext('2d');
+        let titrationChart = new Chart(ctxTitration, {
+            type: 'bar',
+            data: {
+                labels: ['GPP / Base', 'SPP / Build', 'Pre-Comp', 'Competition'],
+                datasets: [{
+                    label: 'Target CHO (g/kg/day)',
+                    data: athleteData.marathon.data,
+                    backgroundColor: athleteData.marathon.colorProfile.bg,
+                    borderColor: athleteData.marathon.colorProfile.border,
+                    borderWidth: 2,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' g/kg/day';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 14,
+                        title: { display: true, text: 'Carbohydrates (g/kg/day)' }
+                    }
+                }
+            }
+        });
+
+        function updateDashboard(athleteType) {
+            document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`btn-${athleteType}`);
+            if(activeBtn) activeBtn.classList.add('active');
+
+            const data = athleteData[athleteType];
+
+            titrationChart.data.datasets[0].data = data.data;
+            titrationChart.data.datasets[0].backgroundColor = data.colorProfile.bg;
+            titrationChart.data.datasets[0].borderColor = data.colorProfile.border;
+            titrationChart.update();
+
+            const infoProfile = document.getElementById('info-profile');
+            infoProfile.style.opacity = 0;
+            
+            setTimeout(() => {
+                document.getElementById('info-title').innerText = data.title;
+                document.getElementById('info-desc').innerText = data.desc;
+                
+                const badge = document.getElementById('stat-badge');
+                badge.innerText = data.range;
+                badge.className = `px-4 py-2 rounded-lg font-bold text-xl ${data.colorProfile.badge}`;
+
+                const bulletsHTML = data.bullets.map(b => `
+                    <li class="flex items-start">
+                        <span class="mr-2" style="color: ${data.colorProfile.hex}">&#x25B6;</span>
+                        <span><strong>${b.title}:</strong> ${b.text}</span>
+                    </li>
+                `).join('');
+                document.getElementById('info-bullets').innerHTML = bulletsHTML;
+                
+                if (window.renderMathInElement) {
+                    window.renderMathInElement(document.getElementById('info-bullets'));
+                }
+
+                infoProfile.style.opacity = 1;
+            }, 300);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.renderMathInElement) {
+                window.renderMathInElement(document.body);
+            }
+            updateDashboard('marathon');
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neurobiological & Structural Drivers of Maximal Strength</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Light slate background */
+            color: #0f172a;
+        }
+        
+        /* <!-- Chosen Palette: Slate & Indigo Performance -->
+        <!-- Application Structure Plan: The SPA is structured as a continuous scrolling dashboard optimized for academic and applied reading. It moves from abstract to mechanisms (the 'why'), to functional manifestations (Force-Velocity curve), to applied methodologies (VBT, Clusters, Micro-dosing), ending with practical in-season recommendations. This linear yet interactive flow ensures foundational concepts are grasped before interacting with applied programming metrics, maximizing cognitive retention. -->
+        <!-- Visualization & Content Choices: 
+            1. Force-Velocity Curve (Chart.js Line): Goal: Compare general vs specific strength. Justification: Line charts best represent continuous variables like force vs velocity. Interactive toggles show curve shifts. No SVG.
+            2. Adaptations Table (HTML Grid): Goal: Compare Neural vs Structural. Justification: Tabular format is standard for direct academic comparison. No SVG.
+            3. Kinematic Degradation (Chart.js Bar): Goal: Show power loss in traditional vs cluster sets. Justification: Side-by-side bars clearly highlight the drop-off delta. No SVG.
+            4. Fatigue Management (Chart.js Line): Goal: Contrast micro-dosing vs traditional block periodization over time. Justification: Time-series data is perfectly suited for line graphs. No SVG.
+        -->
+        <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+        */
+
+        /* Strictly Constrained Chart Containers */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+            background: #ffffff;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 250px;
+            }
+        }
+
+        .tab-active {
+            border-bottom: 2px solid #4f46e5;
+            color: #4f46e5;
+            font-weight: 600;
+        }
+        .tab-inactive {
+            color: #64748b;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-inactive:hover {
+            color: #0f172a;
+            border-bottom: 2px solid #cbd5e1;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-indigo-100 selection:text-indigo-900">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold text-indigo-900">&#127947; Elite S&C Research</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="#mechanisms" class="text-sm font-medium text-slate-600 hover:text-indigo-600 transition">Mechanisms</a>
+                    <a href="#force-velocity" class="text-sm font-medium text-slate-600 hover:text-indigo-600 transition">Force-Velocity</a>
+                    <a href="#adaptations" class="text-sm font-medium text-slate-600 hover:text-indigo-600 transition">Adaptations</a>
+                    <a href="#application" class="text-sm font-medium text-slate-600 hover:text-indigo-600 transition">Application</a>
+                    <a href="#recommendations" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition">In-Season Protocol</a>
+                    <a href="index.html" class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-800 hover:bg-slate-200 transition-colors">
+                        <span aria-hidden="true">←</span> S&amp;C modules
+                    </a>
+                    <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-800 hover:bg-slate-200 transition-colors">
+                        <span aria-hidden="true">🏠</span> Learning Hub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header / Abstract -->
+    <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+        <div class="max-w-3xl">
+            <p class="text-sm font-semibold tracking-wide text-indigo-600 uppercase mb-3">Academic Deep-Dive Report</p>
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-tight mb-6">
+                Neurobiological & Structural Drivers of Maximal Strength
+            </h1>
+            <p class="text-lg text-slate-600 mb-8 leading-relaxed">
+                In world-class athletic populations, maximal strength is rarely constrained by gross morphological factors (muscle cross-sectional area), but rather by the efficiency of the central nervous system (CNS). This report delineates the neurobiological mechanisms dictating maximal force production, evaluates advanced application models (VBT, Cluster Sets), and establishes frameworks for micro-dosing high-threshold stimuli during competitive microcycles to mitigate metabolic cost and CNS fatigue.
+            </p>
+            <div class="flex flex-wrap gap-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">Neural Drive</span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">Rate Coding</span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">VBT Optimization</span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">Micro-dosing</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-24">
+
+        <!-- Section 1: Mechanisms -->
+        <section id="mechanisms" class="scroll-mt-20">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">1. Neurobiological Mechanisms of Force</h2>
+                <p class="text-slate-600 max-w-4xl leading-relaxed">
+                    This section details the specific neural factors that separate elite force producers from sub-elite populations. The CNS dictates force output through efferent drive, overcoming autogenic inhibition, and coordinating motor unit behavior. Click the tabs below to explore each mechanism.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="flex border-b border-slate-200" id="mech-tabs">
+                    <button class="flex-1 py-4 px-6 text-sm font-medium text-center tab-active transition" onclick="switchMechTab('recruitment')">Recruitment Thresholds</button>
+                    <button class="flex-1 py-4 px-6 text-sm font-medium text-center tab-inactive transition" onclick="switchMechTab('rate-coding')">Rate Coding</button>
+                    <button class="flex-1 py-4 px-6 text-sm font-medium text-center tab-inactive transition" onclick="switchMechTab('synchronization')">Synchronization</button>
+                    <button class="flex-1 py-4 px-6 text-sm font-medium text-center tab-inactive transition" onclick="switchMechTab('inhibition')">Inhibition & Co-activation</button>
+                </div>
+                <div class="p-8" id="mech-content">
+                    <!-- Content injected via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Adaptations Table -->
+        <section id="adaptations" class="scroll-mt-20">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">2. Neural vs. Structural Adaptations</h2>
+                <p class="text-slate-600 max-w-4xl leading-relaxed">
+                    Understanding the dichotomy between neural and structural (morphological) adaptations is paramount. Elite athletes in weight-class or speed-power sports require relative strength (high force, low mass increase), necessitating purely neural programming.
+                </p>
+            </div>
+
+            <div class="overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-200">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Physiological Feature</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-indigo-600 uppercase tracking-wider">Neural Adaptation (High Int / Low Vol)</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-emerald-600 uppercase tracking-wider">Structural Adaptation (Mod Int / Mod Vol)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-slate-200">
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">Primary Driver</td>
+                            <td class="px-6 py-4 text-sm text-slate-600">CNS efferent drive, intent-to-move, peak tension</td>
+                            <td class="px-6 py-4 text-sm text-slate-600">Mechanical tension, sarcoplasmic metabolic stress</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">Motor Unit Target</td>
+                            <td class="px-6 py-4 text-sm text-slate-600">Maximal threshold fast-twitch (Type IIx/IIa)</td>
+                            <td class="px-6 py-4 text-sm text-slate-600">Broad spectrum (Type I to Type IIa primarily)</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">Firing Frequency</td>
+                            <td class="px-6 py-4 text-sm text-slate-600 font-semibold text-indigo-700">Significant increase (up to 100Hz+)</td>
+                            <td class="px-6 py-4 text-sm text-slate-600">Minimal to moderate change</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">Muscle CSA (Hypertrophy)</td>
+                            <td class="px-6 py-4 text-sm text-slate-600">Minimal to none (Preserves relative strength)</td>
+                            <td class="px-6 py-4 text-sm text-slate-600 font-semibold text-emerald-700">Significant increase (Absolute mass focus)</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">Autogenic Inhibition</td>
+                            <td class="px-6 py-4 text-sm text-slate-600">GTO desensitization (allows higher force yields)</td>
+                            <td class="px-6 py-4 text-sm text-slate-600">No primary targeted alteration</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">Timeline of Shift</td>
+                            <td class="px-6 py-4 text-sm text-slate-600">Rapid onset (Days to weeks)</td>
+                            <td class="px-6 py-4 text-sm text-slate-600">Delayed onset (Weeks to months)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 3: Force-Velocity & Nuance -->
+        <section id="force-velocity" class="scroll-mt-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">3. The Force-Velocity Nuance</h2>
+                <h3 class="text-xl font-semibold text-indigo-700 mb-3">General vs. Specific Strength</h3>
+                <p class="text-slate-600 mb-6 leading-relaxed">
+                    Maximal strength underpins the entire Force-Velocity (F-V) curve. However, "General Strength" (e.g., a heavy 1RM Back Squat) does not perfectly translate to high-velocity sporting movements. This relates to <strong>Dynamic Correspondence</strong>.
+                </p>
+                <ul class="space-y-4 text-slate-600 mb-8">
+                    <li class="flex items-start">
+                        <span class="text-indigo-500 mr-2">&#10003;</span>
+                        <span><strong>General Strength:</strong> Shifts the maximum force anchor (Y-axis). Increases global force capacity but occurs at very low velocities (< 0.3 m/s).</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-indigo-500 mr-2">&#10003;</span>
+                        <span><strong>Specific Strength (Ballistic/Plyometric):</strong> Exploits the raised force ceiling to shift the curve laterally at the specific velocities required by the sport (e.g., 1.5 - 3.0+ m/s).</span>
+                    </li>
+                </ul>
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="updateFVCurve('baseline')" id="btn-baseline" class="px-4 py-2 bg-slate-800 text-white rounded font-medium text-sm transition">Baseline Profile</button>
+                    <button onclick="updateFVCurve('general')" id="btn-general" class="px-4 py-2 bg-indigo-100 text-indigo-700 rounded font-medium text-sm hover:bg-indigo-200 transition">Simulate General Strength</button>
+                    <button onclick="updateFVCurve('specific')" id="btn-specific" class="px-4 py-2 bg-emerald-100 text-emerald-700 rounded font-medium text-sm hover:bg-emerald-200 transition">Simulate Specific Strength</button>
+                </div>
+                <p class="text-xs text-slate-400 mt-4 italic">* Interact with buttons to observe curve shifts.</p>
+            </div>
+            
+            <!-- Chart Container -->
+            <div class="chart-container">
+                <canvas id="fvChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Section 4: Application (VBT & Clusters) -->
+        <section id="application" class="scroll-mt-20">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">4. Advanced Applications: VBT & Cluster Sets</h2>
+                <p class="text-slate-600 max-w-4xl leading-relaxed">
+                    To maintain high-threshold motor unit recruitment while mitigating peripheral metabolic fatigue, elite programming relies on precise kinematic control. Traditional sets to failure result in velocity degradation, shifting the adaptation away from maximal neural drive.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-5 flex flex-col justify-center space-y-6">
+                    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-5 rounded-r">
+                        <h4 class="font-bold text-indigo-900 mb-2">Velocity-Based Training (VBT)</h4>
+                        <p class="text-sm text-slate-700">
+                            VBT ensures <strong>intent-to-move</strong>. By tracking barbell velocity (m/s), coaches cap sets via velocity loss thresholds (e.g., 10-20% drop). Once velocity drops below the threshold, Type IIx motor units drop out, and metabolic fatigue skyrockets. VBT terminates the set exactly when neural quality degrades.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-emerald-50 border-l-4 border-emerald-500 p-5 rounded-r">
+                        <h4 class="font-bold text-emerald-900 mb-2">Cluster Set Configurations</h4>
+                        <p class="text-sm text-slate-700">
+                            Inserting intra-set rest periods (e.g., 15-30 seconds between every 1-2 reps). This allows for PCr (Phosphocreatine) resynthesis, preventing the accumulation of H+ ions and preserving peak mechanical power and firing frequencies across the entire workload.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7">
+                    <!-- Chart Container -->
+                    <div class="chart-container">
+                        <canvas id="clusterChart"></canvas>
+                    </div>
+                    <p class="text-center text-sm text-slate-500 mt-3">Kinematic Degradation: Traditional 5RM vs. Cluster 5x1 (20s intra-rest)</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Limitations & Micro-dosing -->
+        <section id="limitations" class="scroll-mt-20 bg-slate-900 rounded-2xl p-8 lg:p-12 text-slate-100 shadow-xl">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl font-bold text-white mb-4">5. Limitations & The Micro-dosing Paradigm</h2>
+                    <p class="text-slate-300 mb-6 leading-relaxed">
+                        Exposing athletes to >90% 1RM intensities carries a massive metabolic cost to the CNS. In a congested sporting calendar, "chasing numbers" leads to diminishing returns, resulting in technical degradation on the field and exponentiated injury risks.
+                    </p>
+                    <h4 class="font-bold text-indigo-300 mb-2">The Solution: High-Frequency / Low-Volume Micro-dosing</h4>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                        Rather than Traditional Periodization (crushing athletes with massive volume blocks followed by tapers), modern Olympic and field sports utilize micro-dosing. This involves exposing the athlete to maximal neural stimuli (1-2 sets of 1-2 reps @ 90%+) multiple times a week. It acts as a "CNS vaccine", keeping recruitment high while generating near-zero peripheral fatigue.
+                    </p>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="togglePeriodization('traditional')" id="btn-trad" class="px-4 py-2 bg-slate-700 text-white rounded font-medium text-sm hover:bg-slate-600 transition border border-slate-500">Traditional Block</button>
+                        <button onclick="togglePeriodization('micro')" id="btn-micro" class="px-4 py-2 bg-indigo-600 text-white rounded font-medium text-sm hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/30 border border-indigo-400">Micro-dosing</button>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-800 rounded-xl p-4">
+                     <!-- Chart Container -->
+                     <div class="chart-container" style="background-color: #1e293b; border: none; box-shadow: none;">
+                        <canvas id="fatigueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6: In-Season Protocol -->
+        <section id="recommendations" class="scroll-mt-20">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Evidence-Based Recommendations: In-Season</h2>
+                <p class="text-slate-600 max-w-4xl leading-relaxed mb-8">
+                    Implementing maximal strength stimuli during the competitive calendar requires surgical precision. The goal is retention of Type II characteristics and CNS excitability without residual soreness (DOMS).
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-3">&#128200;</div>
+                        <h4 class="font-bold text-slate-900 mb-2">Intensity Over Volume</h4>
+                        <p class="text-sm text-slate-600">
+                            Maintain intensity at 85-92% 1RM. Drastically cut volume to 1-3 total working reps per movement. Example: 2 sets of 1 rep @ 90%.
+                        </p>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-3">&#9201;</div>
+                        <h4 class="font-bold text-slate-900 mb-2">Velocity Stop Thresholds</h4>
+                        <p class="text-sm text-slate-600">
+                            Implement a strict 10% velocity loss cutoff. If rep 1 is 0.50 m/s, the set terminates immediately if rep 2 drops below 0.45 m/s.
+                        </p>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-3">&#129408;</div>
+                        <h4 class="font-bold text-slate-900 mb-2">Eliminate Eccentrics</h4>
+                        <p class="text-sm text-slate-600">
+                            DOMS is primarily caused by eccentric muscle damage. Utilize concentric-only variants (e.g., deadlifts dropped at the top, pin squats) 48h pre-match.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-50 border-t border-slate-200 py-12">
+        <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-sm">
+            <p>Generated for Academic Review & Applied High-Performance Sports Science.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- 1. Mechanisms Tab Logic ---
+        const mechData = {
+            'recruitment': {
+                title: "Motor Unit Recruitment Thresholds (Henneman's Size Principle)",
+                content: "Motor units are recruited in order of size, from small, slow-twitch (Type I) to large, fast-twitch (Type IIx). To access the highest-threshold motor units responsible for absolute maximum force, the external resistance must be near maximal (≥85% 1RM) OR the intent to move a sub-maximal load must be explosive. Elite athletes possess the neural pathways to recruit these high-threshold units rapidly, bypassing lower units during ballistic tasks."
+            },
+            'rate-coding': {
+                title: "Rate Coding (Firing Frequency)",
+                content: "Once all available motor units are recruited, further increases in force are achieved by increasing the rate at which action potentials are sent down the alpha motor neuron (rate coding). While untrained individuals might max out at 50-60 Hz, elite athletes can generate firing frequencies exceeding 100-120 Hz, causing a 'tetanic' contraction that yields immense instantaneous force."
+            },
+            'synchronization': {
+                title: "Motor Unit Synchronization",
+                content: "Instead of firing asynchronously to maintain smooth, prolonged tension (ideal for endurance), heavy strength training trains the CNS to fire multiple motor units simultaneously. This synchronization creates a massive, coordinated summation of force, essential for the explosive impulses required in powerlifting, Olympic weightlifting, and sprinting."
+            },
+            'inhibition': {
+                title: "Autogenic Inhibition & Antagonist Co-activation",
+                content: "<strong>GTO Desensitization:</strong> The Golgi Tendon Organ (GTO) acts as a safety sensor, inhibiting muscle contraction if tension gets too high. Maximal strength training desensitizes the GTO, removing the 'neural brakes' and allowing higher force expression.<br><br><strong>Antagonist Co-activation:</strong> Untrained individuals contract opposing muscles (e.g., hamstrings during a quad-dominant squat) as a protective mechanism. Elite training reduces this co-activation, ensuring 100% of the agonist force goes toward the external load."
+            }
+        };
+
+        function switchMechTab(tabId) {
+            // Update UI buttons
+            const tabs = document.getElementById('mech-tabs').children;
+            for(let i=0; i<tabs.length; i++) {
+                tabs[i].className = "flex-1 py-4 px-6 text-sm font-medium text-center transition tab-inactive";
+            }
+            event.target.className = "flex-1 py-4 px-6 text-sm font-medium text-center transition tab-active";
+
+            // Update content
+            const contentDiv = document.getElementById('mech-content');
+            contentDiv.innerHTML = `
+                <h3 class="text-xl font-bold text-slate-900 mb-3">${mechData[tabId].title}</h3>
+                <p class="text-slate-600 leading-relaxed">${mechData[tabId].content}</p>
+            `;
+        }
+        // Init first tab
+        document.getElementById('mech-content').innerHTML = `
+            <h3 class="text-xl font-bold text-slate-900 mb-3">${mechData['recruitment'].title}</h3>
+            <p class="text-slate-600 leading-relaxed">${mechData['recruitment'].content}</p>
+        `;
+
+        // --- Chart Configurations ---
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.scale.grid.color = 'rgba(203, 213, 225, 0.3)';
+
+        // --- 2. Force-Velocity Chart ---
+        const fvCtx = document.getElementById('fvChart').getContext('2d');
+        const fvDataBaseline = [100, 80, 60, 40, 20, 0];
+        const fvDataGeneral  = [130, 95, 65, 42, 21, 0];
+        const fvDataSpecific = [100, 85, 75, 65, 45, 10];
+        const fvLabels = ['0 (Max Iso)', '0.5 (Heavy)', '1.0 (Strength-Speed)', '1.5 (Power)', '2.0 (Speed-Strength)', '3.0+ (Max Vel)'];
+
+        let fvChart = new Chart(fvCtx, {
+            type: 'line',
+            data: {
+                labels: fvLabels,
+                datasets: [{
+                    label: 'Force Output Profile',
+                    data: fvDataBaseline,
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#4f46e5',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleFont: { size: 13 },
+                        bodyFont: { size: 13 },
+                        callbacks: {
+                            label: function(context) {
+                                return `Force Level: ${context.parsed.y}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Velocity (m/s)' } },
+                    y: { title: { display: true, text: 'Force Generation' }, min: 0, max: 140 }
+                }
+            }
+        });
+
+        function updateFVCurve(type) {
+            const btns = ['btn-baseline', 'btn-general', 'btn-specific'];
+            btns.forEach(b => document.getElementById(b).classList.remove('ring-2', 'ring-offset-2', 'ring-indigo-500'));
+            document.getElementById(`btn-${type}`).classList.add('ring-2', 'ring-offset-2', 'ring-indigo-500');
+
+            if(type === 'baseline') {
+                fvChart.data.datasets[0].data = fvDataBaseline;
+                fvChart.data.datasets[0].borderColor = '#4f46e5';
+                fvChart.data.datasets[0].backgroundColor = 'rgba(79, 70, 229, 0.1)';
+            } else if (type === 'general') {
+                fvChart.data.datasets[0].data = fvDataGeneral;
+                fvChart.data.datasets[0].borderColor = '#6366f1'; // Lighter indigo
+                fvChart.data.datasets[0].backgroundColor = 'rgba(99, 102, 241, 0.1)';
+            } else if (type === 'specific') {
+                fvChart.data.datasets[0].data = fvDataSpecific;
+                fvChart.data.datasets[0].borderColor = '#10b981'; // Emerald
+                fvChart.data.datasets[0].backgroundColor = 'rgba(16, 185, 129, 0.1)';
+            }
+            fvChart.update();
+        }
+
+        // --- 3. Cluster vs Traditional Chart ---
+        const clusterCtx = document.getElementById('clusterChart').getContext('2d');
+        new Chart(clusterCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Rep 1', 'Rep 2', 'Rep 3', 'Rep 4', 'Rep 5'],
+                datasets: [
+                    {
+                        label: 'Traditional Set (Continuous)',
+                        data: [0.65, 0.58, 0.49, 0.38, 0.28], // Velocity in m/s
+                        backgroundColor: '#94a3b8',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Cluster Set (20s rest intra-rep)',
+                        data: [0.65, 0.63, 0.64, 0.62, 0.60],
+                        backgroundColor: '#10b981',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.parsed.y} m/s`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { 
+                        title: { display: true, text: 'Concentric Velocity (m/s)' },
+                        min: 0, 
+                        max: 0.8 
+                    }
+                }
+            }
+        });
+
+        // --- 4. Fatigue Management Chart ---
+        const fatigueCtx = document.getElementById('fatigueChart').getContext('2d');
+        const fatigueDataTrad = [95, 70, 50, 40, 100, 95, 60, 45, 100]; // Massive dips (fatigue), huge peaks (taper)
+        const fatigueDataMicro = [95, 92, 90, 94, 91, 93, 90, 95, 94]; // Stable readiness
+
+        let fatigueChart = new Chart(fatigueCtx, {
+            type: 'line',
+            data: {
+                labels: ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4', 'Wk 5', 'Wk 6', 'Wk 7', 'Wk 8', 'Wk 9'],
+                datasets: [{
+                    label: 'CNS Readiness / Neural Output (%)',
+                    data: fatigueDataMicro, // Default to Micro
+                    borderColor: '#818cf8', // Indigo 400
+                    backgroundColor: 'rgba(129, 140, 248, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#818cf8',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                color: '#cbd5e1', // Light text for dark background
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        titleColor: '#0f172a',
+                        bodyColor: '#0f172a'
+                    }
+                },
+                scales: {
+                    x: { 
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    y: { 
+                        title: { display: true, text: 'CNS Readiness (%)', color: '#94a3b8' },
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#94a3b8' },
+                        min: 20, max: 110 
+                    }
+                }
+            }
+        });
+
+        function togglePeriodization(type) {
+            const btnTrad = document.getElementById('btn-trad');
+            const btnMicro = document.getElementById('btn-micro');
+            
+            if(type === 'traditional') {
+                fatigueChart.data.datasets[0].data = fatigueDataTrad;
+                fatigueChart.data.datasets[0].borderColor = '#ef4444'; // Red for danger/fatigue
+                fatigueChart.data.datasets[0].backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                fatigueChart.data.datasets[0].pointBackgroundColor = '#ef4444';
+                
+                btnTrad.classList.replace('bg-slate-700', 'bg-red-600');
+                btnTrad.classList.add('shadow-lg', 'shadow-red-500/30', 'border-red-400');
+                
+                btnMicro.classList.replace('bg-indigo-600', 'bg-slate-700');
+                btnMicro.classList.remove('shadow-lg', 'shadow-indigo-500/30', 'border-indigo-400');
+                
+            } else {
+                fatigueChart.data.datasets[0].data = fatigueDataMicro;
+                fatigueChart.data.datasets[0].borderColor = '#818cf8';
+                fatigueChart.data.datasets[0].backgroundColor = 'rgba(129, 140, 248, 0.1)';
+                fatigueChart.data.datasets[0].pointBackgroundColor = '#818cf8';
+
+                btnMicro.classList.replace('bg-slate-700', 'bg-indigo-600');
+                btnMicro.classList.add('shadow-lg', 'shadow-indigo-500/30', 'border-indigo-400');
+
+                btnTrad.classList.replace('bg-red-600', 'bg-slate-700');
+                btnTrad.classList.remove('shadow-lg', 'shadow-red-500/30', 'border-red-400');
+            }
+            fatigueChart.update();
+        }
+
+    </script>
+</body>
+</html>

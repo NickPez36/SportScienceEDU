@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anaerobic Metabolism in High-Performance Sport</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .chart-container { position: relative; width: 100%; max-width: 800px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
+        @media (max-width: 768px) { .chart-container { height: 250px; } }
+        .nav-active { background-color: #0f766e; color: #ffffff; font-weight: 600; }
+        .nav-inactive { background-color: transparent; color: #44403c; }
+        .nav-inactive:hover { background-color: #e7e5e4; }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f5f5f4; }
+        ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        stone: { 50: '#fafaf9', 100: '#f5f5f4', 200: '#e7e5e4', 300: '#d6d3d1', 400: '#a8a29e', 500: '#78716c', 600: '#57534e', 700: '#44403c', 800: '#292524', 900: '#1c1917' },
+                        teal: { 600: '#0d9488', 700: '#0f766e', 800: '#115e59' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-stone-50 text-stone-800 antialiased min-h-screen flex flex-col md:flex-row overflow-x-hidden">
+
+    <header class="w-full bg-white border-b border-stone-200 md:ml-64 md:fixed md:top-0 md:right-0 md:left-0 z-20">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-teal-600 text-[10px] font-black text-white">SP</span>
+                <span>Anaerobic Metabolism</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="index.html" class="inline-flex items-center gap-1.5 rounded-md border border-stone-300 bg-stone-100 px-3 py-1.5 text-[11px] font-semibold text-stone-800 hover:bg-stone-200 transition-colors">
+                    <span aria-hidden="true">←</span> Anaerobic modules
+                </a>
+                <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-md border border-stone-300 bg-stone-100 px-3 py-1.5 text-[11px] font-semibold text-stone-800 hover:bg-stone-200 transition-colors">
+                    <span aria-hidden="true">←</span> Sports Physiology
+                </a>
+                <a href="../../index.html" class="hidden sm:inline-flex items-center gap-1.5 rounded-md border border-stone-300 bg-stone-100 px-3 py-1.5 text-[11px] font-semibold text-stone-800 hover:bg-stone-200 transition-colors">
+                    <span aria-hidden="true">🏠</span> Learning Hub
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Chosen Palette: Warm Neutrals (Stone) with Deep Teal Accents -->
+    <!-- Application Structure Plan: A dashboard-style SPA with a persistent sidebar navigation (bottom bar on mobile). This structure was chosen because high-performance staff often need to rapidly reference specific protocols (e.g., jumping straight to 'Interventions' or 'Work:Rest ratios') without scrolling through a dense, linear academic paper. Content is chunked into logical, interactive views. -->
+    <!-- Visualization & Content Choices: 
+         1. Energy Systems (Goal: Inform/Compare) -> Line Chart (Chart.js) -> Shows temporal limits of ATP-PCr vs Glycolytic systems, visualizing the "Limitations" section. 
+         2. Trainability (Goal: Compare) -> Bar Chart (Chart.js) -> Contrasts the biological ceilings of different systems. 
+         3. Protocol Selector (Goal: Organize/Action) -> Interactive HTML/JS UI -> Allows coaches to input their goal and receive immediate Work:Rest data, replacing dense text tables. 
+         4. NO SVG/Mermaid used. Layout utilizes Tailwind grids and Canvas elements. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <nav class="w-full md:w-64 bg-stone-100 border-r border-stone-200 flex-shrink-0 z-20 md:h-screen md:sticky md:top-0 overflow-y-auto shadow-sm">
+        <div class="p-6 border-b border-stone-200">
+            <h1 class="text-xl font-bold text-stone-900 leading-tight">Anaerobic Physiology</h1>
+            <p class="text-xs text-stone-500 mt-2 uppercase tracking-wider font-semibold">High-Performance Report</p>
+        </div>
+        <ul class="p-4 space-y-2 flex flex-row md:flex-col overflow-x-auto md:overflow-visible">
+            <li><button onclick="navigate('exec')" id="nav-exec" class="w-full text-left px-4 py-2 rounded-md text-sm transition-colors nav-active whitespace-nowrap md:whitespace-normal">1. Executive Summary</button></li>
+            <li><button onclick="navigate('limits')" id="nav-limits" class="w-full text-left px-4 py-2 rounded-md text-sm transition-colors nav-inactive whitespace-nowrap md:whitespace-normal">2. Physiological Limits</button></li>
+            <li><button onclick="navigate('ceilings')" id="nav-ceilings" class="w-full text-left px-4 py-2 rounded-md text-sm transition-colors nav-inactive whitespace-nowrap md:whitespace-normal">3. Biological Ceilings</button></li>
+            <li><button onclick="navigate('mechanisms')" id="nav-mechanisms" class="w-full text-left px-4 py-2 rounded-md text-sm transition-colors nav-inactive whitespace-nowrap md:whitespace-normal">4. Adaptation Mechanisms</button></li>
+            <li><button onclick="navigate('interventions')" id="nav-interventions" class="w-full text-left px-4 py-2 rounded-md text-sm transition-colors nav-inactive whitespace-nowrap md:whitespace-normal">5. Best-Practice Interventions</button></li>
+            <li><button onclick="navigate('conclusion')" id="nav-conclusion" class="w-full text-left px-4 py-2 rounded-md text-sm transition-colors nav-inactive whitespace-nowrap md:whitespace-normal">6. Periodization & Future</button></li>
+        </ul>
+    </nav>
+
+    <main class="flex-grow p-6 md:p-10 lg:p-14 max-w-6xl mx-auto relative md:pt-24">
+        
+        <section id="sec-exec" class="fade-in block">
+            <header class="mb-8 border-b border-stone-200 pb-4">
+                <h2 class="text-3xl font-bold text-stone-900">1. Executive Summary</h2>
+            </header>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-8">
+                <p class="text-lg leading-relaxed text-stone-700 mb-4">
+                    This report synthesizes the physiological constraints and adaptive mechanisms of the anaerobic energy systems (ATP-PCr and fast glycolysis) for application in elite sports performance. The primary objective is to bridge the gap between deep cellular physiology and highly actionable, field-ready training protocols.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                    <div class="bg-stone-50 p-4 rounded-lg border border-stone-100">
+                        <div class="text-2xl mb-2">⚡</div>
+                        <h3 class="font-bold text-stone-900 mb-2">The Constraint</h3>
+                        <p class="text-sm text-stone-600">Anaerobic systems are heavily limited by genetic fiber typing, rapid metabolite accumulation (H+, Pi), and finite substrate stores, making them harder to train than aerobic systems.</p>
+                    </div>
+                    <div class="bg-stone-50 p-4 rounded-lg border border-stone-100">
+                        <div class="text-2xl mb-2">🧬</div>
+                        <h3 class="font-bold text-stone-900 mb-2">The Mechanism</h3>
+                        <p class="text-sm text-stone-600">Adaptations are driven by enzymatic upregulation (PFK, LDH), structural hypertrophy of Type IIx/IIa fibers, and improved neuromuscular synchronization rather than systemic cardiovascular shifts.</p>
+                    </div>
+                    <div class="bg-stone-50 p-4 rounded-lg border border-stone-100">
+                        <div class="text-2xl mb-2">⏱️</div>
+                        <h3 class="font-bold text-stone-900 mb-2">The Application</h3>
+                        <p class="text-sm text-stone-600">Strict adherence to Work:Rest ratios (e.g., 1:10 for alactic power) combined with targeted nutritional buffering (Beta-Alanine, NaHCO3) is essential for circumventing biological ceilings.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-limits" class="fade-in hidden">
+            <header class="mb-8 border-b border-stone-200 pb-4">
+                <h2 class="text-3xl font-bold text-stone-900">2. Limitations of Anaerobic Metabolism</h2>
+                <p class="text-stone-500 mt-2">Understanding the physiological constraints of the ATP-PCr and fast glycolytic systems during elite competition.</p>
+            </header>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h3 class="text-xl font-bold text-teal-700 mb-4">Metabolite Accumulation & Fatigue</h3>
+                    <p class="text-stone-700 mb-4 leading-relaxed">
+                        The primary limitation of high-intensity anaerobic output is not merely the depletion of substrates, but the profound accumulation of metabolic byproducts. During intense muscular contraction, ATP hydrolysis yields ADP and inorganic phosphate (Pi). 
+                    </p>
+                    <ul class="space-y-3 mb-6">
+                        <li class="flex items-start"><span class="text-teal-600 mr-2">▪</span><span class="text-sm text-stone-700"><strong>Inorganic Phosphate (Pi):</strong> Accumulation of Pi directly inhibits cross-bridge cycling and calcium release from the sarcoplasmic reticulum, presenting as peripheral fatigue.</span></li>
+                        <li class="flex items-start"><span class="text-teal-600 mr-2">▪</span><span class="text-sm text-stone-700"><strong>Hydrogen Ion (H+) Accumulation:</strong> Fast glycolysis dramatically drops intracellular pH (from ~7.1 to as low as 6.4). This acidic environment inhibits phosphofructokinase (PFK), the rate-limiting enzyme of glycolysis.</span></li>
+                        <li class="flex items-start"><span class="text-teal-600 mr-2">▪</span><span class="text-sm text-stone-700"><strong>Substrate Depletion:</strong> Intramuscular phosphocreatine (PCr) is exhausted within 8-12 seconds of all-out effort, forcing reliance on slower glycolytic and aerobic pathways.</span></li>
+                    </ul>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 flex flex-col justify-center">
+                    <h4 class="text-center text-sm font-bold text-stone-600 mb-2">Energy System Contribution Over Time (Maximal Effort)</h4>
+                    <div class="chart-container">
+                        <canvas id="energyChart"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-stone-500 mt-2">Hover over curves to view the rapid decay of alactic and glycolytic power.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-ceilings" class="fade-in hidden">
+            <header class="mb-8 border-b border-stone-200 pb-4">
+                <h2 class="text-3xl font-bold text-stone-900">3. Biological Ceilings of Improvement</h2>
+                <p class="text-stone-500 mt-2">Why the anaerobic system is notoriously difficult to improve compared to the aerobic system.</p>
+            </header>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-8">
+                <p class="text-stone-700 mb-6 leading-relaxed">
+                    Aerobic capacity (VO2 max) can routinely improve by 15-25% in untrained individuals and can be continually pushed in elites via vascularization and mitochondrial biogenesis. Conversely, anaerobic capacity improvements are strictly capped, often yielding a maximum of 5-10% improvement in elite populations due to hard biological ceilings.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="chart-container">
+                        <canvas id="trainabilityChart"></canvas>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-teal-700 mb-3">Key Constraints</h4>
+                        <div class="space-y-4">
+                            <div class="p-3 bg-stone-50 rounded border border-stone-200">
+                                <h5 class="font-semibold text-stone-800 text-sm">Genetic Predisposition (Fiber Types)</h5>
+                                <p class="text-xs text-stone-600 mt-1">Muscle fiber type distribution (Myosin Heavy Chain IIx vs I) is highly genetically determined. While Type IIa fibers can become more glycolytic or oxidative, one cannot convert Type I to Type IIx, hard-capping peak power potential.</p>
+                            </div>
+                            <div class="p-3 bg-stone-50 rounded border border-stone-200">
+                                <h5 class="font-semibold text-stone-800 text-sm">Enzymatic Saturation</h5>
+                                <p class="text-xs text-stone-600 mt-1">There is an absolute physical limit to the concentration of glycolytic enzymes (e.g., PFK, phosphorylase) that can be packed into the cytosol without disrupting other cellular structures.</p>
+                            </div>
+                            <div class="p-3 bg-stone-50 rounded border border-stone-200">
+                                <h5 class="font-semibold text-stone-800 text-sm">Buffering Capacity Limits</h5>
+                                <p class="text-xs text-stone-600 mt-1">Intracellular buffers (carnosine, bicarbonate) can only be elevated to a certain saturation point before requiring exogenous supplementation to push the biological envelope.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-mechanisms" class="fade-in hidden">
+            <header class="mb-8 border-b border-stone-200 pb-4">
+                <h2 class="text-3xl font-bold text-stone-900">4. Mechanisms Promoting Adaptation</h2>
+                <p class="text-stone-500 mt-2">The specific cellular, neurological, and systemic mechanisms that drive anaerobic improvement.</p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-teal-700 text-white p-6 rounded-xl shadow-md">
+                    <h3 class="text-xl font-bold mb-4 border-b border-teal-600 pb-2">Cellular & Structural Adaptations</h3>
+                    <ul class="space-y-4">
+                        <li>
+                            <strong class="block text-teal-100">Enzymatic Upregulation:</strong> 
+                            <span class="text-sm">Targeted Sprint Interval Training (SIT) upregulates Phosphofructokinase (PFK) and Lactate Dehydrogenase (LDH), accelerating the speed of glycolysis and lactate clearance.</span>
+                        </li>
+                        <li>
+                            <strong class="block text-teal-100">Glycogen Supercompensation:</strong> 
+                            <span class="text-sm">Anaerobic training triggers an increase in resting intramuscular glycogen storage, providing a larger substrate pool for high-intensity bouts.</span>
+                        </li>
+                        <li>
+                            <strong class="block text-teal-100">Selective Hypertrophy:</strong> 
+                            <span class="text-sm">Heavy resistance training and plyometrics selectively increase the cross-sectional area (CSA) of Type IIa and IIx muscle fibers.</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <h3 class="text-xl font-bold text-stone-900 mb-4 border-b border-stone-100 pb-2">Neurological Adaptations</h3>
+                    <ul class="space-y-4 text-stone-700">
+                        <li>
+                            <strong class="block text-stone-900">Motor Unit Recruitment:</strong> 
+                            <span class="text-sm">Elite training bypasses the Size Principle, allowing near-instantaneous recruitment of high-threshold Type II motor units.</span>
+                        </li>
+                        <li>
+                            <strong class="block text-stone-900">Rate of Force Development (RFD):</strong> 
+                            <span class="text-sm">Enhanced neural drive and increased nerve conduction velocity lead to a steeper force-time curve, crucial for sports requiring explosive movements in &lt;200ms.</span>
+                        </li>
+                        <li>
+                            <strong class="block text-stone-900">Intra/Inter-muscular Coordination:</strong> 
+                            <span class="text-sm">Decreased co-activation of antagonist muscles reduces internal resistance, maximizing net joint torque.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-interventions" class="fade-in hidden">
+            <header class="mb-8 border-b border-stone-200 pb-4">
+                <h2 class="text-3xl font-bold text-stone-900">5. Best-Practice Interventions</h2>
+                <p class="text-stone-500 mt-2">Evidence-based, practical training protocols and nutritional strategies for elite athletes.</p>
+            </header>
+
+            <div class="mb-10">
+                <h3 class="text-xl font-bold text-teal-700 mb-4">Interactive Protocol Designer</h3>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <div class="flex flex-wrap gap-4 mb-6">
+                        <button onclick="updateProtocol('alactic')" class="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold rounded transition">Alactic Power (ATP-PCr)</button>
+                        <button onclick="updateProtocol('glycolytic_power')" class="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold rounded transition">Glycolytic Power (SIT)</button>
+                        <button onclick="updateProtocol('glycolytic_capacity')" class="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold rounded transition">Glycolytic Capacity</button>
+                    </div>
+                    
+                    <div id="protocol-display" class="bg-stone-50 p-5 rounded border border-stone-200 border-l-4 border-l-teal-600">
+                        <h4 id="proto-title" class="text-lg font-bold text-stone-900 mb-1">Select a training goal above.</h4>
+                        <p id="proto-desc" class="text-sm text-stone-600 mb-4">The protocol details will dynamically update here.</p>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                            <div class="bg-white p-3 rounded shadow-sm">
+                                <div class="text-xs text-stone-500 uppercase tracking-wide">Work Interval</div>
+                                <div id="proto-work" class="font-bold text-lg text-stone-800">-</div>
+                            </div>
+                            <div class="bg-white p-3 rounded shadow-sm">
+                                <div class="text-xs text-stone-500 uppercase tracking-wide">Rest Interval</div>
+                                <div id="proto-rest" class="font-bold text-lg text-stone-800">-</div>
+                            </div>
+                            <div class="bg-white p-3 rounded shadow-sm">
+                                <div class="text-xs text-stone-500 uppercase tracking-wide">W:R Ratio</div>
+                                <div id="proto-ratio" class="font-bold text-lg text-teal-700">-</div>
+                            </div>
+                            <div class="bg-white p-3 rounded shadow-sm">
+                                <div class="text-xs text-stone-500 uppercase tracking-wide">Intensity</div>
+                                <div id="proto-intensity" class="font-bold text-lg text-stone-800">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h3 class="text-xl font-bold text-teal-700 mb-4">Nutritional Ergogenic Aids</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm relative overflow-hidden group">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-teal-600"></div>
+                        <h4 class="font-bold text-stone-900 text-lg mb-2 flex items-center justify-between">
+                            Creatine Monohydrate <span class="text-sm font-normal text-teal-700 bg-teal-50 px-2 py-1 rounded">Alactic</span>
+                        </h4>
+                        <p class="text-sm text-stone-600 mb-2"><strong>Mechanism:</strong> Increases intramuscular PCr stores by 10-20%, accelerating ATP resynthesis during short, intense bursts.</p>
+                        <p class="text-sm text-stone-600"><strong>Dosing:</strong> 20g/day for 5 days (loading), followed by 3-5g/day maintenance.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-teal-600"></div>
+                        <h4 class="font-bold text-stone-900 text-lg mb-2 flex items-center justify-between">
+                            Beta-Alanine <span class="text-sm font-normal text-teal-700 bg-teal-50 px-2 py-1 rounded">Glycolytic</span>
+                        </h4>
+                        <p class="text-sm text-stone-600 mb-2"><strong>Mechanism:</strong> Rate-limiting precursor to carnosine. Acts as an intracellular H+ buffer, delaying fatigue in 1-4 minute maximal efforts.</p>
+                        <p class="text-sm text-stone-600"><strong>Dosing:</strong> 3.2-6.4g/day for 4-8 weeks. Requires chronic loading, not acute.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-teal-600"></div>
+                        <h4 class="font-bold text-stone-900 text-lg mb-2 flex items-center justify-between">
+                            Sodium Bicarbonate <span class="text-sm font-normal text-teal-700 bg-teal-50 px-2 py-1 rounded">Glycolytic</span>
+                        </h4>
+                        <p class="text-sm text-stone-600 mb-2"><strong>Mechanism:</strong> Extracellular buffer that increases blood pH, establishing a steeper gradient to efflux H+ out of the muscle cell.</p>
+                        <p class="text-sm text-stone-600"><strong>Dosing:</strong> 0.3g/kg body mass ingested 60-90 mins prior to event. GI distress risk high.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-conclusion" class="fade-in hidden">
+            <header class="mb-8 border-b border-stone-200 pb-4">
+                <h2 class="text-3xl font-bold text-stone-900">6. Conclusion & Future Directions</h2>
+                <p class="text-stone-500 mt-2">Integrating physiological principles into the periodized annual plan.</p>
+            </header>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-8">
+                <p class="text-stone-700 mb-6 leading-relaxed">
+                    Maximizing anaerobic potential requires acknowledging its biological constraints. Because enzymatic saturation and fiber type limits are reached relatively quickly, excessive anaerobic volume leads to diminishing returns and central nervous system (CNS) overtraining. Anaerobic conditioning must be highly concentrated, specific, and periodized appropriately.
+                </p>
+
+                <h3 class="font-bold text-lg text-teal-700 mb-4">Annual Periodization Flow</h3>
+                
+                <div class="flex flex-col space-y-4">
+                    <div class="flex flex-col md:flex-row bg-stone-50 rounded-lg border border-stone-200 overflow-hidden">
+                        <div class="bg-stone-200 p-4 md:w-1/4 flex items-center justify-center font-bold text-stone-700">
+                            Off-Season
+                        </div>
+                        <div class="p-4 md:w-3/4">
+                            <h4 class="font-bold text-stone-900">Hypertrophy & Aerobic Base</h4>
+                            <p class="text-sm text-stone-600 mt-1">Focus on increasing cross-sectional area of Type II fibers via resistance training. Develop aerobic capacity to improve inter-bout recovery (PCr resynthesis relies on aerobic metabolism).</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row bg-stone-50 rounded-lg border border-stone-200 overflow-hidden">
+                        <div class="bg-stone-300 p-4 md:w-1/4 flex items-center justify-center font-bold text-stone-800">
+                            Pre-Season
+                        </div>
+                        <div class="p-4 md:w-3/4">
+                            <h4 class="font-bold text-stone-900">SIT & Glycolytic Capacity</h4>
+                            <p class="text-sm text-stone-600 mt-1">Introduce structured Sprint Interval Training (SIT). Upregulate glycolytic enzymes and increase buffering capacity. Maintain max strength, convert to power output via plyometrics.</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row bg-teal-50 rounded-lg border border-teal-200 overflow-hidden">
+                        <div class="bg-teal-600 text-white p-4 md:w-1/4 flex items-center justify-center font-bold">
+                            In-Season
+                        </div>
+                        <div class="p-4 md:w-3/4">
+                            <h4 class="font-bold text-stone-900">Alactic Maintenance & Tapering</h4>
+                            <p class="text-sm text-stone-600 mt-1">Volume drops significantly. Focus heavily on neurological recruitment (high intensity, very low volume, full recovery). Rely on tactical periodization to avoid accumulating chronic H+ fatigue.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const sections = ['exec', 'limits', 'ceilings', 'mechanisms', 'interventions', 'conclusion'];
+        
+        function navigate(targetId) {
+            sections.forEach(sec => {
+                document.getElementById('sec-' + sec).classList.add('hidden');
+                const navBtn = document.getElementById('nav-' + sec);
+                navBtn.classList.remove('nav-active');
+                navBtn.classList.add('nav-inactive');
+            });
+            
+            document.getElementById('sec-' + targetId).classList.remove('hidden');
+            const activeBtn = document.getElementById('nav-' + targetId);
+            activeBtn.classList.remove('nav-inactive');
+            activeBtn.classList.add('nav-active');
+
+            if(targetId === 'limits' && !window.energyChartRendered) {
+                renderEnergyChart();
+                window.energyChartRendered = true;
+            }
+            if(targetId === 'ceilings' && !window.trainChartRendered) {
+                renderTrainabilityChart();
+                window.trainChartRendered = true;
+            }
+        }
+
+        const protocols = {
+            'alactic': {
+                title: 'Alactic Power (ATP-PCr Focus)',
+                desc: 'Targets maximum force generation and neural drive without accumulating significant lactate. Relies on stored ATP and Phosphocreatine.',
+                work: '3 - 8 seconds',
+                rest: '1.5 - 3 minutes',
+                ratio: '1:12 to 1:20',
+                intensity: '100% (Maximal)'
+            },
+            'glycolytic_power': {
+                title: 'Glycolytic Power (Sprint Interval Training - SIT)',
+                desc: 'Maximizes the rate of energy production via fast glycolysis. Upregulates PFK and forces the system to operate under extreme acidic conditions.',
+                work: '15 - 30 seconds',
+                rest: '3 - 5 minutes',
+                ratio: '1:5 to 1:10',
+                intensity: '100% (All-out)'
+            },
+            'glycolytic_capacity': {
+                title: 'Glycolytic Capacity',
+                desc: 'Improves the ability to tolerate sustained high-intensity output and buffer H+ ions. Increases total work done in severe domains.',
+                work: '45 - 90 seconds',
+                rest: '1 - 3 minutes',
+                ratio: '1:2 to 1:4',
+                intensity: '90 - 95%'
+            }
+        };
+
+        function updateProtocol(type) {
+            const data = protocols[type];
+            document.getElementById('proto-title').innerText = data.title;
+            document.getElementById('proto-desc').innerText = data.desc;
+            document.getElementById('proto-work').innerText = data.work;
+            document.getElementById('proto-rest').innerText = data.rest;
+            document.getElementById('proto-ratio').innerText = data.ratio;
+            document.getElementById('proto-intensity').innerText = data.intensity;
+        }
+
+        function renderEnergyChart() {
+            const ctx = document.getElementById('energyChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['0s', '5s', '10s', '30s', '60s', '120s'],
+                    datasets: [
+                        {
+                            label: 'ATP-PCr (Alactic)',
+                            data: [100, 80, 40, 5, 2, 0],
+                            borderColor: '#0f766e',
+                            backgroundColor: 'rgba(15, 118, 110, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3
+                        },
+                        {
+                            label: 'Fast Glycolysis (Lactic)',
+                            data: [10, 50, 95, 80, 30, 10],
+                            borderColor: '#b45309',
+                            backgroundColor: 'transparent',
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            borderWidth: 3
+                        },
+                        {
+                            label: 'Aerobic System',
+                            data: [0, 5, 15, 40, 80, 100],
+                            borderColor: '#44403c',
+                            backgroundColor: 'transparent',
+                            tension: 0.4,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
+                        tooltip: { backgroundColor: 'rgba(28, 25, 23, 0.9)' }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: '% of Max Capacity' },
+                            grid: { color: '#e7e5e4' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Duration of Maximal Effort' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTrainabilityChart() {
+            const ctx = document.getElementById('trainabilityChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Aerobic Capacity (VO2)', 'Glycolytic Power', 'Alactic Power (ATP-PCr)', 'Genetic Influence'],
+                    datasets: [
+                        {
+                            label: 'Trainability / Plasticity (%)',
+                            data: [25, 12, 5, 85],
+                            backgroundColor: [
+                                '#44403c',
+                                '#b45309',
+                                '#0f766e',
+                                '#d6d3d1'
+                            ],
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if(context.dataIndex === 3) return "Highly dependent on genetics";
+                                    return `Max expected improvement: ~${context.raw}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: 'Relative Scale (%)' },
+                            grid: { color: '#e7e5e4' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        updateProtocol('alactic');
+    </script>
+</body>
+</html>

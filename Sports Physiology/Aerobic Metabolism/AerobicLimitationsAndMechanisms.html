@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ceiling of Human Performance | Physiological Constraints</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Slate and Stone (Academic/Clinical) - Background: Stone-50, Text: Slate-800, Accents: Sky-700 & Emerald-600 -->
+    <!-- Application Structure Plan: The SPA uses a sidebar navigation structure to segment the dense technical report into digestible modules (Overview, Limiters, Adaptation, Application). This prevents cognitive overload and allows coaches to jump directly to relevant physiological mechanisms or practical training applications. The content transitions dynamically without page reloads to maintain focus. -->
+    <!-- Visualization & Content Choices: 
+         1. Fick Equation: HTML/CSS Flexbox -> Goal: Inform -> Interactive breakdown of central vs peripheral components. Justification: Cleaner than static text, allows focus on individual variables. Method: Tailwind CSS + JS hover states.
+         2. Elite vs Amateur Profile: Radar Chart -> Goal: Compare -> Show how elites approach the physiological ceiling across multiple variables. Justification: Radar charts effectively display multi-variable profiles. Method: Chart.js (NO SVG).
+         3. Adaptation Pathways: HTML/CSS Grid -> Goal: Organize -> Map out AMPK/PGC-1alpha signaling. Justification: Flowcharts explain mechanisms best. Method: HTML/Tailwind styling to mimic a flow diagram (NO Mermaid).
+         4. Training Intensity Distribution (TID): Doughnut Charts -> Goal: Compare -> Contrast Polarized vs Pyramidal models. Justification: Clearly shows proportional time-in-zone. Method: Chart.js.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fafaf9; color: #1e293b; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
+        .nav-item.active { background-color: #e0f2fe; color: #0369a1; border-right: 4px solid #0369a1; font-weight: 600; }
+        .takeaway-box { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-left: 4px solid #10b981; }
+        .math-text { font-family: 'Times New Roman', Times, serif; font-style: italic; }
+        .hide { display: none; }
+        .fade-in { animation: fadeIn 0.4s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row antialiased">
+
+    <header class="w-full bg-white border-b border-slate-200 md:ml-64 md:fixed md:top-0 md:right-0 md:left-0 z-20">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500 text-[10px] font-black text-slate-950">SP</span>
+                <span>Aerobic Metabolism</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="index.html" class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-800 hover:bg-slate-200 transition-colors">
+                    <span aria-hidden="true">←</span> Aerobic modules
+                </a>
+                <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-800 hover:bg-slate-200 transition-colors">
+                    <span aria-hidden="true">←</span> Sports Physiology
+                </a>
+                <a href="../../index.html" class="hidden sm:inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-800 hover:bg-slate-200 transition-colors">
+                    <span aria-hidden="true">🏠</span> Learning Hub
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <aside class="w-full md:w-64 bg-slate-900 text-slate-300 md:min-h-screen flex flex-col shadow-xl z-10 sticky top-0 md:fixed">
+        <div class="p-6">
+            <h1 class="text-xl font-bold text-white leading-tight">Human Performance Ceiling</h1>
+            <p class="text-xs text-slate-400 mt-2 uppercase tracking-wide">High-Performance Report</p>
+        </div>
+        <nav class="flex-1 flex flex-col gap-1 px-3 pb-6 overflow-y-auto">
+            <button onclick="navigate('overview')" id="nav-overview" class="nav-item active text-left px-4 py-3 rounded-l-lg transition-colors duration-200 hover:bg-slate-800 hover:text-white">1. The Fick Equation</button>
+            <button onclick="navigate('limiters')" id="nav-limiters" class="nav-item text-left px-4 py-3 rounded-l-lg transition-colors duration-200 hover:bg-slate-800 hover:text-white">2. Rate-Limiting Steps</button>
+            <button onclick="navigate('paradox')" id="nav-paradox" class="nav-item text-left px-4 py-3 rounded-l-lg transition-colors duration-200 hover:bg-slate-800 hover:text-white">3. The Trainability Paradox</button>
+            <button onclick="navigate('application')" id="nav-application" class="nav-item text-left px-4 py-3 rounded-l-lg transition-colors duration-200 hover:bg-slate-800 hover:text-white">4. Practical Application</button>
+        </nav>
+        <div class="p-4 border-t border-slate-700 text-xs">
+            <p>Author: Lead Exercise Physiologist</p>
+            <p>Target: Coaches & Sport Scientists</p>
+        </div>
+    </aside>
+
+    <main class="flex-1 md:ml-64 p-6 md:p-12 overflow-x-hidden md:pt-24">
+        
+        <section id="sec-overview" class="content-section fade-in">
+            <header class="mb-10">
+                <span class="text-sky-700 font-semibold tracking-wider text-sm uppercase">Module 1</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-2">Deconstructing $\dot{V}O_{2}max$</h2>
+                <p class="text-lg text-slate-600 mt-4 leading-relaxed">To understand the ceiling of human performance, we must first deconstruct the primary metric of aerobic power: $\dot{V}O_{2}max$. This section explores the fundamental equation governing oxygen delivery and extraction, setting the stage for analyzing physiological constraints in elite populations.</p>
+            </header>
+
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 mb-8">
+                <h3 class="text-xl font-bold mb-6 text-center">The Fick Equation</h3>
+                <div class="flex flex-col md:flex-row items-center justify-center gap-4 text-center">
+                    <div class="p-4 bg-sky-50 rounded-lg cursor-help transition hover:shadow-md border border-sky-100" title="Maximal Oxygen Uptake: The upper limit of oxygen utilization by the body during strenuous exercise.">
+                        <span class="text-2xl font-bold text-sky-800">$\dot{V}O_{2}max$</span>
+                        <p class="text-xs text-slate-500 mt-1 uppercase">Aerobic Power</p>
+                    </div>
+                    <span class="text-2xl font-bold text-slate-400">=</span>
+                    <div class="flex flex-col items-center">
+                        <div class="p-4 bg-red-50 rounded-lg cursor-help transition hover:shadow-md border border-red-100" title="Cardiac Output: Heart Rate x Stroke Volume. The central delivery mechanism.">
+                            <span class="text-2xl font-bold text-red-800">$Q_{max}$</span>
+                            <p class="text-xs text-slate-500 mt-1 uppercase">Cardiac Output</p>
+                        </div>
+                        <div class="text-xs text-slate-500 mt-2 font-mono">HR x SV</div>
+                    </div>
+                    <span class="text-2xl font-bold text-slate-400">x</span>
+                    <div class="p-4 bg-emerald-50 rounded-lg cursor-help transition hover:shadow-md border border-emerald-100" title="Arteriovenous Oxygen Difference: The difference in oxygen content between arterial and venous blood, representing tissue extraction.">
+                        <span class="text-2xl font-bold text-emerald-800">$(a-\bar{v})O_{2} diff$</span>
+                        <p class="text-xs text-slate-500 mt-1 uppercase">Oxygen Extraction</p>
+                    </div>
+                </div>
+                <p class="mt-8 text-slate-600 text-sm leading-relaxed">
+                    The equation demonstrates that maximal aerobic capacity is the product of <strong>central delivery</strong> ($Q_{max}$) and <strong>peripheral extraction</strong> ($(a-\bar{v})O_{2} diff$). In high-performance contexts, identifying which side of this equation is limiting an athlete's progression is crucial for targeted intervention.
+                </p>
+            </div>
+
+            <div class="takeaway-box p-6 rounded-lg mb-8">
+                <h4 class="font-bold text-emerald-800 mb-2">Key Takeaways for Coaches</h4>
+                <ul class="list-disc pl-5 text-slate-700 space-y-2 text-sm">
+                    <li>$\dot{V}O_{2}max$ is not a single entity; it is a composite of cardiovascular pump capacity and skeletal muscle metabolic capacity.</li>
+                    <li>Training interventions must be specifically designed to target either the central machinery (e.g., left ventricular hypertrophy via accumulation of time near max stroke volume) or peripheral machinery (e.g., mitochondrial density via volume or high-intensity shear stress).</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec-limiters" class="content-section hide fade-in">
+            <header class="mb-10">
+                <span class="text-sky-700 font-semibold tracking-wider text-sm uppercase">Module 2</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-2">The Rate-Limiting Steps</h2>
+                <p class="text-lg text-slate-600 mt-4 leading-relaxed">What truly stops an elite athlete from going faster? The debate between central vs. peripheral limitations has defined exercise physiology. While peripheral factors dictate fractional utilization (the percentage of $\dot{V}O_{2}max$ sustained at LT2), central factors present the ultimate hard ceiling on absolute aerobic power.</p>
+            </header>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-bold text-red-700 mb-3 border-b pb-2">Central Limitations (Delivery)</h3>
+                    <p class="text-sm text-slate-600 mb-4">In highly trained athletes, the capacity of skeletal muscle to consume oxygen far exceeds the heart's capacity to deliver it. The bottleneck is systemic.</p>
+                    <ul class="space-y-3 text-sm text-slate-700">
+                        <li><span class="font-bold">Stroke Volume (SV):</span> The single greatest discriminator between amateur and elite endurance athletes. Elites display significant eccentric left ventricular hypertrophy.</li>
+                        <li><span class="font-bold">Hematological Factors:</span> Total erythrocyte volume and hemoglobin mass dictate arterial oxygen content ($CaO_{2}$). This is why altitude camps and specific nutritional strategies are employed.</li>
+                        <li><span class="font-bold">Pericardial Constraint:</span> At extremes, the pericardium physically limits further end-diastolic volume expansion.</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-bold text-emerald-700 mb-3 border-b pb-2">Peripheral Limitations (Extraction)</h3>
+                    <p class="text-sm text-slate-600 mb-4">While not usually the absolute limiter for $\dot{V}O_{2}max$ in elites, peripheral factors are critical for lactate clearance and performance at threshold.</p>
+                    <ul class="space-y-3 text-sm text-slate-700">
+                        <li><span class="font-bold">Capillary Density:</span> Increases mean transit time of red blood cells, allowing more time for $O_{2}$ diffusion at the muscle bed.</li>
+                        <li><span class="font-bold">Mitochondrial Enzyme Activity:</span> Citrate Synthase and Succinate Dehydrogenase activity indicate aerobic metabolic capacity. Highly trainable, but subject to diminishing returns.</li>
+                        <li><span class="font-bold">Diffusion Gradients:</span> The pressure gradient ($PO_{2}$) between the capillary and the mitochondria drives gas exchange.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
+                <h3 class="text-center font-bold text-slate-800 mb-2">Physiological Profile Comparison</h3>
+                <p class="text-center text-xs text-slate-500 mb-6">Proximity to theoretical genetic ceiling across variables.</p>
+                <div class="chart-container">
+                    <canvas id="limitersChart"></canvas>
+                </div>
+            </div>
+
+            <div class="takeaway-box p-6 rounded-lg mb-8">
+                <h4 class="font-bold text-emerald-800 mb-2">Key Takeaways for Coaches</h4>
+                <ul class="list-disc pl-5 text-slate-700 space-y-2 text-sm">
+                    <li>If an athlete's $\dot{V}O_{2}max$ has plateaued, the limitation is almost certainly central (Stroke Volume or Hb mass).</li>
+                    <li>If an athlete has a high $\dot{V}O_{2}max$ but poor threshold (LT2), the limitation is likely peripheral (mitochondrial capacity or capillary density).</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec-paradox" class="content-section hide fade-in">
+            <header class="mb-10">
+                <span class="text-sky-700 font-semibold tracking-wider text-sm uppercase">Module 3</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-2">The Trainability Paradox & Adaptation</h2>
+                <p class="text-lg text-slate-600 mt-4 leading-relaxed">Why do some athletes experience rapid gains while others stagnate despite identical training loads? We must examine the molecular signaling pathways that drive aerobic improvement and the genetic ceiling that dictates the limits of mitochondrial biogenesis.</p>
+            </header>
+
+            <div class="bg-slate-900 text-slate-200 p-8 rounded-xl shadow-lg mb-8">
+                <h3 class="text-xl font-bold text-white mb-6 text-center">Mechanisms of Mitochondrial Biogenesis</h3>
+                <p class="text-sm text-slate-400 text-center mb-8">Metabolic stress triggers specific kinase cascades that converge on a master regulatory gene.</p>
+                
+                <div class="flex flex-col items-center space-y-4 font-mono text-sm">
+                    
+                    <div class="flex flex-row w-full max-w-2xl justify-between">
+                        <div class="bg-slate-800 p-4 rounded border border-slate-600 w-[45%] text-center">
+                            <span class="text-sky-400 font-bold block mb-1">High Volume / Duration</span>
+                            <span class="text-xs">Continuous Muscle Contraction</span><br>
+                            &darr;<br>
+                            <span class="text-white">Increased Intracellular $Ca^{2+}$</span><br>
+                            &darr;<br>
+                            <span class="text-emerald-400 font-bold">CaMK Activation</span>
+                        </div>
+                        <div class="bg-slate-800 p-4 rounded border border-slate-600 w-[45%] text-center">
+                            <span class="text-red-400 font-bold block mb-1">High Intensity (SIT/HIIT)</span>
+                            <span class="text-xs">Rapid ATP Depletion</span><br>
+                            &darr;<br>
+                            <span class="text-white">Increased AMP/ATP Ratio</span><br>
+                            &darr;<br>
+                            <span class="text-emerald-400 font-bold">AMPK Activation</span>
+                        </div>
+                    </div>
+
+                    <div class="text-2xl text-slate-500">&searr; &nbsp; &nbsp; &nbsp; &swarr;</div>
+                    
+                    <div class="bg-emerald-900 border-2 border-emerald-500 p-4 rounded-lg text-center w-full max-w-sm shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                        <span class="text-xl font-bold text-white">PGC-1$\alpha$</span>
+                        <p class="text-xs text-emerald-200 mt-1">Master Regulator of Mitochondrial Biogenesis</p>
+                    </div>
+                    
+                    <div class="text-2xl text-slate-500">&darr;</div>
+
+                    <div class="bg-slate-800 p-4 rounded border border-slate-600 text-center w-full max-w-sm">
+                        <span class="text-white font-bold">Phenotypic Adaptation</span>
+                        <p class="text-xs mt-1 text-slate-400">Increased Mitochondrial Volume Density<br>Increased Capillary-to-Fiber Ratio</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-slate max-w-none mb-8">
+                <h3 class="text-xl font-bold text-slate-800">The Diminishing Returns of Elite Status</h3>
+                <p>In untrained individuals, PGC-1$\alpha$ activation leads to massive expansions in mitochondrial volume. However, in elites, the baseline mitochondrial pool is already vast. The relative stress required to perturb cellular homeostasis and trigger further AMPK or CaMK activation becomes dangerously high, risking overtraining.</p>
+                <p>Furthermore, there is a spatial limitation within the muscle fiber. Skeletal muscle cannot consist entirely of mitochondria; space must be preserved for contractile proteins (myosin/actin) to generate force. This represents the absolute peripheral ceiling.</p>
+            </div>
+
+            <div class="takeaway-box p-6 rounded-lg mb-8">
+                <h4 class="font-bold text-emerald-800 mb-2">Key Takeaways for Coaches</h4>
+                <ul class="list-disc pl-5 text-slate-700 space-y-2 text-sm">
+                    <li>There is more than one way to skin a cat: Both long slow distance (LSD) and high-intensity intervals (HIIT) activate PGC-1$\alpha$, but via different upstream sensors ($Ca^{2+}$ vs AMP).</li>
+                    <li>Highly trained athletes require novel, severe, or highly specific stressors to bypass blunted signaling responses. "More of the same" will not force adaptation near the ceiling.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec-application" class="content-section hide fade-in">
+            <header class="mb-10">
+                <span class="text-sky-700 font-semibold tracking-wider text-sm uppercase">Module 4</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-2">Practical Application: Training the Elite</h2>
+                <p class="text-lg text-slate-600 mt-4 leading-relaxed">Given the central constraints and peripheral diminishing returns, how do we prescribe training to squeeze the final 1-2% of performance out of elite endurance athletes? The answer lies in strict adherence to specific Training Intensity Distributions (TID).</p>
+            </header>
+
+            <div class="mb-8">
+                <p class="text-slate-700 mb-4">Current consensus in high-performance endurance sports favors models that avoid the "black hole" of moderate-intensity training (Zone 2 in a 3-zone model, between LT1 and LT2), which generates high autonomic stress without providing adequate stimulus to push either the central or peripheral limits.</p>
+                
+                <div class="flex flex-col md:flex-row gap-8 items-center justify-center bg-white p-6 rounded-xl border border-slate-200">
+                    <div class="w-full md:w-1/2 flex flex-col items-center">
+                        <h4 class="font-bold text-slate-800 mb-2">Polarized Model</h4>
+                        <p class="text-xs text-slate-500 mb-4 text-center">Highly effective for pushing $Q_{max}$ and central delivery while managing autonomic fatigue via massive Z1 volume.</p>
+                        <div class="chart-container" style="height: 250px; max-height: 250px;">
+                            <canvas id="polarizedChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/2 flex flex-col items-center">
+                        <h4 class="font-bold text-slate-800 mb-2">Pyramidal Model</h4>
+                        <p class="text-xs text-slate-500 mb-4 text-center">Often seen during specific preparation phases where race pace falls between LT1 and LT2 (e.g., Marathon/Ironman).</p>
+                        <div class="chart-container" style="height: 250px; max-height: 250px;">
+                            <canvas id="pyramidalChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-sky-50 p-6 rounded-lg border border-sky-100">
+                    <h4 class="font-bold text-sky-900 mb-2">Maximizing Central Adaptations</h4>
+                    <p class="text-sm text-sky-800 mb-3">To increase Stroke Volume, the heart must be loaded at max capacity.</p>
+                    <ul class="text-sm text-sky-900 space-y-1 list-disc pl-4">
+                        <li><span class="font-semibold">Protocol:</span> $4 \times 8$ mins @ 90% HRmax ($>LT2$).</li>
+                        <li><span class="font-semibold">Rationale:</span> Accumulates time near $VO_{2}max$ ensuring maximum venous return and myocardial stretch, triggering eccentric hypertrophy.</li>
+                    </ul>
+                </div>
+                <div class="bg-emerald-50 p-6 rounded-lg border border-emerald-100">
+                    <h4 class="font-bold text-emerald-900 mb-2">Bypassing Peripheral Plateaus</h4>
+                    <p class="text-sm text-emerald-800 mb-3">To shock blunted PGC-1$\alpha$ signaling in elites.</p>
+                    <ul class="text-sm text-emerald-900 space-y-1 list-disc pl-4">
+                        <li><span class="font-semibold">Protocol:</span> Sprint Interval Training (SIT). $4-6 \times 30$s all-out (Wingate style).</li>
+                        <li><span class="font-semibold">Rationale:</span> Creates massive, rapid AMP accumulation, heavily phosphorylating AMPK regardless of baseline fitness level.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="takeaway-box p-6 rounded-lg mb-8">
+                <h4 class="font-bold text-emerald-800 mb-2">Final Recommendations for High-Performance</h4>
+                <ul class="list-disc pl-5 text-slate-700 space-y-2 text-sm">
+                    <li>Discipline in Zone 1 (< LT1) is paramount. Going too hard on easy days prevents the athlete from achieving the necessary power output on Zone 3 days to force central adaptations.</li>
+                    <li>Periodize the TID. A polarized base builds the engine ($VO_{2}max$), while a shift towards pyramidal might be necessary closer to competition to condition fractional utilization specific to race pace.</li>
+                </ul>
+            </div>
+        </section>
+        
+    </main>
+
+    <script>
+        // State management
+        const state = {
+            currentSection: 'overview',
+            chartsInitialized: {
+                limiters: false,
+                application: false
+            }
+        };
+
+        // Navigation logic
+        function navigate(sectionId) {
+            // Update state
+            state.currentSection = sectionId;
+
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(sec => {
+                sec.classList.add('hide');
+            });
+
+            // Show target section
+            document.getElementById(`sec-${sectionId}`).classList.remove('hide');
+
+            // Update nav styling
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active', 'bg-e0f2fe', 'text-0369a1', 'border-r-4');
+                nav.style.backgroundColor = '';
+                nav.style.color = '';
+                nav.style.borderRight = '';
+            });
+            const activeNav = document.getElementById(`nav-${sectionId}`);
+            activeNav.classList.add('active');
+            activeNav.style.backgroundColor = '#e0f2fe';
+            activeNav.style.color = '#0369a1';
+            activeNav.style.borderRight = '4px solid #0369a1';
+
+            // Initialize charts if needed
+            if (sectionId === 'limiters' && !state.chartsInitialized.limiters) {
+                initLimitersChart();
+                state.chartsInitialized.limiters = true;
+            }
+            if (sectionId === 'application' && !state.chartsInitialized.application) {
+                initApplicationCharts();
+                state.chartsInitialized.application = true;
+            }
+        }
+
+        // Chart color constants
+        const chartColors = {
+            emerald: 'rgba(16, 185, 129, 0.7)',
+            emeraldBorder: 'rgb(16, 185, 129)',
+            sky: 'rgba(14, 165, 233, 0.7)',
+            skyBorder: 'rgb(14, 165, 233)',
+            slate: 'rgba(100, 116, 139, 0.4)',
+            slateBorder: 'rgb(100, 116, 139)',
+            z1: '#10b981', // green
+            z2: '#f59e0b', // amber
+            z3: '#ef4444'  // red
+        };
+
+        // Initialize Chart.js for Module 2
+        function initLimitersChart() {
+            const ctx = document.getElementById('limitersChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Stroke Volume', 'Blood Volume', 'Capillary Density', 'Mito. Enzyme Activity', 'O2 Diffusion Cap.'],
+                    datasets: [
+                        {
+                            label: 'Elite Athlete',
+                            data: [95, 92, 88, 85, 80],
+                            backgroundColor: chartColors.emerald,
+                            borderColor: chartColors.emeraldBorder,
+                            pointBackgroundColor: chartColors.emeraldBorder,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Well-Trained Amateur',
+                            data: [65, 60, 50, 65, 55],
+                            backgroundColor: chartColors.slate,
+                            borderColor: chartColors.slateBorder,
+                            pointBackgroundColor: chartColors.slateBorder,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                            pointLabels: {
+                                font: { family: 'Inter', size: 12 },
+                                color: '#475569'
+                            },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'Inter' } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw + '% of genetic ceiling';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize Chart.js for Module 4
+        function initApplicationCharts() {
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 11 }, boxWidth: 12 } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ' ' + context.label + ': ' + context.raw + '% Volume';
+                            }
+                        }
+                    }
+                },
+                cutout: '65%'
+            };
+
+            const ctxPol = document.getElementById('polarizedChart').getContext('2d');
+            new Chart(ctxPol, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Zone 1 (< LT1)', 'Zone 2 (LT1-LT2)', 'Zone 3 (> LT2)'],
+                    datasets: [{
+                        data: [80, 5, 15],
+                        backgroundColor: [chartColors.z1, chartColors.z2, chartColors.z3],
+                        borderWidth: 0
+                    }]
+                },
+                options: commonOptions
+            });
+
+            const ctxPyr = document.getElementById('pyramidalChart').getContext('2d');
+            new Chart(ctxPyr, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Zone 1 (< LT1)', 'Zone 2 (LT1-LT2)', 'Zone 3 (> LT2)'],
+                    datasets: [{
+                        data: [70, 20, 10],
+                        backgroundColor: [chartColors.z1, chartColors.z2, chartColors.z3],
+                        borderWidth: 0
+                    }]
+                },
+                options: commonOptions
+            });
+        }
+
+        // Set initial state styling
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeNav = document.getElementById('nav-overview');
+            activeNav.style.backgroundColor = '#e0f2fe';
+            activeNav.style.color = '#0369a1';
+            activeNav.style.borderRight = '4px solid #0369a1';
+        });
+
+    </script>
+</body>
+</html>

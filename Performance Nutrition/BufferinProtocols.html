@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buffering the Burn: BA + SB Co-Ingestion Strategy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Performance Slate & Energy Orange. Backgrounds are light slate, text is deep slate, highlights are a vibrant orange to represent energy/burn, with blue to represent oxygen/blood flow. -->
+    <!-- Application Structure Plan: 
+         1. Hero/Intro: Establishes the physiological problem (acidosis in middle distance).
+         2. The Mechanisms (Tabbed Interface): Allows the user to explore the single supplements (Beta-Alanine, Sodium Bicarbonate) and their specific actions before combining them. This builds understanding step-by-step.
+         3. The Synergy (Chart): Visually demonstrates the theoretical additive benefit of co-ingestion compared to single use.
+         4. Protocol Generator (Interactive): The practical application. Users input their weight to get a personalized, time-stamped race-day protocol specifically designed to minimize GI distress (split-dose). 
+         This structure moves from theory -> isolated mechanisms -> combined synergy -> practical application. -->
+    <!-- Visualization & Content Choices: 
+         - Goal: Compare Supplement Efficacy -> Viz: Bar Chart (Chart.js) -> Interaction: Hover tooltips -> Justification: Clearest way to show relative performance/buffering capacity increases.
+         - Goal: Explain Mechanisms -> Viz: Tabbed Text & CSS Flexbox "Diagrams" -> Interaction: Click tabs -> Justification: Keeps UI clean while providing deep dives into each substance. No SVG used, relied on HTML/CSS structure for visual representation of cells.
+         - Goal: Provide Actionable Protocol -> Viz: Dynamic Timeline Generator -> Interaction: Input weight, click generate -> Justification: Makes the science immediately usable for an athlete/coach. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #0f172a; /* slate-900 */
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 250px;
+            }
+        }
+
+        /* Custom tab active state */
+        .tab-active {
+            border-bottom: 4px solid #ea580c; /* orange-600 */
+            color: #ea580c;
+            font-weight: 600;
+        }
+
+        /* Simplified CSS Diagram */
+        .cell-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .muscle-cell {
+            background-color: #fee2e2; /* red-100 */
+            border: 2px dashed #ef4444; /* red-500 */
+            border-radius: 0.5rem;
+            padding: 1rem;
+            width: 45%;
+            text-align: center;
+        }
+        .blood-vessel {
+            background-color: #dbeafe; /* blue-100 */
+            border: 2px solid #3b82f6; /* blue-500 */
+            border-radius: 0.5rem;
+            padding: 1rem;
+            width: 45%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header Section -->
+    <header class="bg-slate-900 text-white py-16 px-6 sm:px-12 lg:px-24">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex flex-wrap items-center justify-end gap-2 mb-6">
+                <a href="index.html" class="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-800/40 px-3 py-1.5 text-[11px] font-semibold text-slate-100 shadow-sm hover:bg-slate-800/70 hover:text-slate-200 transition-colors">
+                    <span aria-hidden="true">←</span> Performance Nutrition
+                </a>
+                <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-full border border-rose-400/30 bg-rose-500/20 px-3 py-1.5 text-[11px] font-semibold text-rose-100 shadow-sm hover:bg-rose-500/30 hover:text-rose-200 transition-colors">
+                    <span aria-hidden="true">🏠</span> Learning Hub
+                </a>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">Buffering the Burn</h1>
+            <p class="text-xl md:text-2xl font-light text-slate-300 mb-6">Optimizing Co-Ingestion of Beta-Alanine & Sodium Bicarbonate for 400m–1500m Performance.</p>
+            <div class="flex flex-wrap gap-4 text-sm font-semibold">
+                <span class="bg-slate-800 px-3 py-1 rounded-full text-slate-300">Intracellular Buffering</span>
+                <span class="text-slate-500">➕</span>
+                <span class="bg-slate-800 px-3 py-1 rounded-full text-slate-300">Extracellular Buffering</span>
+                <span class="text-orange-500">🟰 Maximum H+ Clearance</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-6 sm:px-12 mt-12 space-y-16">
+
+        <!-- Introduction Context -->
+        <section>
+            <h2 class="text-2xl font-bold mb-4 text-slate-800">The Physiological Challenge</h2>
+            <p class="text-lg leading-relaxed text-slate-600 mb-4">
+                In middle-distance events (400m to 1500m), the body relies heavily on anaerobic glycolysis for rapid energy. A byproduct of this system is lactic acid, which rapidly dissociates into lactate and <strong>Hydrogen ions (H+)</strong>. The accumulation of H+ lowers muscle pH (acidosis), directly interfering with muscle contraction and causing the agonizing sensation of "heavy legs" and fatigue.
+            </p>
+            <p class="text-lg leading-relaxed text-slate-600">
+                To combat this, sports science utilizes nutritional buffers to delay acidosis. The two most effective, evidence-based legal supplements are Beta-Alanine (BA) and Sodium Bicarbonate (SB). While effective individually, they work in entirely different compartments of the body.
+            </p>
+        </section>
+
+        <!-- Mechanisms Tabs -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-slate-50 border-b border-slate-200 px-4 sm:px-6 flex overflow-x-auto">
+                <button onclick="switchTab('ba-tab')" id="btn-ba-tab" class="px-6 py-4 text-sm uppercase tracking-wider text-slate-500 hover:text-slate-800 focus:outline-none whitespace-nowrap tab-active transition-colors">
+                    Beta-Alanine (BA) Only
+                </button>
+                <button onclick="switchTab('sb-tab')" id="btn-sb-tab" class="px-6 py-4 text-sm uppercase tracking-wider text-slate-500 hover:text-slate-800 focus:outline-none whitespace-nowrap transition-colors">
+                    Sodium Bicarb (SB) Only
+                </button>
+                <button onclick="switchTab('co-tab')" id="btn-co-tab" class="px-6 py-4 text-sm uppercase tracking-wider text-slate-500 hover:text-slate-800 focus:outline-none whitespace-nowrap transition-colors">
+                    The Synergy (Co-Ingestion)
+                </button>
+            </div>
+
+            <div class="p-6 sm:p-8">
+                
+                <!-- Tab 1: Beta Alanine -->
+                <div id="ba-tab" class="tab-content block">
+                    <h3 class="text-2xl font-bold text-orange-600 mb-2">The Intracellular Defender</h3>
+                    <p class="text-slate-600 mb-6">Beta-alanine is an amino acid that, when ingested chronically, combines with histidine in the muscle to form <strong>Carnosine</strong>. Carnosine acts as a sponge <em>inside</em> the muscle cell, soaking up H+ ions as they are produced during high-intensity exercise.</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div class="bg-slate-50 p-6 rounded-lg">
+                            <h4 class="font-bold text-slate-800 mb-2">Single Source Protocol</h4>
+                            <ul class="list-disc list-inside space-y-2 text-slate-600">
+                                <li><strong>Dose:</strong> 6.4g per day.</li>
+                                <li><strong>Duration:</strong> 4 to 8 weeks minimum (requires chronic loading).</li>
+                                <li><strong>Timing:</strong> Split into 4x 1.6g doses daily to avoid paraesthesia (skin tingling).</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-50 p-6 rounded-lg">
+                            <h4 class="font-bold text-slate-800 mb-2">Performance Benefit</h4>
+                            <ul class="list-disc list-inside space-y-2 text-slate-600">
+                                <li>Increases muscle carnosine by 40-80%.</li>
+                                <li>Improves high-intensity exercise capacity lasting 1-4 minutes.</li>
+                                <li>Typically yields a ~1-2% performance enhancement in middle-distance events.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Sodium Bicarbonate -->
+                <div id="sb-tab" class="tab-content hidden">
+                    <h3 class="text-2xl font-bold text-blue-600 mb-2">The Extracellular Vacuum</h3>
+                    <p class="text-slate-600 mb-6">Sodium Bicarbonate (baking soda) increases the concentration of bicarbonate in the blood (extracellular space). It cannot enter the muscle cell. Instead, it creates an alkaline environment in the blood, creating a gradient that pulls H+ <em>out</em> of the muscle cell faster.</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div class="bg-slate-50 p-6 rounded-lg">
+                            <h4 class="font-bold text-slate-800 mb-2">Single Source Protocol</h4>
+                            <ul class="list-disc list-inside space-y-2 text-slate-600">
+                                <li><strong>Dose:</strong> 0.3g per kg of body weight.</li>
+                                <li><strong>Traditional (Acute Load):</strong> Taken all at once 60-90 mins before racing. <em>High risk of severe Gastrointestinal (GI) distress (vomiting/diarrhea).</em></li>
+                                <li><strong>Modern (Split-Dose):</strong> Discussed in the synergy section below to mitigate GI issues.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-50 p-6 rounded-lg">
+                            <h4 class="font-bold text-slate-800 mb-2">Performance Benefit</h4>
+                            <ul class="list-disc list-inside space-y-2 text-slate-600">
+                                <li>Enhances extracellular buffering capacity.</li>
+                                <li>Particularly effective for multiple bouts of high-intensity efforts.</li>
+                                <li>Similar ~1-2% performance enhancement to BA, provided GI distress is avoided.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Synergy -->
+                <div id="co-tab" class="tab-content hidden">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-2">The Dual-Defense Mechanism</h3>
+                    <p class="text-slate-600 mb-6">Why choose one when you can have both? Research indicates that co-ingesting BA and SB provides an additive effect. Carnosine acts as the first line of defense inside the cell, while elevated blood bicarbonate acts as a vacuum to pull out the H+ that escapes the carnosine buffer.</p>
+                    
+                    <div class="cell-diagram text-sm font-semibold">
+                        <div class="muscle-cell">
+                            <div class="text-red-700 mb-2">Muscle Cell (Intracellular)</div>
+                            <div class="bg-white p-2 rounded text-slate-800 shadow-sm">
+                                H+ Production 🔥<br>
+                                <span class="text-orange-600">Carnosine (BA) Neutralizes H+</span>
+                            </div>
+                        </div>
+                        <div class="text-2xl text-slate-400">
+                            ➔<br>H+ Efflux<br>➔
+                        </div>
+                        <div class="blood-vessel">
+                            <div class="text-blue-800 mb-2">Blood Stream (Extracellular)</div>
+                            <div class="bg-white p-2 rounded text-slate-800 shadow-sm">
+                                <span class="text-blue-600">Bicarbonate (SB) Vacuum</span><br>
+                                Pulls H+ out of muscle
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-r mt-6">
+                        <p class="text-orange-800 text-sm"><strong>The GI Dilemma:</strong> The main limitation to this synergy is SB's tendency to cause stomach upset on race day. To achieve the benefits of co-ingestion without ruining the race, a specific <strong>Split-Dose</strong> SB protocol combined with chronic BA loading is required.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Visualization Section -->
+        <section>
+            <h2 class="text-2xl font-bold mb-2 text-slate-800">Relative Buffering Capacity</h2>
+            <p class="text-slate-600 mb-6">Theoretical model based on sports science literature showing the additive effect of co-ingestion on total body buffering capacity compared to baseline and single-supplement use.</p>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="chart-container">
+                    <canvas id="bufferingChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Protocol Generator -->
+        <section class="bg-slate-900 text-white rounded-xl p-8 sm:p-12 shadow-lg mb-12">
+            <h2 class="text-3xl font-bold mb-4">Competition-Day Protocol Generator</h2>
+            <p class="text-slate-300 mb-8">
+                Generate a personalized loading strategy. This utilizes a chronic Beta-Alanine load and a <strong>Split-Dose Sodium Bicarbonate</strong> protocol. The split-dose method (dividing the 0.3g/kg dose over several hours) is critical to minimizing the severe GI distress associated with acute bolus doses, while still achieving peak blood alkalosis at the start line.
+            </p>
+
+            <div class="flex flex-col sm:flex-row items-end gap-4 mb-8">
+                <div class="w-full sm:w-1/3">
+                    <label for="athlete-weight" class="block text-sm font-medium text-slate-300 mb-2">Athlete Body Weight (kg)</label>
+                    <input type="number" id="athlete-weight" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500" placeholder="e.g. 70" min="40" max="120">
+                </div>
+                <button onclick="generateProtocol()" class="w-full sm:w-auto bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 px-8 rounded-lg transition-colors">
+                    Generate Protocol
+                </button>
+            </div>
+
+            <div id="protocol-output" class="hidden space-y-6">
+                <div class="bg-slate-800 rounded-lg p-6 border border-slate-700">
+                    <h4 class="text-xl font-bold text-orange-400 mb-4">Phase 1: Chronic Load (Weeks 1-4 prior to race)</h4>
+                    <div class="flex items-start gap-4">
+                        <div class="bg-slate-700 p-3 rounded text-xl">💊</div>
+                        <div>
+                            <p class="font-semibold text-lg">Beta-Alanine</p>
+                            <p class="text-slate-300">Take <strong class="text-white">6.4g daily</strong>. Split into 4 doses of 1.6g throughout the day (with meals) to reduce skin tingling.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 rounded-lg p-6 border border-slate-700 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-orange-600 text-xs font-bold px-3 py-1 rounded-bl-lg">MINIMIZES GI DISTRESS</div>
+                    <h4 class="text-xl font-bold text-blue-400 mb-4">Phase 2: Race Day Split-Dose Protocol</h4>
+                    <p class="text-sm text-slate-400 mb-6 border-b border-slate-700 pb-4">Target total SB dose: <span id="total-sb-dose" class="text-white font-bold"></span>g (0.3g/kg). To be consumed with plenty of water and a small carbohydrate snack to aid gastric emptying.</p>
+                    
+                    <ul class="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-600 before:to-transparent">
+                        
+                        <!-- Timeline Items will be injected here via JS -->
+                        <div id="timeline-container"></div>
+                        
+                        <li class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                            <div class="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-orange-500 text-slate-900 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                                🏁
+                            </div>
+                            <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded border border-slate-700 bg-slate-800/50">
+                                <div class="flex items-center justify-between mb-1">
+                                    <h5 class="font-bold text-orange-400">T-Minus 0</h5>
+                                </div>
+                                <p class="text-slate-300 text-sm">Race Start. Buffers are fully optimized.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center text-slate-500 text-sm mt-12 mb-8">
+        <p>Synthesized from literature regarding high-intensity middle-distance performance interventions.</p>
+    </footer>
+
+    <script>
+        // --- Tab Logic ---
+        function switchTab(tabId) {
+            // Hide all content
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // Remove active styles from all buttons
+            document.querySelectorAll('[id^="btn-"]').forEach(el => {
+                el.classList.remove('tab-active');
+            });
+
+            // Show selected content
+            document.getElementById(tabId).classList.remove('hidden');
+            // Add active style to selected button
+            document.getElementById('btn-' + tabId).classList.add('tab-active');
+        }
+
+        // --- Chart.js Implementation ---
+        const ctx = document.getElementById('bufferingChart').getContext('2d');
+        const bufferingChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Baseline (No Supps)', 'Beta-Alanine Only', 'Sodium Bicarbonate Only', 'Co-Ingestion (BA + SB)'],
+                datasets: [{
+                    label: 'Relative Buffering Capacity (%)',
+                    data: [100, 115, 115, 130], // Theoretical illustrative data
+                    backgroundColor: [
+                        '#cbd5e1', // slate-300
+                        '#f97316', // orange-500
+                        '#3b82f6', // blue-500
+                        '#0f172a'  // slate-900
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed.y !== null) { label += context.parsed.y + '%'; }
+                                
+                                // Add context based on index
+                                const descriptions = [
+                                    "Natural buffering limits.",
+                                    "+Intracellular capacity via Carnosine.",
+                                    "+Extracellular capacity via blood alkalosis.",
+                                    "Additive effect: Dual-compartment buffering."
+                                ];
+                                return [label, descriptions[context.dataIndex]];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        min: 80, // Start slightly below baseline to emphasize differences visually
+                        title: {
+                            display: true,
+                            text: 'Capacity relative to Baseline (%)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // --- Protocol Generator Logic ---
+        function generateProtocol() {
+            const weightInput = document.getElementById('athlete-weight').value;
+            const outputArea = document.getElementById('protocol-output');
+            const timelineContainer = document.getElementById('timeline-container');
+            
+            if (!weightInput || weightInput <= 0) {
+                alert("Please enter a valid weight in kg.");
+                return;
+            }
+
+            const weight = parseFloat(weightInput);
+            
+            // Calculations
+            const totalSbGrams = (weight * 0.3).toFixed(1);
+            // Split dose logic: often split into 3-4 doses leading up to the event.
+            // Example protocol: T-150m, T-120m, T-90m
+            const dosePerServing = (totalSbGrams / 3).toFixed(1);
+
+            // Update UI elements
+            document.getElementById('total-sb-dose').textContent = totalSbGrams;
+            
+            // Generate Timeline HTML
+            const timelineEvents = [
+                { time: "T-Minus 150 mins", action: `Take ${dosePerServing}g Sodium Bicarbonate`, notes: "Consume with 400ml water and a small carb snack (e.g., half a banana)." },
+                { time: "T-Minus 120 mins", action: `Take ${dosePerServing}g Sodium Bicarbonate`, notes: "Consume with 400ml water. Monitor stomach feel." },
+                { time: "T-Minus 90 mins", action: `Take ${dosePerServing}g Sodium Bicarbonate`, notes: "Final dose. Complete hydration. Begin standard physical warm-up protocol shortly after." }
+            ];
+
+            let timelineHTML = '';
+            timelineEvents.forEach((event, index) => {
+                const isEven = index % 2 === 0;
+                timelineHTML += `
+                <li class="relative flex items-center justify-between md:justify-normal ${isEven ? 'md:odd:flex-row-reverse' : ''} group is-active">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border border-slate-700 bg-slate-800 text-blue-400 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                        ⏱️
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded border border-slate-700 bg-slate-800">
+                        <div class="flex items-center justify-between mb-1">
+                            <h5 class="font-bold text-white">${event.time}</h5>
+                        </div>
+                        <p class="text-blue-300 font-semibold mb-1">${event.action}</p>
+                        <p class="text-slate-400 text-xs">${event.notes}</p>
+                    </div>
+                </li>
+                `;
+            });
+
+            timelineContainer.innerHTML = timelineHTML;
+
+            // Reveal output
+            outputArea.classList.remove('hidden');
+            
+            // Smooth scroll to output
+            outputArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>

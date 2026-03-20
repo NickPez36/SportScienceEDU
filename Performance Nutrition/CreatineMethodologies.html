@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creatine Monohydrate: High-Performance Sport Matrix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        neutralBg: '#f5f5f4', // stone-100
+                        panelBg: '#ffffff',
+                        textMain: '#334155', // slate-700
+                        textDark: '#0f172a', // slate-900
+                        accentPrimary: '#0d9488', // teal-600 (Energy/PCr)
+                        accentSecondary: '#ea580c', // orange-600 (Power/Glycogen)
+                        accentTertiary: '#2563eb', // blue-600 (Hydration/Endurance)
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Strict Chart Container Styling as per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+            overflow: hidden;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 380px;
+            }
+        }
+        
+        /* Custom scrollbar for inner content if needed */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        .tab-btn.active {
+            border-bottom-width: 4px;
+            border-color: #0d9488;
+            color: #0d9488;
+            font-weight: 600;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-neutralBg text-textMain font-sans antialiased selection:bg-accentPrimary selection:text-white">
+
+    <!-- Chosen Palette: Warm Neutrals (Stone) with Teal (Energy), Orange (Power), and Blue (Hydration) accents for a clinical yet engaging scientific feel. -->
+    
+    <!-- Application Structure Plan: 
+         Structure: Tabbed Interactive Dashboard.
+         Reasoning: The report covers 4 distinct athlete archetypes/topics. A linear, scrolling report would be too long and hard to compare. A tabbed interface allows users to focus on specific modalities (Sprint, Mid-Distance, Endurance, Matrix) without losing context. 
+         Flow: 
+         1. Introduction sets the stage.
+         2. Global Navigation (Tabs) routes to specific physiological systems.
+         3. Each section presents context -> interactive visualization -> synthesis text.
+         4. The final 'Matrix' section acts as a synthesis of the prior learnings, applying the risk/reward across all sports. -->
+         
+    <!-- Visualization & Content Choices:
+         1. Sprint (Goal: Compare & Change): Bar chart for RSA (Repeated Sprint Ability) power maintenance; Line chart for Saturation kinetics (Loading vs Chronic). Interaction: Toggle saturation models. Library: Chart.js.
+         2. Mid-Distance (Goal: Inform & Change): Line chart comparing power profiles highlighting the 'late surge'. Library: Chart.js.
+         3. Endurance (Goal: Organize & Inform): Interactive cards for emerging benefits (Glycogen, Hydration) linked to a dynamic Bar chart showing glycogen storage differences.
+         4. Matrix (Goal: Relationships): Scatter plot mapping sports on Power Dependency vs Mass Penalty axes to visualize the risk-reward tradeoff. Library: Chart.js.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. CSS shapes and Unicode used for iconography. -->
+
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        
+        <!-- Header -->
+        <div class="flex flex-wrap items-center justify-end gap-2 mb-6">
+            <a href="index.html" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <span aria-hidden="true">←</span> Performance Nutrition
+            </a>
+            <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-semibold text-rose-700 shadow-sm hover:bg-rose-100 hover:text-rose-800 transition-colors">
+                <span aria-hidden="true">🏠</span> Learning Hub
+            </a>
+        </div>
+        <header class="mb-8 border-b border-gray-300 pb-6 text-center md:text-left">
+            <h1 class="text-3xl md:text-5xl font-bold text-textDark tracking-tight mb-2">Creatine Monohydrate Dynamics</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl">A Technical Analysis of Periodization, Physiological Mechanisms, and Application Across High-Performance Sport Archetypes.</p>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="flex overflow-x-auto border-b border-gray-300 mb-8 pb-1 scrollbar-hide" aria-label="Tabs">
+            <button onclick="switchTab('sprint')" id="tab-sprint" class="tab-btn active whitespace-nowrap py-3 px-6 text-sm md:text-base font-medium text-gray-500 hover:text-accentPrimary transition-colors focus:outline-none">
+                <span class="text-xl mr-2">&#9889;</span> Sprint & Power
+            </button>
+            <button onclick="switchTab('middle')" id="tab-middle" class="tab-btn whitespace-nowrap py-3 px-6 text-sm md:text-base font-medium text-gray-500 hover:text-accentPrimary transition-colors focus:outline-none">
+                <span class="text-xl mr-2">&#127939;</span> Middle-Distance
+            </button>
+            <button onclick="switchTab('endurance')" id="tab-endurance" class="tab-btn whitespace-nowrap py-3 px-6 text-sm md:text-base font-medium text-gray-500 hover:text-accentPrimary transition-colors focus:outline-none">
+                <span class="text-xl mr-2">&#128692;</span> Endurance
+            </button>
+            <button onclick="switchTab('matrix')" id="tab-matrix" class="tab-btn whitespace-nowrap py-3 px-6 text-sm md:text-base font-medium text-gray-500 hover:text-accentPrimary transition-colors focus:outline-none">
+                <span class="text-xl mr-2">&#9878;</span> The Weight Matrix
+            </button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="bg-panelBg rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 min-h-[600px]">
+
+            <!-- SECTION 1: SPRINT & POWER -->
+            <section id="sec-sprint" class="fade-in block">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-textDark mb-3">1. Sprint & Power Athletes (100m, Jumpers, Throwers)</h2>
+                    <p class="text-gray-700 leading-relaxed">
+                        This section explores the fundamental biochemical pathways of the Phosphocreatine (PCr) system. Here, we analyze how intramuscular saturation directly dictates ATP resynthesis rates during maximal efforts and critically evaluate the kinetics of different dosing protocols.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- Concept 1 -->
+                    <div>
+                        <h3 class="text-xl font-semibold text-accentPrimary mb-2">The PCr System & RSA</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            During brief, maximal exertion (e.g., a 100m sprint or heavy lift), ATP is rapidly depleted. The PCr system is the primary mechanism for instantaneous ATP resynthesis. Saturated creatine stores delay PCr depletion, significantly enhancing <strong>Repeated Sprint Ability (RSA)</strong> by maintaining peak power output across multiple bouts.
+                        </p>
+                        <div class="chart-container">
+                            <canvas id="rsaChart"></canvas>
+                        </div>
+                        <p class="text-xs text-center text-gray-500 mt-2">Data visualization: Power maintenance over 6x30m sprints (simulated).</p>
+                    </div>
+
+                    <!-- Concept 2 -->
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-100">
+                        <h3 class="text-xl font-semibold text-accentPrimary mb-2">Periodization: Loading vs. Chronic</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Muscle saturation can be achieved through two primary protocols. The choice depends entirely on the athlete's competition timeline and tolerance to acute mass gain.
+                        </p>
+                        
+                        <!-- Interactive Toggle -->
+                        <div class="flex space-x-2 mb-6 bg-gray-200 p-1 rounded-lg w-fit">
+                            <button onclick="updateDoseChart('loading')" id="btn-loading" class="px-4 py-2 text-sm font-medium rounded-md bg-white shadow text-textDark transition-all">Loading Phase</button>
+                            <button onclick="updateDoseChart('chronic')" id="btn-chronic" class="px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-textDark transition-all">Chronic Ingestion</button>
+                        </div>
+
+                        <div class="chart-container h-[200px] md:h-[250px]">
+                            <canvas id="dosingChart"></canvas>
+                        </div>
+                        
+                        <div id="dose-text" class="mt-4 text-sm bg-white p-3 rounded border border-l-4 border-l-accentPrimary shadow-sm">
+                            <strong>Loading (20g/day for 5-7 days):</strong> Achieves maximal intramuscular saturation (~160 mmol/kg dry mass) rapidly. Ideal when immediate performance enhancement is required, though associated with acute water retention (1-2kg). Followed by a 3-5g/day maintenance phase.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: MIDDLE DISTANCE -->
+            <section id="sec-middle" class="fade-in hidden">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-textDark mb-3">2. Middle-Distance Athletes (800m–1500m, Track Cycling)</h2>
+                    <p class="text-gray-700 leading-relaxed">
+                        Middle-distance events operate at the complex intersection of aerobic and anaerobic glycolytic systems. This section examines how saturated PCr stores not only sustain power but provide crucial intracellular buffering during states of high hydrogen ion (H+) accumulation.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div class="lg:col-span-8">
+                        <h3 class="text-xl font-semibold text-accentSecondary mb-4">Sustaining Power & The 'Final Kick'</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            In an 800m race, the final 200m heavily relies on any remaining anaerobic capacity. Elevated initial PCr stores mean the glycolytic system is taxed slightly later, preserving anaerobic reserve for the critical late-race surge.
+                        </p>
+                        <div class="chart-container">
+                            <canvas id="midDistChart"></canvas>
+                        </div>
+                        <p class="text-xs text-center text-gray-500 mt-2">Simulated 800m Power Output (Watts) - Creatine allows for sustained power in the final 15-20% of the event.</p>
+                    </div>
+
+                    <div class="lg:col-span-4 flex flex-col justify-center">
+                        <div class="bg-orange-50 p-6 rounded-xl border border-orange-100 h-full">
+                            <div class="text-4xl mb-4">&#9763;</div>
+                            <h3 class="text-lg font-semibold text-accentSecondary mb-2">Intracellular Buffering</h3>
+                            <p class="text-sm text-gray-700 mb-4">
+                                During high-intensity glycolysis, lactic acid dissociation leads to massive H+ accumulation, dropping blood and muscle pH (acidosis), which impairs muscle contractility.
+                            </p>
+                            <p class="text-sm text-gray-700 font-medium bg-white p-3 rounded border border-orange-200">
+                                <strong>The Mechanism:</strong> The breakdown of PCr during exercise consumes a hydrogen ion (H+). Therefore, having a larger pool of PCr to utilize actively buffers cellular acidity, delaying the onset of crippling peripheral fatigue.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: ENDURANCE -->
+            <section id="sec-endurance" class="fade-in hidden">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-textDark mb-3">3. Endurance Athletes (Marathon, Stage Cycling)</h2>
+                    <p class="text-gray-700 leading-relaxed">
+                        Traditionally ignored by endurance athletes, emerging research highlights creatine's profound benefits for prolonged aerobic events. This section details its role in glycogen supercompensation, cellular hydration, and mitigating exercise-induced damage.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <!-- Interactive Cards -->
+                    <button onclick="updateEnduranceView('glycogen')" class="endurance-card active text-left bg-white p-5 rounded-lg border-2 border-accentTertiary shadow-sm transition-all hover:shadow-md focus:outline-none relative overflow-hidden group">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-accentTertiary"></div>
+                        <div class="text-2xl mb-2">&#127838;</div>
+                        <h4 class="font-bold text-textDark">Glycogen Supercompensation</h4>
+                        <p class="text-xs text-gray-500 mt-1">Co-ingestion synergy</p>
+                    </button>
+                    
+                    <button onclick="updateEnduranceView('hydration')" class="endurance-card text-left bg-gray-50 p-5 rounded-lg border-2 border-transparent hover:border-gray-300 transition-all focus:outline-none">
+                        <div class="text-2xl mb-2">&#128167;</div>
+                        <h4 class="font-bold text-textDark">Thermoregulation</h4>
+                        <p class="text-xs text-gray-500 mt-1">Cellular hydration</p>
+                    </button>
+
+                    <button onclick="updateEnduranceView('damage')" class="endurance-card text-left bg-gray-50 p-5 rounded-lg border-2 border-transparent hover:border-gray-300 transition-all focus:outline-none">
+                        <div class="text-2xl mb-2">&#129658;</div>
+                        <h4 class="font-bold text-textDark">Muscle Damage Mitigation</h4>
+                        <p class="text-xs text-gray-500 mt-1">Multi-day recovery</p>
+                    </button>
+                </div>
+
+                <!-- Dynamic Content Area -->
+                <div class="bg-blue-50 p-6 md:p-8 rounded-xl border border-blue-100 flex flex-col lg:flex-row gap-8 items-center">
+                    
+                    <div class="lg:w-1/2 w-full" id="endurance-text-container">
+                        <h3 id="endurance-title" class="text-2xl font-bold text-accentTertiary mb-3">Carbohydrate Synergy</h3>
+                        <p id="endurance-desc" class="text-gray-700">
+                            Co-ingesting Creatine with Carbohydrates (CHO) significantly enhances total muscle glycogen storage compared to CHO alone. The cellular swelling induced by creatine uptake appears to upregulate GLUT4 translocation, driving more glucose into the muscle cell. This is critical for marathoners and stage cyclists looking to maximize fuel stores prior to an event.
+                        </p>
+                    </div>
+
+                    <div class="lg:w-1/2 w-full chart-container h-[250px]">
+                        <canvas id="enduranceChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: MATRIX -->
+            <section id="sec-matrix" class="fade-in hidden">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-textDark mb-3">4. The 'Weight Penalty' vs. Performance Matrix</h2>
+                    <p class="text-gray-700 leading-relaxed">
+                        Creatine loading inherently causes an increase in total body water, typically resulting in a 1–2kg mass gain. This section provides a critical risk-reward analysis: when does the metabolic power advantage outweigh the biomechanical penalty of carrying extra mass?
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    
+                    <div class="lg:col-span-8">
+                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-inner">
+                            <h3 class="text-center font-semibold text-gray-600 mb-2">Risk/Reward Distribution</h3>
+                            <div class="chart-container" style="height: 400px; max-height: 500px;">
+                                <canvas id="matrixChart"></canvas>
+                            </div>
+                            <p class="text-xs text-center text-gray-500 mt-3">Hover over points for archetype-specific analysis. X-Axis: Negative impact of added body mass. Y-Axis: Reliance on PCr power.</p>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-4 flex flex-col gap-4">
+                        <div class="bg-slate-800 text-white p-5 rounded-lg shadow-md">
+                            <h4 class="font-bold text-lg mb-2 border-b border-slate-600 pb-2">Optimal Responders</h4>
+                            <p class="text-sm text-slate-300"><strong>Throwers, Track Sprinters (100m):</strong> Power generation overwhelmingly dictates success. The mass penalty is negligible compared to the massive gains in absolute power and RSA.</p>
+                        </div>
+                        
+                        <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                            <h4 class="font-bold text-lg text-textDark mb-2 border-b border-gray-100 pb-2">The Nuanced Middle</h4>
+                            <p class="text-sm text-gray-600 mb-2"><strong>Jumpers, Team Sports:</strong> High power dependency, but moving body mass vertically/laterally is constant. Requires precise periodization (chronic loading over rapid loading) to manage water weight while gaining power.</p>
+                        </div>
+
+                        <div class="bg-red-50 p-5 rounded-lg border border-red-100 shadow-sm">
+                            <h4 class="font-bold text-lg text-red-800 mb-2 border-b border-red-200 pb-2">High Penalty Risk</h4>
+                            <p class="text-sm text-red-700"><strong>Marathoners, GC Cyclists (Climbers):</strong> Running economy and power-to-weight ratio (W/kg) are paramount. The metabolic cost of carrying an extra 1.5kg for 42km often negates the glycogen/buffering benefits, unless carefully managed in off-season phases.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+        
+        <footer class="mt-8 text-center text-sm text-gray-400">
+            <p>Interactive Technical Report &bull; Sports Nutrition Sciences &bull; Based on current physiological consensus.</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- Navigation Logic ---
+        function switchTab(tabId) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'border-b-4', 'border-accentPrimary', 'text-accentPrimary', 'font-semibold');
+                btn.classList.add('text-gray-500');
+            });
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            activeBtn.classList.remove('text-gray-500');
+            activeBtn.classList.add('active', 'border-b-4', 'border-accentPrimary', 'text-accentPrimary', 'font-semibold');
+
+            // Update sections
+            document.querySelectorAll('main > section').forEach(sec => {
+                sec.classList.add('hidden');
+            });
+            document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+        }
+
+        // --- Chart Configurations & Data ---
+        Chart.defaults.font.family = "'Inter', 'system-ui', 'sans-serif'";
+        Chart.defaults.color = '#64748b'; // slate-500
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)';
+        Chart.defaults.plugins.tooltip.padding = 10;
+
+        // 1. Sprint Charts
+        const ctxRsa = document.getElementById('rsaChart').getContext('2d');
+        const rsaChart = new Chart(ctxRsa, {
+            type: 'bar',
+            data: {
+                labels: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4', 'Sprint 5', 'Sprint 6'],
+                datasets: [
+                    {
+                        label: 'Placebo (Power Output)',
+                        data: [1000, 950, 880, 800, 720, 650],
+                        backgroundColor: '#cbd5e1', // slate-300
+                    },
+                    {
+                        label: 'Creatine Supplemented',
+                        data: [1020, 990, 950, 920, 880, 850],
+                        backgroundColor: '#0d9488', // teal-600
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: false, min: 500, title: { display: true, text: 'Peak Power (Watts)' } }
+                },
+                plugins: {
+                    title: { display: true, text: 'Maintenance of Power Across Repeated Sprints (RSA)' }
+                }
+            }
+        });
+
+        const ctxDose = document.getElementById('dosingChart').getContext('2d');
+        let dosingChart = new Chart(ctxDose, {
+            type: 'line',
+            data: {
+                labels: ['Day 1', 'Day 5', 'Day 10', 'Day 15', 'Day 20', 'Day 28'],
+                datasets: [{
+                    label: 'Muscle PCr Saturation (%)',
+                    data: [100, 120, 120, 120, 120, 120], // Base 100%, +20% max
+                    borderColor: '#0d9488',
+                    backgroundColor: 'rgba(13, 148, 136, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { min: 90, max: 125, title: { display: true, text: 'Total Muscle Creatine (mmol/kg)' } } },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        function updateDoseChart(type) {
+            // UI Toggle
+            const btnLoad = document.getElementById('btn-loading');
+            const btnChron = document.getElementById('btn-chronic');
+            const textDesc = document.getElementById('dose-text');
+
+            if (type === 'loading') {
+                btnLoad.className = "px-4 py-2 text-sm font-medium rounded-md bg-white shadow text-textDark transition-all";
+                btnChron.className = "px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-textDark transition-all";
+                dosingChart.data.datasets[0].data = [100, 120, 120, 120, 120, 120];
+                textDesc.innerHTML = "<strong>Loading (20g/day for 5-7 days):</strong> Achieves maximal intramuscular saturation rapidy. Ideal when immediate performance enhancement is required, though associated with acute water retention (1-2kg). Followed by a 3-5g/day maintenance phase.";
+            } else {
+                btnChron.className = "px-4 py-2 text-sm font-medium rounded-md bg-white shadow text-textDark transition-all";
+                btnLoad.className = "px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-textDark transition-all";
+                dosingChart.data.datasets[0].data = [100, 103, 107, 112, 116, 120];
+                textDesc.innerHTML = "<strong>Chronic Ingestion (3-5g/day):</strong> Gradually saturates muscle stores over 28 days. Avoids the acute gastrointestinal distress and rapid water weight gain associated with loading phases. Preferred for weight-class athletes or mid-season implementation.";
+            }
+            dosingChart.update();
+        }
+
+        // 2. Middle Distance Chart
+        const ctxMid = document.getElementById('midDistChart').getContext('2d');
+        new Chart(ctxMid, {
+            type: 'line',
+            data: {
+                labels: ['0m', '200m', '400m', '600m', '700m', '800m'],
+                datasets: [
+                    {
+                        label: 'Placebo',
+                        data: [800, 600, 550, 500, 450, 400],
+                        borderColor: '#94a3b8',
+                        borderDash: [5, 5],
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Creatine (Enhanced Buffer/PCr)',
+                        data: [800, 600, 550, 510, 490, 480],
+                        borderColor: '#ea580c', // orange-600
+                        borderWidth: 3,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { title: { display: true, text: 'Estimated Power (Watts)' } }
+                },
+                plugins: {
+                    annotation: { // Conceptual annotation, standard Chart.js doesn't have this built in without plugin, simulating with tooltip context visually
+                    }
+                }
+            }
+        });
+
+        // 3. Endurance Logic & Chart
+        const enduranceData = {
+            glycogen: {
+                title: "Carbohydrate Synergy",
+                desc: "Co-ingesting Creatine with Carbohydrates (CHO) significantly enhances total muscle glycogen storage compared to CHO alone. The cellular swelling induced by creatine uptake appears to upregulate GLUT4 translocation, driving more glucose into the muscle cell. This is critical for marathoners and stage cyclists looking to maximize fuel stores prior to an event.",
+                chartData: [100, 118] // % increase approx
+            },
+            hydration: {
+                title: "Thermoregulation via Hyperhydration",
+                desc: "Creatine is an osmotically active substance. Its uptake pulls water into the muscle cell, increasing intracellular fluid volume. During endurance events in hot environments, this 'hyperhydration' state helps maintain plasma volume longer, blunting cardiovascular drift and lowering core temperature compared to a placebo state.",
+                chartData: [100, 108] // % intracellular water index
+            },
+            damage: {
+                title: "Mitigating Exercise-Induced Muscle Damage",
+                desc: "Emerging data suggests creatine supplementation reduces markers of inflammation and muscle damage (like CK and LDH) following prolonged endurance events (e.g., a 30km run or Ironman). This accelerated structural recovery is highly beneficial for athletes competing in multi-day stage races (like the Tour de France).",
+                chartData: [100, 85] // % relative muscle damage marker (lower is better here, chart will look inverted relative to others)
+            }
+        };
+
+        const ctxEndurance = document.getElementById('enduranceChart').getContext('2d');
+        let endChart = new Chart(ctxEndurance, {
+            type: 'bar',
+            data: {
+                labels: ['Control (CHO alone/Placebo)', 'Creatine Supplemented'],
+                datasets: [{
+                    label: 'Relative Index (%)',
+                    data: enduranceData.glycogen.chartData,
+                    backgroundColor: ['#cbd5e1', '#2563eb'], // slate, blue
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 130 }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        function updateEnduranceView(viewKey) {
+            // UI Update
+            document.querySelectorAll('.endurance-card').forEach(card => {
+                card.classList.remove('active', 'bg-white', 'border-accentTertiary', 'shadow-sm');
+                card.classList.add('bg-gray-50', 'border-transparent');
+                card.querySelector('div.absolute')?.remove(); // remove indicator
+            });
+            
+            const activeCard = event.currentTarget;
+            activeCard.classList.remove('bg-gray-50', 'border-transparent');
+            activeCard.classList.add('active', 'bg-white', 'border-accentTertiary', 'shadow-sm');
+            activeCard.insertAdjacentHTML('afterbegin', '<div class="absolute top-0 left-0 w-1 h-full bg-accentTertiary"></div>');
+
+            // Content Update
+            const data = enduranceData[viewKey];
+            document.getElementById('endurance-title').innerText = data.title;
+            document.getElementById('endurance-desc').innerText = data.desc;
+            
+            // Chart Update
+            endChart.data.datasets[0].data = data.chartData;
+            if(viewKey === 'damage') {
+                endChart.options.scales.y.max = 110; // Adjust scale for lower-is-better metric
+            } else {
+                endChart.options.scales.y.max = 130;
+            }
+            endChart.update();
+        }
+
+        // 4. Matrix Scatter Plot
+        const ctxMatrix = document.getElementById('matrixChart').getContext('2d');
+        new Chart(ctxMatrix, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: 'Sprinters/Throwers (100m, Shotput)',
+                        data: [{ x: 1, y: 10 }], // Low sensitivity to weight, high reliance on power
+                        backgroundColor: '#0d9488',
+                        pointRadius: 8,
+                        pointHoverRadius: 10
+                    },
+                    {
+                        label: 'Track Cycling / 500m Row',
+                        data: [{ x: 3, y: 8 }],
+                        backgroundColor: '#0d9488',
+                        pointRadius: 8
+                    },
+                    {
+                        label: 'Jumpers / Hurdlers',
+                        data: [{ x: 6, y: 9 }], // Moderate/High weight sensitivity, High power
+                        backgroundColor: '#eab308', // yellow
+                        pointRadius: 8
+                    },
+                    {
+                        label: 'Team Sports (Soccer/Rugby)',
+                        data: [{ x: 5, y: 7 }],
+                        backgroundColor: '#eab308',
+                        pointRadius: 8
+                    },
+                    {
+                        label: 'Marathon Runners',
+                        data: [{ x: 9.5, y: 2 }], // High weight sensitivity, low max power reliance
+                        backgroundColor: '#ef4444', // red
+                        pointRadius: 8
+                    },
+                    {
+                        label: 'Stage Cyclists (Climbing)',
+                        data: [{ x: 9, y: 4 }],
+                        backgroundColor: '#ef4444',
+                        pointRadius: 8
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        min: 0,
+                        max: 10,
+                        title: { display: true, text: 'Mass Penalty Sensitivity (Biomechanics & W/kg)' },
+                        ticks: { callback: function(value) { if(value===0) return 'Low'; if(value===10) return 'High'; return ''; } }
+                    },
+                    y: {
+                        min: 0,
+                        max: 11,
+                        title: { display: true, text: 'Dependency on PCr/Peak Power' },
+                        ticks: { callback: function(value) { if(value===0) return 'Low'; if(value===10) return 'High'; return ''; } }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                let implications = "";
+                                if(context.parsed.x > 7) implications = " | High Risk: Water weight severely impairs economy.";
+                                else if(context.parsed.x > 4) implications = " | Mod Risk: Needs precise dose management.";
+                                else implications = " | Low Risk: Power gains completely dominate mass penalty.";
+                                return label + implications;
+                            }
+                        }
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>

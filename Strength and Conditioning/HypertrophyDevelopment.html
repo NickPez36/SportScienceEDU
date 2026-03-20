@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Functional & Task-Specific Hypertrophy in Elite Populations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Clinical Slate & Performance Teal (Slate-50 to Slate-900, Teal-600 for primary accents, Rose-600 for warnings/limitations). -->
+    <!-- Application Structure Plan: A single-page vertical scroll interactive report. Designed to mimic a modern academic dashboard. Sections are divided logically: Abstract, Mechanisms (with interactive composition toggle), Architectural Adaptations (radar comparison), Limitations/Nuance (mass penalty chart), and a distinct Practitioner Summary. This structure allows S&C coaches to flow from underlying theory to practical application, using interactive charts to visualize the differences between traditional and task-specific protocols without reading dense tables. -->
+    <!-- Visualization & Content Choices: 
+         1. Goal: Compare Hypertrophy Types -> Viz: Doughnut Chart (Chart.js) -> Interaction: Buttons toggle protocol data -> Justification: Clearly shows proportional differences in cell composition based on training type.
+         2. Goal: Compare Training Adaptations -> Viz: Radar Chart (Chart.js) -> Interaction: Hover tooltips -> Justification: Ideal for showing multidimensional physiological traits (stiffness, fascicle length) across different training modalities.
+         3. Goal: Show Mass vs Performance limit -> Viz: Line/Scatter Chart (Chart.js) -> Interaction: Hover data points -> Justification: Illustrates the "Mass Penalty" threshold where added mass decreases relative power.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. Data visualizations rely strictly on HTML/CSS/Tailwind and Canvas-based Chart.js. -->
+    
+    <style>
+        /* Strict Chart Container Styling as per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        @media (min-width: 1024px) {
+            .chart-container.large-chart {
+                max-width: 800px;
+                height: 400px;
+            }
+        }
+        
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md border-b border-slate-200 z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center">
+                    <span class="font-bold text-xl text-slate-900 tracking-tight">Neuro<span class="text-teal-600">Morph</span></span>
+                </div>
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="#mechanisms" class="text-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">Mechanisms</a>
+                    <a href="#architecture" class="text-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">Architectural Adaptations</a>
+                    <a href="#limitations" class="text-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">The Mass Penalty</a>
+                    <a href="#summary" class="text-sm font-medium bg-teal-50 text-teal-700 px-3 py-1.5 rounded-md hover:bg-teal-100 transition-colors">Practitioner Summary</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header / Abstract -->
+    <header class="pt-28 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="flex items-center justify-end gap-2 mb-6">
+            <a href="index.html" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <span aria-hidden="true">←</span> S&amp;C modules
+            </a>
+            <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-full border border-teal-200 bg-teal-50 px-3 py-1.5 text-[11px] font-semibold text-teal-800 shadow-sm hover:bg-teal-100 transition-colors">
+                <span aria-hidden="true">🏠</span> Learning Hub
+            </a>
+        </div>
+        <div class="max-w-3xl">
+            <p class="text-teal-600 font-semibold tracking-wide uppercase text-sm mb-2">Technical Research Report &middot; 2025–2026 Cycle</p>
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight mb-6">Functional & Task-Specific Hypertrophy in Elite Athletes</h1>
+            <p class="text-lg text-slate-600 mb-8">
+                A critical analysis of neuromuscular morphology, dissecting the distinction between gross cross-sectional area (CSA) expansion and task-specific architectural adaptations. This report challenges traditional "bodybuilding" paradigms in high-performance contexts, focusing on mechanotransduction, the interference effect, and optimizing the hypertrophy-to-body-mass ratio.
+            </p>
+            <div class="flex items-center space-x-4 text-sm text-slate-500 border-l-4 border-slate-300 pl-4">
+                <span><strong>Author:</strong> Senior Sport Scientist, Neuromuscular Morphology</span>
+                <span>&bull;</span>
+                <span><strong>Target:</strong> Heads of Strength & Conditioning</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-24">
+
+        <!-- SECTION: Mechanisms -->
+        <section id="mechanisms" class="scroll-mt-24">
+            <div class="mb-8 border-b border-slate-200 pb-4">
+                <h2 class="text-3xl font-bold text-slate-900">1. Cellular Mechanisms: Tension vs. Stress</h2>
+                <p class="mt-2 text-slate-600">Understanding the 2025-2026 consensus on myofibrillar protein accretion versus sarcoplasmic expansion via the mTORC1 pathway.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <h3 class="text-xl font-semibold text-slate-800">The Morphological Divide</h3>
+                    <p>
+                        Recent literature (2025–2026) conclusively settles the "Mechanical Tension vs. Metabolic Stress" debate in elite cohorts. While high-volume, metabolically stressful protocols (traditional bodybuilding) reliably stimulate the <strong>mTORC1 pathway</strong>, the resulting hypertrophy is often disproportionately <em>sarcoplasmic</em>. This involves an increase in non-contractile fluid, glycogen, and mitochondrial density without a commensurate increase in force-producing capacity.
+                    </p>
+                    <p>
+                        Conversely, <strong>Myofibrillar Hypertrophy</strong> relies on high-threshold mechanotransduction. In elite athletes nearing their genetic ceiling, where satellite cell myogenic potential and "new" growth are severely limited, maximizing the density of actin and myosin filaments (functional contractile tissue) within existing fibers is paramount.
+                    </p>
+                    
+                    <!-- Interactive Controls -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 mt-6">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Simulate Protocol Outcome</h4>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button id="btn-metabolic" class="flex-1 py-2 px-4 border border-slate-300 rounded-md text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors active-tab" onclick="updateCompositionChart('metabolic', this)">
+                                High Volume (Metabolic Stress)
+                            </button>
+                            <button id="btn-tension" class="flex-1 py-2 px-4 border border-slate-300 rounded-md text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors" onclick="updateCompositionChart('tension', this)">
+                                High Load (Mechanical Tension)
+                            </button>
+                        </div>
+                        <p id="composition-insight" class="text-sm text-slate-600 mt-4 italic">
+                            Displays a higher proportion of non-contractile sarcoplasmic fluid expansion, typical of traditional bodybuilding routines.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-center items-center">
+                    <h4 class="text-center font-medium text-slate-800 mb-4">Relative Intracellular Expansion</h4>
+                    <div class="chart-container">
+                        <canvas id="compositionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Architectural Adaptations -->
+        <section id="architecture" class="scroll-mt-24">
+            <div class="mb-8 border-b border-slate-200 pb-4">
+                <h2 class="text-3xl font-bold text-slate-900">2. Task-Specific Architecture</h2>
+                <p class="mt-2 text-slate-600">Critiquing standard volume approaches in favor of In-Series Hypertrophy and MTU manipulation.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-12">
+                <div class="lg:col-span-2 space-y-6">
+                    <p>
+                        A critique of the traditional hypertrophy approach reveals a fatal flaw for field/court athletes: an increase in parallel sarcomeres (girth) often results in a decrease in contraction velocity. <strong>Task-Specific Hypertrophy</strong> dictates that architectural changes must serve the specific biomechanical demands of the sport.
+                    </p>
+                    <div class="bg-teal-50 border-l-4 border-teal-500 p-4 rounded-r-md">
+                        <h4 class="font-semibold text-teal-900">Eccentric Overload & Sarcomerogenesis</h4>
+                        <p class="text-sm text-teal-800 mt-1">
+                            Utilizing supramaximal eccentric loads (e.g., flywheel devices) promotes <em>In-Series Hypertrophy</em> (sarcomerogenesis). This increases fascicle length, allowing the muscle to operate efficiently at longer lengths and shifting the force-length relationship to the right, mitigating injury risk during high-velocity lengthening actions.
+                        </p>
+                    </div>
+                    <p>
+                        Furthermore, carefully managed heavy isometric and eccentric loading enhances <strong>Muscle-Tendon Unit (MTU) stiffness</strong>. While excessive muscle mass can act as a shock absorber (detrimental to reactive strength), high MTU stiffness ensures rapid force transmission from the contractile elements to the skeletal system during stretch-shortening cycles (SSC).
+                    </p>
+                </div>
+
+                <div class="lg:col-span-3 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <h4 class="text-center font-medium text-slate-800 mb-2">Phenotype Adaptation Profile</h4>
+                    <p class="text-center text-xs text-slate-500 mb-6">Comparing standard High-Volume training vs. targeted Eccentric Overload in elite subjects.</p>
+                    <div class="chart-container large-chart">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Limitations & Mass Penalty -->
+        <section id="limitations" class="scroll-mt-24">
+            <div class="mb-8 border-b border-slate-200 pb-4">
+                <h2 class="text-3xl font-bold text-slate-900">3. The Mass Penalty & High-Performance Nuance</h2>
+                <p class="mt-2 text-slate-600">Analyzing genetic ceilings, concurrent training interference, and the detrimental effects of non-functional mass.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col">
+                    <h4 class="text-center font-medium text-slate-800 mb-2">Relative Power vs. Added Mass</h4>
+                    <p class="text-center text-xs text-slate-500 mb-6">Demonstrating the threshold where sarcoplasmic mass becomes a thermodynamic and mechanical liability.</p>
+                    <div class="chart-container flex-grow">
+                        <canvas id="penaltyChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="space-y-6 flex flex-col justify-center">
+                    <h3 class="text-xl font-semibold text-slate-800">Managing the Hypertrophy-to-Body-Mass Ratio</h3>
+                    <p>
+                        In elite populations, the drive for hypertrophy must be strictly balanced against the <strong>Power-to-Weight ratio</strong>. As depicted in the chart, there is a clear inflection point. Beyond optimal myofibrillar density, adding non-functional (sarcoplasmic) mass creates a "Mass Penalty." 
+                    </p>
+                    <ul class="space-y-4 mt-4">
+                        <li class="flex items-start">
+                            <span class="flex-shrink-0 h-6 w-6 text-rose-500 flex items-center justify-center font-bold text-lg">&times;</span>
+                            <span class="ml-3 text-slate-700"><strong>Thermoregulatory Burden:</strong> Increased non-contractile volume limits heat dissipation, accelerating fatigue in endurance and intermittent-sprint tasks.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="flex-shrink-0 h-6 w-6 text-rose-500 flex items-center justify-center font-bold text-lg">&times;</span>
+                            <span class="ml-3 text-slate-700"><strong>The Interference Effect:</strong> Pursuing high-volume hypertrophy concurrent with sport-specific energy system development triggers conflicting intracellular signaling (AMPK vs. mTORC1), blunting peak power adaptations.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="flex-shrink-0 h-6 w-6 text-slate-400 flex items-center justify-center font-bold text-lg">&#9888;</span>
+                            <span class="ml-3 text-slate-700"><strong>Genetic Ceilings:</strong> Elite athletes have limited satellite cell availability for new myonuclear addition. Programming must focus on remodeling existing architecture rather than chasing raw cross-sectional area.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Practitioner Summary -->
+        <section id="summary" class="scroll-mt-24">
+            <div class="bg-slate-900 rounded-2xl shadow-xl overflow-hidden">
+                <div class="p-8 sm:p-10 lg:p-12">
+                    <h2 class="text-3xl font-bold text-white mb-4">Practitioner's Summary</h2>
+                    <p class="text-slate-300 mb-8 max-w-3xl">
+                        Actionable directives for Heads of Strength & Conditioning when programming for elite, highly-trained populations nearing their morphological limits.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Card 1 -->
+                        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 hover:border-teal-500 transition-colors">
+                            <div class="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mb-4">
+                                <span class="text-teal-400 text-xl font-bold">1</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-white mb-2">Abandon "Hypertrophy Blocks"</h3>
+                            <p class="text-sm text-slate-400">
+                                Discard traditional 3x10-12 high-volume phases for elite athletes. These primarily induce sarcoplasmic expansion, diluting relative strength and negatively impacting the power-to-weight ratio.
+                            </p>
+                        </div>
+
+                        <!-- Card 2 -->
+                        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 hover:border-teal-500 transition-colors">
+                            <div class="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mb-4">
+                                <span class="text-teal-400 text-xl font-bold">2</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-white mb-2">Targeted Sarcomerogenesis</h3>
+                            <p class="text-sm text-slate-400">
+                                Implement targeted Eccentric Overload (e.g., flywheel squats, Nordic curls) to stimulate in-series hypertrophy. This increases fascicle length and shifts peak force production to longer muscle lengths, protecting against strain injuries.
+                            </p>
+                        </div>
+
+                        <!-- Card 3 -->
+                        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 hover:border-teal-500 transition-colors">
+                            <div class="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center mb-4">
+                                <span class="text-teal-400 text-xl font-bold">3</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-white mb-2">Micro-Dosing for Density</h3>
+                            <p class="text-sm text-slate-400">
+                                Manage the interference effect by micro-dosing high-tension, low-volume heavy resistance ( >85% 1RM). This drives myofibrillar protein accretion via mechanotransduction without excessive metabolic stress or unnecessary mass gain.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-8 text-center text-sm text-slate-500">
+        <p>Interactive Research Document &middot; Neuromuscular Morphology Dept.</p>
+    </footer>
+
+    <script>
+        // --- Shared Chart Configuration ---
+        Chart.defaults.font.family = "'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'";
+        Chart.defaults.color = '#64748b'; // Tailwind slate-500
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)'; // Tailwind slate-900
+        Chart.defaults.plugins.tooltip.titleColor = '#fff';
+        Chart.defaults.plugins.tooltip.bodyColor = '#cbd5e1'; // Tailwind slate-300
+        Chart.defaults.plugins.tooltip.padding = 10;
+        Chart.defaults.plugins.tooltip.cornerRadius = 4;
+
+        // --- 1. Composition Doughnut Chart ---
+        const compCtx = document.getElementById('compositionChart').getContext('2d');
+        
+        const compDataMetabolic = {
+            labels: ['Sarcoplasmic Fluid/Glycogen', 'Myofibrillar (Contractile)'],
+            datasets: [{
+                data: [65, 35],
+                backgroundColor: ['#cbd5e1', '#0f766e'], // slate-300, teal-700
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        };
+
+        const compDataTension = {
+            labels: ['Sarcoplasmic Fluid/Glycogen', 'Myofibrillar (Contractile)'],
+            datasets: [{
+                data: [25, 75],
+                backgroundColor: ['#e2e8f0', '#0d9488'], // slate-200, teal-600
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        };
+
+        let compositionChart = new Chart(compCtx, {
+            type: 'doughnut',
+            data: compDataMetabolic,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20, usePointStyle: true }
+                    }
+                }
+            }
+        });
+
+        // Interactive toggle logic for Composition Chart
+        function updateCompositionChart(type, btnElement) {
+            // Update UI styling
+            document.getElementById('btn-metabolic').classList.remove('bg-slate-100', 'border-teal-500', 'text-teal-700');
+            document.getElementById('btn-tension').classList.remove('bg-slate-100', 'border-teal-500', 'text-teal-700');
+            
+            btnElement.classList.add('bg-slate-100', 'border-teal-500', 'text-teal-700');
+
+            // Update Data & Text
+            const insightText = document.getElementById('composition-insight');
+            
+            if (type === 'metabolic') {
+                compositionChart.data = compDataMetabolic;
+                insightText.innerHTML = "Displays a higher proportion of non-contractile sarcoplasmic fluid expansion, typical of traditional high-volume routines. High visual size, lower relative strength.";
+            } else {
+                compositionChart.data = compDataTension;
+                insightText.innerHTML = "Focuses adaptation on myofibrillar density via mechanotransduction. Maximizes contractile elements without excessive fluid weight. High relative strength.";
+            }
+            compositionChart.update();
+        }
+
+        // Initialize button state
+        document.getElementById('btn-metabolic').classList.add('bg-slate-100', 'border-teal-500', 'text-teal-700');
+
+        // --- 2. Architectural Adaptations Radar Chart ---
+        const radarCtx = document.getElementById('radarChart').getContext('2d');
+        new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: [
+                    'Gross Muscle Mass', 
+                    ['Fascicle Length', '(Sarcomerogenesis)'], 
+                    'MTU Stiffness', 
+                    ['Force at', 'Long Lengths'], 
+                    'Contraction Velocity'
+                ],
+                datasets: [{
+                    label: 'High-Volume Bodybuilding',
+                    data: [90, 30, 40, 40, 30],
+                    backgroundColor: 'rgba(148, 163, 184, 0.2)', // slate-400
+                    borderColor: '#94a3b8',
+                    pointBackgroundColor: '#94a3b8',
+                    borderWidth: 2
+                }, {
+                    label: 'Task-Specific Eccentric',
+                    data: [50, 85, 90, 85, 80],
+                    backgroundColor: 'rgba(13, 148, 136, 0.2)', // teal-600
+                    borderColor: '#0d9488',
+                    pointBackgroundColor: '#0d9488',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: '#e2e8f0' },
+                        grid: { color: '#e2e8f0' },
+                        pointLabels: {
+                            font: { size: 12, family: 'Inter' },
+                            color: '#475569'
+                        },
+                        ticks: { display: false, min: 0, max: 100 }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // --- 3. The Mass Penalty Chart (Dual Axis Line) ---
+        const penaltyCtx = document.getElementById('penaltyChart').getContext('2d');
+        new Chart(penaltyCtx, {
+            type: 'line',
+            data: {
+                labels: ['Base', '+1kg', '+2kg', '+3kg', '+4kg', '+5kg (Sarcoplasmic)'],
+                datasets: [
+                    {
+                        label: 'Relative Power (W/kg)',
+                        data: [25.0, 25.2, 25.1, 24.5, 23.2, 21.5],
+                        borderColor: '#0f766e', // teal-700
+                        backgroundColor: '#0f766e',
+                        yAxisID: 'y',
+                        tension: 0.4,
+                        borderWidth: 3
+                    },
+                    {
+                        label: 'Thermoregulatory Strain Index',
+                        data: [1.0, 1.1, 1.3, 1.8, 2.5, 3.2],
+                        borderColor: '#e11d48', // rose-600
+                        backgroundColor: 'rgba(225, 29, 72, 0.1)',
+                        fill: true,
+                        yAxisID: 'y1',
+                        tension: 0.4,
+                        borderWidth: 2,
+                        borderDash: [5, 5]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    x: {
+                        grid: { display: false }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Relative Power (W/kg)', color: '#0f766e' },
+                        grid: { color: '#f1f5f9' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: 'Thermoregulatory Strain', color: '#e11d48' },
+                        grid: { drawOnChartArea: false } // only want the grid lines for one axis to show up
+                    }
+                },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed.y !== null) { label += context.parsed.y; }
+                                if(context.datasetIndex === 0 && context.dataIndex > 2) {
+                                    label += ' (Interference/Mass Penalty)';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
