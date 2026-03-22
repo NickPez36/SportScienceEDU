@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decoding Human Energy Systems | Applied Physiology Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Embedded CSS for strict chart container constraints and minimal custom styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f5f5f4; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d6d3d1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a29e; 
+        }
+
+        .tab-active {
+            border-bottom-width: 4px;
+            border-color: #292524;
+            color: #1c1917;
+            font-weight: 700;
+        }
+        .tab-inactive {
+            border-bottom-width: 4px;
+            border-color: transparent;
+            color: #78716c;
+        }
+        .tab-inactive:hover {
+            color: #292524;
+            border-color: #d6d3d1;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        stone: {
+                            50: '#fafaf9',
+                            100: '#f5f5f4',
+                            800: '#292524',
+                            900: '#1c1917',
+                        },
+                        alactic: '#0284c7', /* sky-600 */
+                        glycolytic: '#ea580c', /* orange-600 */
+                        aerobic: '#16a34a', /* green-600 */
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans antialiased leading-relaxed">
+
+    <!-- Chosen Palette: Warm Neutrals (Stone) with Deep Slate text. Accents: Sky Blue (Alactic), Orange (Glycolytic), Green (Aerobic). -->
+    
+    <!-- Application Structure Plan: 
+         1. Hero/Intro: Establishes the expert persona and context.
+         2. Synthesis Chart (Top): Provides an immediate macro-view of how the systems interact (90-second event) before diving into micro-details. This answers the "so what?" immediately.
+         3. Interactive System Explorer (Dashboard Layout): The core UI. Instead of scrolling through walls of text, users select a primary system (ATP-PC, Glycolytic, Aerobic), then sub-select a specific derivative. This categorizes complex physiological data into digestible, interactive chunks.
+         4. For each derivative, content is split logically: Mechanism (What's happening), Levers (How to train it), Blind Spots (Where people fail).
+         This structure is chosen to support non-linear exploration, allowing coaches/athletes to instantly find the specific physiological variable they want to understand and apply. 
+    -->
+
+    <!-- Visualization & Content Choices: 
+         - Synthesis Area Chart (Chart.js): Goal: Show interaction over time. Justification: Stacked area charts perfectly illustrate the proportionate contribution of overlapping energy systems during a continuous effort.
+         - Radar Chart for Training Levers (Chart.js): Goal: Visualize protocol components (Intensity, Volume, Rest). Justification: Quickly communicates the "shape" of a training session (e.g., high intensity/high rest vs low intensity/high volume) better than plain text.
+         - CSS/Unicode Icons: Used for visual anchoring without SVG files to comply with constraints. 
+         - Confirming NO SVG graphics used. NO Mermaid JS used. 
+    -->
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-stone-50/90 backdrop-blur border-b border-stone-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-wrap items-center justify-between gap-3 h-auto min-h-16 py-3 md:py-0 md:h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-black tracking-tight text-stone-900">🧬 BioEnergetics<span class="text-stone-400">.</span></span>
+                </div>
+                <div class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+                    <div class="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm font-medium">
+                        <a href="#synthesis" class="text-stone-600 hover:text-stone-900 transition-colors">The 90s Synthesis</a>
+                        <a href="#explorer" class="text-stone-600 hover:text-stone-900 transition-colors">System Explorer</a>
+                    </div>
+                    <a href="index.html" class="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-stone-100 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-200 transition-colors">
+                        <span aria-hidden="true">←</span> Sports Physiology modules
+                    </a>
+                    <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-stone-100 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-200 transition-colors">
+                        <span aria-hidden="true">🏠</span> Learning Hub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header / Intro -->
+    <header class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-stone-900 tracking-tight mb-6">Decoding Human Energy Systems</h1>
+        <p class="text-xl text-stone-600 font-serif mb-8 leading-relaxed">
+            Bridging the gap between cutting-edge cellular physiology and elite coaching application.
+        </p>
+        <div class="prose prose-stone mx-auto text-left text-stone-700 bg-white p-8 rounded-2xl shadow-sm border border-stone-100">
+            <p class="mb-4">
+                <strong>Overview:</strong> As an elite performance director, my objective is not merely to understand physiology, but to manipulate it. The traditional model of human energy systems—neatly compartmentalized buckets—is dangerously outdated. Modern physiology reveals a highly fluid, synergistic network of metabolic pathways.
+            </p>
+            <p>
+                This report deconstructs the three primary energy systems into their modern, highly specific physiological derivatives. By understanding the cellular mechanics, we can precisely target the biggest performance levers and illuminate the blind spots that leave athletes underperforming. We will explore everything from central nervous system drive to mitochondrial capillary networks, culminating in a synthesis of how these systems interact during a maximal 90-second athletic event.
+            </p>
+        </div>
+    </header>
+
+    <!-- Synthesis Section -->
+    <section id="synthesis" class="py-16 bg-white border-y border-stone-200">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4">The 90-Second Maximal Event Synthesis</h2>
+                <p class="text-stone-600 max-w-2xl mx-auto">
+                    This section demonstrates the synergy of the energy systems. During a maximal 90-second effort (e.g., an 800m run, a grueling grappling exchange), systems do not switch "on" and "off" sequentially. They operate simultaneously, dynamically shifting their proportionate contribution as local substrate depletes and metabolic byproducts accumulate. Interact with the chart to see the exact metabolic balance at any given second.
+                </p>
+            </div>
+
+            <!-- Main Chart Container -->
+            <div class="bg-stone-50 p-6 rounded-2xl border border-stone-200 shadow-inner">
+                <div class="chart-container">
+                    <canvas id="synthesisChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive System Explorer -->
+    <section id="explorer" class="py-16 bg-stone-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-12">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4">Cellular & Applied System Explorer</h2>
+                <p class="text-stone-600 max-w-3xl">
+                    This interactive dashboard dissects the overarching energy systems into their actionable derivatives. Select a primary system, then choose a specific derivative to uncover the cellular mechanisms, optimal training protocols, and commonly overlooked coaching blind spots. This structure allows you to directly connect a physiological goal with a practical training application.
+                </p>
+            </div>
+
+            <!-- Primary System Selection -->
+            <div class="flex flex-col sm:flex-row gap-4 mb-8">
+                <button onclick="selectSystem('alactic')" id="btn-alactic" class="flex-1 bg-white border-2 border-alactic/20 hover:border-alactic p-6 rounded-2xl shadow-sm transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-alactic focus:ring-offset-2 focus:ring-offset-stone-50">
+                    <div class="text-3xl mb-2">⚡</div>
+                    <h3 class="text-xl font-bold text-stone-900">The ATP-PC System</h3>
+                    <p class="text-sm text-stone-500 mt-1">Alactic. Immediate, extreme power.</p>
+                </button>
+                <button onclick="selectSystem('glycolytic')" id="btn-glycolytic" class="flex-1 bg-white border-2 border-glycolytic/20 hover:border-glycolytic p-6 rounded-2xl shadow-sm transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-glycolytic focus:ring-offset-2 focus:ring-offset-stone-50">
+                    <div class="text-3xl mb-2">🔥</div>
+                    <h3 class="text-xl font-bold text-stone-900">The Glycolytic System</h3>
+                    <p class="text-sm text-stone-500 mt-1">Sustained high intensity & lactate dynamics.</p>
+                </button>
+                <button onclick="selectSystem('aerobic')" id="btn-aerobic" class="flex-1 bg-white border-2 border-aerobic/20 hover:border-aerobic p-6 rounded-2xl shadow-sm transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-aerobic focus:ring-offset-2 focus:ring-offset-stone-50">
+                    <div class="text-3xl mb-2">🫀</div>
+                    <h3 class="text-xl font-bold text-stone-900">The Aerobic System</h3>
+                    <p class="text-sm text-stone-500 mt-1">Oxidative. Endurance, recovery & durability.</p>
+                </button>
+            </div>
+
+            <!-- Secondary Derivative Selection (Tabs) -->
+            <div id="derivative-tabs" class="flex flex-wrap border-b border-stone-200 mb-8">
+                <!-- Populated by JS -->
+            </div>
+
+            <!-- Content Area -->
+            <div id="content-area" class="grid grid-cols-1 lg:grid-cols-3 gap-8 hidden">
+                
+                <!-- Left Column: Mechanisms & Blind Spots -->
+                <div class="lg:col-span-2 space-y-8">
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-stone-200">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="text-2xl">🔬</span>
+                            <h4 class="text-2xl font-bold text-stone-900">A. Physiological Mechanisms</h4>
+                        </div>
+                        <div id="content-mechanisms" class="prose prose-stone max-w-none text-stone-700">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-900 p-8 rounded-2xl shadow-md border border-stone-800 text-stone-100 relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 text-7xl opacity-10">⚠️</div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="text-2xl">👁️‍🗨️</span>
+                            <h4 class="text-2xl font-bold text-white">C. Overlooked Opportunities & Blind Spots</h4>
+                        </div>
+                        <div id="content-blindspots" class="prose prose-invert max-w-none text-stone-300">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Performance Levers -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-stone-200 h-fit">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="text-2xl">⚙️</span>
+                        <h4 class="text-xl font-bold text-stone-900">B. Performance Levers</h4>
+                    </div>
+                    
+                    <div id="content-levers-text" class="text-sm text-stone-600 mb-6 bg-stone-50 p-4 rounded-lg border border-stone-100">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <h5 class="font-bold text-stone-900 mb-3 text-sm uppercase tracking-wider">Protocol Variables</h5>
+                    <div class="chart-container" style="height: 250px; max-height: 250px;">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+
+                    <div id="content-protocol" class="mt-6 pt-6 border-t border-stone-100">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+            </div>
+            
+            <div id="placeholder-message" class="text-center py-24 text-stone-400 font-medium text-lg">
+                Select an energy system above to begin decoding.
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-stone-900 text-stone-400 py-12 text-center border-t border-stone-800">
+        <p>© 2026 Applied BioEnergetics. Scientific Research Report.</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- DATA ARCHITECTURE ---
+        const systemData = {
+            alactic: {
+                color: '#0284c7',
+                derivatives: [
+                    {
+                        id: 'alactic-power',
+                        title: 'Alactic Power',
+                        mechanisms: `
+                            <p><strong>Maximal neuromuscular and CNS peak power output.</strong></p>
+                            <p>At the cellular level, this is governed by the immediate hydrolysis of Adenosine Triphosphate (ATP) by the enzyme ATPase at the myosin head. However, true alactic <em>power</em> is less about the substrate itself and almost entirely dictated by the <strong>Central Nervous System (CNS)</strong>.</p>
+                            <p>The rate-limiting factor is motor unit recruitment—specifically, the ability to rapidly recruit high-threshold Type IIx muscle fibers via high-frequency neural impulses (rate coding) and synchronize their firing. Intracellularly, it relies on rapid calcium (Ca2+) release from the sarcoplasmic reticulum to expose actin-myosin binding sites.</p>
+                        `,
+                        levers: `To force peak neural drive, training must be entirely free of metabolic fatigue. The intensity must be absolute maximal (100%), with durations strictly under 5-7 seconds.`,
+                        radarData: [100, 10, 100], // Intensity, Volume, Rest (0-100 scale)
+                        protocol: `
+                            <div class="font-mono text-sm space-y-2">
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Intensity:</span> <strong>100% Maximal</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Duration:</span> <strong>3-5 Seconds</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Work:Rest:</span> <strong>1:20 to 1:50</strong></div>
+                                <div class="mt-2 text-stone-700 italic">Example: 4 x 40m Sprints with 4-5 minutes passive recovery between reps.</div>
+                            </div>
+                        `,
+                        blindspots: `
+                            <p><strong>Decoupling Neural from Metabolic Fatigue:</strong> The most frequent coaching error is inadequate rest. If an athlete sprints for 5 seconds and rests for 60 seconds, they <em>feel</em> recovered metabolically (breathing normalizes). However, CNS recovery requires 3-5 minutes minimum. Without full CNS recovery, the next sprint trains <em>capacity</em>, not maximum power. Power training demands pristine execution; fatigue is the enemy of rate coding.</p>
+                        `
+                    },
+                    {
+                        id: 'alactic-capacity',
+                        title: 'Alactic Capacity',
+                        mechanisms: `
+                            <p><strong>Total phosphagen pool size and depletion tolerance.</strong></p>
+                            <p>This derivative focuses on the total amount of Phosphocreatine (PCr) stored within the muscle cell and the efficiency of the Creatine Kinase reaction. As ATP is hydrolyzed, Creatine Kinase strips the phosphate from PCr to instantly resynthesize ATP.</p>
+                            <p>Alactic capacity is the ability to sustain maximal or near-maximal outputs for slightly longer durations (up to 12-15 seconds) before severe power drop-off occurs due to complete PCr depletion and the forced shift toward slower glycolytic pathways.</p>
+                        `,
+                        levers: `Pushing the duration of maximal efforts slightly beyond the alactic power window to fully drain the intracellular PCr stores, forcing an enzymatic and storage adaptation.`,
+                        radarData: [95, 30, 80],
+                        protocol: `
+                            <div class="font-mono text-sm space-y-2">
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Intensity:</span> <strong>95-100%</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Duration:</span> <strong>8-15 Seconds</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Work:Rest:</span> <strong>1:10 to 1:15</strong></div>
+                                <div class="mt-2 text-stone-700 italic">Example: 6 x 10-second sled pushes with 2 minutes recovery.</div>
+                            </div>
+                        `,
+                        blindspots: `
+                            <p><strong>Genetic Ceilings vs. Trainability:</strong> Coaches often over-train alactic capacity. Total intramuscular PCr storage is highly genetically determined by fiber type distribution. While you can slightly increase the PCr pool and Creatine Kinase efficiency, the window for adaptation is small compared to aerobic parameters. Supplementation (Creatine Monohydrate) is often a faster route to increasing this capacity than endless 12-second sprints.</p>
+                        `
+                    },
+                    {
+                        id: 'alactic-repeatability',
+                        title: 'Alactic Repeatability',
+                        mechanisms: `
+                            <p><strong>Aerobically driven PCr resynthesis.</strong></p>
+                            <p>This is where systems merge. After a burst of alactic work, PCr stores are depleted. The resynthesis of PCr during rest periods is an <strong>oxidative (aerobic) process</strong>. It requires oxygen and ATP generated by the mitochondria to re-phosphorylate creatine.</p>
+                            <p>The speed at which an athlete can recharge their alactic system for the <em>next</em> sprint is directly proportional to their aerobic fitness, specifically mitochondrial density and capillary supply in the working muscles.</p>
+                        `,
+                        levers: `Repeated short, high-intensity efforts with incomplete recovery to stress the aerobic system's ability to clear inorganic phosphate (Pi) and resynthesize PCr between bouts.`,
+                        radarData: [90, 60, 40],
+                        protocol: `
+                            <div class="font-mono text-sm space-y-2">
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Intensity:</span> <strong>90-95%</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Duration:</span> <strong>5-8 Seconds</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Work:Rest:</span> <strong>1:4 or 1:5</strong></div>
+                                <div class="mt-2 text-stone-700 italic">Example: 3 sets of (5 x 6-second maximal cycle sprints, 30s rest). 3 mins between sets.</div>
+                            </div>
+                        `,
+                        blindspots: `
+                            <p><strong>The Missing Aerobic Base:</strong> Athletes in "power" sports (football, MMA, basketball) often ignore aerobic work, believing it makes them slow. However, if an athlete gasses out in the 3rd quarter, their alactic power hasn't failed; their <em>aerobic system</em> has failed to resynthesize PCr. Leaving low-intensity Zone 2 work out of a power athlete's program leaves immense alactic repeatability on the table.</p>
+                        `
+                    }
+                ]
+            },
+            glycolytic: {
+                color: '#ea580c',
+                derivatives: [
+                    {
+                        id: 'glycolytic-power',
+                        title: 'Glycolytic Power',
+                        mechanisms: `
+                            <p><strong>Maximum rate of glucose breakdown and lactate appearance.</strong></p>
+                            <p>This measures the absolute highest rate at which the cell can run anaerobic glycolysis—splitting glucose/glycogen into pyruvate to generate ATP quickly. Because the demand for ATP outstrips the mitochondria's ability to accept pyruvate, the enzyme Lactate Dehydrogenase (LDH) converts pyruvate into lactate.</p>
+                            <p>This process also yields a rapid accumulation of Hydrogen ions (H+) and inorganic Phosphate (Pi). Glycolytic power is limited by the maximal flux capacity of key regulatory enzymes like Phosphofructokinase (PFK).</p>
+                        `,
+                        levers: `Creating an extreme, rapid cellular demand for ATP that lasts just long enough to maximally stimulate PFK and glycolysis, but ends before severe acidosis forces down-regulation.`,
+                        radarData: [95, 20, 90],
+                        protocol: `
+                            <div class="font-mono text-sm space-y-2">
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Intensity:</span> <strong>Maximal Sustained</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Duration:</span> <strong>15-30 Seconds</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Work:Rest:</span> <strong>1:10 to 1:12</strong></div>
+                                <div class="mt-2 text-stone-700 italic">Example: 4 x 30-second all-out Assault Bike sprints. Rest 5-6 mins.</div>
+                            </div>
+                        `,
+                        blindspots: `
+                            <p><strong>Acidosis Shut-Down:</strong> If the duration stretches to 45-60 seconds, the sheer volume of H+ and Pi accumulation interferes with calcium binding to troponin, shutting down the contractile machinery. The athlete's output drops drastically. Coaches often think longer is better for "lactic power," but longer efforts shift the stimulus to <em>capacity</em>. True glycolytic power requires the effort to cease while output is still relatively high, followed by massive rest.</p>
+                        `
+                    },
+                    {
+                        id: 'glycolytic-capacity',
+                        title: 'Capacity & Buffering',
+                        mechanisms: `
+                            <p><strong>Tolerance to H+ and Pi accumulation, and intracellular buffering.</strong></p>
+                            <p>This is the classic "lactic acid tolerance" (though lactic acid doesn't exist in the body; it's lactate + H+). The limiting factor here is the catastrophic drop in cellular pH (acidosis) caused by rapid ATP hydrolysis and glycolysis.</p>
+                            <p>Adaptations occur via the upregulation of intracellular buffers (like Carnosine, synthesized from Beta-Alanine) and improvements in the muscle's psychological and physiological tolerance to an acidic, painful cellular environment.</p>
+                        `,
+                        levers: `Forcing the muscle to continue contracting in a highly acidic environment. These are the most painful, grueling training sessions, characterized by massive systemic fatigue.`,
+                        radarData: [85, 50, 30],
+                        protocol: `
+                            <div class="font-mono text-sm space-y-2">
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Intensity:</span> <strong>Very Hard (Pacing required)</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Duration:</span> <strong>45-90 Seconds</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Work:Rest:</span> <strong>1:2 or 1:3</strong></div>
+                                <div class="mt-2 text-stone-700 italic">Example: 4 x 400m track intervals at 90% max effort. Rest 2-3 mins.</div>
+                            </div>
+                        `,
+                        blindspots: `
+                            <p><strong>The "More is Better" Trap:</strong> Because these workouts hurt, coaches associate them with mental toughness. However, highly acidic environments destroy mitochondrial enzymes. Doing this type of training too often (more than 1-2x per week) will actively degrade the athlete's aerobic base and central nervous system. It should be used sparingly, peaking 3-6 weeks before competition.</p>
+                        `
+                    },
+                    {
+                        id: 'glycolytic-shuttling',
+                        title: 'Lactate Clearance & Shuttling',
+                        mechanisms: `
+                            <p><strong>MCT transporter network, utilizing lactate as oxidative fuel.</strong></p>
+                            <p>Moving past the outdated model: <strong>Lactate is not a waste product; it is a highly preferred, premium carbohydrate fuel.</strong></p>
+                            <p>Lactate shuttling involves moving lactate out of the producing cell (fast-twitch fibers) via Monocarboxylate Transporters (MCT4), into the bloodstream, and taking it up into consuming cells (slow-twitch fibers, heart, liver) via MCT1 transporters. Once inside a slow-twitch fiber, it is converted back to pyruvate and burned in the mitochondria for massive ATP yield.</p>
+                        `,
+                        levers: `Fluctuating intensities around the lactate threshold to force the body to produce lactate (fast segments) and then efficiently clear/consume it (slow, aerobic segments).`,
+                        radarData: [75, 70, 0], // Rest is 0 because it's active recovery/fluctuation
+                        protocol: `
+                            <div class="font-mono text-sm space-y-2">
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Intensity:</span> <strong>Fluctuating (Under/Over Threshold)</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Duration:</span> <strong>8-15 Minutes per block</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Work:Rest:</span> <strong>Continuous (e.g., 1m hard / 2m mod)</strong></div>
+                                <div class="mt-2 text-stone-700 italic">Example: 3 x 10 mins continuous: 1 min @ 105% FTP, 2 mins @ 85% FTP.</div>
+                            </div>
+                        `,
+                        blindspots: `
+                            <p><strong>Ignoring the Adjacent Slow-Twitch Sink:</strong> You cannot improve lactate clearance solely by doing high-intensity intervals. You must build a massive "sink" to catch and burn the lactate. That sink is a highly developed network of slow-twitch, aerobic muscle fibers (built via low-intensity Volume). If you don't build the slow-twitch fibers and mitochondria, the lactate has nowhere to go, resulting in rapid systemic acidosis.</p>
+                        `
+                    }
+                ]
+            },
+            aerobic: {
+                color: '#16a34a',
+                derivatives: [
+                    {
+                        id: 'aerobic-capacity',
+                        title: 'Aerobic Capacity (Peripheral)',
+                        mechanisms: `
+                            <p><strong>Peripheral adaptations, mitochondrial density, and capillary networks.</strong></p>
+                            <p>This is the foundation of cellular health and stamina. Aerobic capacity is dictated by peripheral (local muscle) adaptations. Specifically, it involves the biogenesis of new mitochondria (the oxidative powerplants) and angiogenesis (the formation of new capillary beds around the muscle fibers to deliver O2 and clear waste).</p>
+                            <p>It relies heavily on the activation of PGC-1α, the master regulator of mitochondrial biogenesis, which is triggered by sustained, low-intensity muscle contractions and calcium signaling over long durations.</p>
+                        `,
+                        levers: `High volume, low intensity. Time under tension is the primary driver for PGC-1α activation. Keeping mechanical stress high while metabolic stress (acidosis) is zero.`,
+                        radarData: [20, 100, 10], // Very low intensity, max volume
+                        protocol: `
+                            <div class="font-mono text-sm space-y-2">
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Intensity:</span> <strong>Zone 2 (Below 2mmol Lactate)</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Duration:</span> <strong>45 Minutes to 3+ Hours</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Work:Rest:</span> <strong>Continuous Steady State</strong></div>
+                                <div class="mt-2 text-stone-700 italic">Example: 90-minute steady cycle keeping HR strictly between 135-145 bpm.</div>
+                            </div>
+                        `,
+                        blindspots: `
+                            <p><strong>The "Zone 3 Syndrome" (Going Too Hard):</strong> The biggest blind spot in modern training. Athletes feel Zone 2 is "too easy" and push into a moderate intensity (Zone 3 / tempo). This completely blunts the specific peripheral adaptations. Pushing too hard introduces sympathetic nervous system stress and shifts fuel utilization away from fat toward glycogen, failing to maximally stimulate mitochondrial density while simultaneously adding unnecessary autonomic fatigue.</p>
+                        `
+                    },
+                    {
+                        id: 'aerobic-mlss',
+                        title: 'Max Lactate Steady State / CP',
+                        mechanisms: `
+                            <p><strong>The absolute metabolic balance point (Critical Power).</strong></p>
+                            <p>MLSS or Critical Power (CP) represents the highest work rate where lactate appearance in the blood perfectly matches lactate clearance. At this exact intensity, blood lactate remains elevated but stable (e.g., flatlining at 4mmol/L).</p>
+                            <p>Surpass this wattage by even 5%, and a physiological tipping point is crossed: clearance pathways are overwhelmed, H+ accumulates exponentially, V02 slow component drifts upward, and fatigue becomes imminent within minutes rather than hours.</p>
+                        `,
+                        levers: `Sustained intervals right at, or marginally below, the metabolic tipping point to force enzymatic efficiency and stress the lactate shuttling mechanisms.`,
+                        radarData: [60, 60, 20],
+                        protocol: `
+                            <div class="font-mono text-sm space-y-2">
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Intensity:</span> <strong>Just below or at Threshold</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Duration:</span> <strong>8-20 Minutes per rep</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Work:Rest:</span> <strong>1:0.25 (Short Rest)</strong></div>
+                                <div class="mt-2 text-stone-700 italic">Example: 4 x 8 minutes at Threshold Power/Pace, with 2 minutes active recovery.</div>
+                            </div>
+                        `,
+                        blindspots: `
+                            <p><strong>Testing Inaccuracies Overestimating CP:</strong> Many coaches use a 20-minute test to estimate Critical Power (taking 95% of the 20-min average). For athletes with massive anaerobic capacities, this wildly overestimates true MLSS. They train at their prescribed "threshold," but are actually operating in a heavy glycolytic state, leading to burnout rather than aerobic threshold enhancement.</p>
+                        `
+                    },
+                    {
+                        id: 'aerobic-power',
+                        title: 'Aerobic Power (VO2 Max)',
+                        mechanisms: `
+                            <p><strong>Central adaptations, cardiac output, and stroke volume.</strong></p>
+                            <p>While Aerobic Capacity is peripheral (muscle), Aerobic Power (VO2 Max) is heavily dictated by <strong>central factors</strong>—specifically, the heart. It is the maximum volume of oxygen the body can transport and utilize per minute.</p>
+                            <p>The primary limiter for elite athletes is usually Cardiac Output (Heart Rate x Stroke Volume). Training this derivative forces eccentric hypertrophy of the left ventricle, allowing it to stretch more and pump a larger volume of blood (O2) with each beat.</p>
+                        `,
+                        levers: `Accumulating maximum time with the heart operating near its absolute maximum stroke volume and heart rate (above 90% HR Max).`,
+                        radarData: [85, 40, 50],
+                        protocol: `
+                            <div class="font-mono text-sm space-y-2">
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Intensity:</span> <strong>Severe (90-100% VO2Max)</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Duration:</span> <strong>3-5 Minutes per rep</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Work:Rest:</span> <strong>1:1 (Equal Rest)</strong></div>
+                                <div class="mt-2 text-stone-700 italic">Example: The classic 4 x 4 minutes at highest sustainable pace, 3-4 mins rest.</div>
+                            </div>
+                        `,
+                        blindspots: `
+                            <p><strong>Local vs. Central Limitations:</strong> A high VO2 Max on paper is useless if the local musculature cannot extract the oxygen. A massive heart pumping oxygenated blood to legs that lack mitochondrial density (because the athlete skipped Zone 2 capacity work) results in venous blood returning with high oxygen saturation. The engine is huge, but the transmission is broken.</p>
+                        `
+                    },
+                    {
+                        id: 'aerobic-durability',
+                        title: 'Aerobic Durability',
+                        mechanisms: `
+                            <p><strong>Resistance to degradation of the power-duration curve over time.</strong></p>
+                            <p>This is the cutting edge of endurance physiology. Two athletes might have identical fresh Critical Powers and VO2 Max scores. However, after 2 hours of work, Athlete A's threshold drops by 5%, while Athlete B's drops by 15%.</p>
+                            <p>Durability relates to the preservation of muscle fiber recruitment patterns, preventing the premature recruitment of inefficient fast-twitch fibers, managing core temperature, and maintaining systemic metabolic efficiency as glycogen stores become depleted.</p>
+                        `,
+                        levers: `Performing high-intensity interval work or threshold efforts <em>after</em> significant kilojoule accumulation (fatigue).`,
+                        radarData: [70, 80, 20],
+                        protocol: `
+                            <div class="font-mono text-sm space-y-2">
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Intensity:</span> <strong>Threshold/VO2</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Duration:</span> <strong>Late-stage efforts</strong></div>
+                                <div class="flex justify-between border-b border-stone-200 pb-1"><span>Context:</span> <strong>Pre-fatigued state</strong></div>
+                                <div class="mt-2 text-stone-700 italic">Example: 2 hours steady Zone 2, immediately followed by 3 x 5 mins at Critical Power.</div>
+                            </div>
+                        `,
+                        blindspots: `
+                            <p><strong>Testing Only When Fresh:</strong> Traditional lab testing always occurs when the athlete is perfectly rested. This maps a power-duration curve that is an illusion for late-game scenarios. Blindly prescribing race pacing based on "fresh" data leads to catastrophic late-stage failure. Durability must be tested and trained specifically; it does not automatically correlate with a high fresh VO2 Max.</p>
+                        `
+                    }
+                ]
+            }
+        };
+
+        // --- STATE ---
+        let currentSystem = null;
+        let radarChartInstance = null;
+
+        // --- CORE LOGIC ---
+        function selectSystem(systemKey) {
+            currentSystem = systemKey;
+            const data = systemData[systemKey];
+            
+            // Update buttons styling
+            ['alactic', 'glycolytic', 'aerobic'].forEach(key => {
+                const btn = document.getElementById(`btn-${key}`);
+                if(key === systemKey) {
+                    btn.classList.add('border-' + key, 'ring-2', 'ring-' + key, 'ring-offset-2');
+                    btn.classList.remove('border-' + key + '/20');
+                } else {
+                    btn.classList.remove('border-' + key, 'ring-2', 'ring-' + key, 'ring-offset-2');
+                    btn.classList.add('border-' + key + '/20');
+                }
+            });
+
+            // Generate Tabs
+            const tabsContainer = document.getElementById('derivative-tabs');
+            tabsContainer.innerHTML = '';
+            
+            data.derivatives.forEach((deriv, index) => {
+                const btn = document.createElement('button');
+                btn.className = `px-6 py-4 font-semibold text-sm transition-colors duration-200 ${index === 0 ? 'tab-active' : 'tab-inactive'}`;
+                btn.textContent = deriv.title;
+                btn.onclick = () => {
+                    // Handle tab styling
+                    Array.from(tabsContainer.children).forEach(c => {
+                        c.classList.remove('tab-active');
+                        c.classList.add('tab-inactive');
+                    });
+                    btn.classList.remove('tab-inactive');
+                    btn.classList.add('tab-active');
+                    
+                    renderDerivative(deriv, data.color);
+                };
+                tabsContainer.appendChild(btn);
+            });
+
+            // Show content area, hide placeholder
+            document.getElementById('placeholder-message').classList.add('hidden');
+            document.getElementById('content-area').classList.remove('hidden');
+
+            // Render first derivative by default
+            renderDerivative(data.derivatives[0], data.color);
+        }
+
+        function renderDerivative(derivData, color) {
+            document.getElementById('content-mechanisms').innerHTML = derivData.mechanisms;
+            document.getElementById('content-levers-text').innerHTML = `<strong>Objective:</strong> ${derivData.levers}`;
+            document.getElementById('content-protocol').innerHTML = derivData.protocol;
+            document.getElementById('content-blindspots').innerHTML = derivData.blindspots;
+
+            updateRadarChart(derivData.radarData, color);
+        }
+
+        function updateRadarChart(dataPoints, color) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
+            if (radarChartInstance) {
+                radarChartInstance.destroy();
+            }
+
+            // Convert hex to rgba for fill
+            let hex = color.replace('#', '');
+            let r = parseInt(hex.substring(0,2), 16);
+            let g = parseInt(hex.substring(2,4), 16);
+            let b = parseInt(hex.substring(4,6), 16);
+            let rgbaFill = `rgba(${r}, ${g}, ${b}, 0.2)`;
+
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Intensity', 'Volume (Duration)', 'Rest / Recovery'],
+                    datasets: [{
+                        label: 'Protocol Shape',
+                        data: dataPoints,
+                        backgroundColor: rgbaFill,
+                        borderColor: color,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: color,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.1)' },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            pointLabels: {
+                                font: { family: 'Inter', size: 12, weight: 'bold' },
+                                color: '#57534e'
+                            },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.raw + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // Init Synthesis Chart
+            const synthCtx = document.getElementById('synthesisChart').getContext('2d');
+            
+            // X-axis: 0 to 90 seconds (sampled)
+            const labels = [0, 5, 15, 30, 45, 60, 75, 90];
+            
+            // Y-axis: Percentage contribution (must sum to 100)
+            const alacticData =   [90, 70, 30, 10,  5,  2,  1,  1];
+            const glycolyticData =[ 8, 25, 60, 65, 55, 48, 40, 30];
+            const aerobicData =   [ 2,  5, 10, 25, 40, 50, 59, 69];
+
+            new Chart(synthCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Aerobic (Oxidative)',
+                            data: aerobicData,
+                            borderColor: '#16a34a',
+                            backgroundColor: 'rgba(22, 163, 74, 0.7)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Glycolytic (Lactic)',
+                            data: glycolyticData,
+                            borderColor: '#ea580c',
+                            backgroundColor: 'rgba(234, 88, 12, 0.7)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'ATP-PC (Alactic)',
+                            data: alacticData,
+                            borderColor: '#0284c7',
+                            backgroundColor: 'rgba(2, 132, 199, 0.7)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { family: 'Inter', weight: 'bold' },
+                                color: '#292524'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(41, 37, 36, 0.9)',
+                            titleFont: { family: 'Inter', size: 14 },
+                            bodyFont: { family: 'Inter', size: 13 },
+                            callbacks: {
+                                title: function(context) {
+                                    return 'Time: ' + context[0].label + ' seconds';
+                                },
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Time (Seconds)', font: { weight: 'bold' } },
+                            grid: { display: false }
+                        },
+                        y: {
+                            stacked: true,
+                            title: { display: true, text: '% Energy Contribution', font: { weight: 'bold' } },
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) { return value + '%' }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
