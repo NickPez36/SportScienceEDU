@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force-Velocity vs Load-Velocity Profiling</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Warm Neutrals with Deep Blue Accents (bg-stone-50, text-stone-800, text-blue-800, bg-blue-100) -->
+    <!-- Application Structure Plan: A dashboard-style layout with a fixed left navigation (on desktop) for easy jumping between complex academic sections. The content is broken into modular cards with interactive elements (sliders, tabs, clickable zones) to turn a dense research report into an exploratory tool. This structure allows sports scientists and coaches to synthesize the distinction between mechanical capability mapping (FVP) and daily autoregulation (LVP) efficiently. -->
+    <!-- Visualization & Content Choices: 
+         1. FVP vs LVP Concepts -> Goal: Compare mechanical vs external load profiles -> Viz: Interactive Chart.js Line Chart with Sliders -> Interaction: Adjust sliders to see F0/v0 slope changes -> Justification: Tangibly demonstrates the F-V linear relationship and optimal profiling -> Method: Chart.js Canvas. 
+         2. Measurement Protocols -> Goal: Detail testing methods -> Viz: Tabbed interface + Regression Scatter Plot -> Interaction: Switch tabs to compare methodologies; view LVP regression -> Justification: Organizes dense protocol steps cleanly without overwhelming the user -> Method: JS Tabs + Chart.js Canvas.
+         3. Athlete Typology -> Goal: Show practical use cases -> Viz: Interactive Cards -> Interaction: Click athlete types to reveal tailored S&C applications -> Justification: Contextualizes theory into sport-specific domains -> Method: HTML/Tailwind/JS toggles. 
+         4. Training Periodization -> Goal: Map VBT zones and deficits -> Viz: Clickable Grid / Progress Bars -> Interaction: Select velocity zones to reveal prescription details -> Justification: Creates a visual mapping of the strength continuum -> Method: HTML/Tailwind styling. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #fafaf9; color: #292524; }
+        .chart-container { position: relative; width: 100%; max-width: 700px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
+        .nav-link.active { background-color: #dbeafe; color: #1e40af; font-weight: 600; border-left: 4px solid #1e40af; }
+        .tab-btn.active { border-bottom: 2px solid #1e40af; color: #1e40af; font-weight: 600; }
+        .hidden-content { display: none; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen">
+
+    <nav class="w-full md:w-64 bg-white border-r border-stone-200 p-6 flex flex-col fixed md:sticky top-0 z-50 md:h-screen overflow-y-auto shadow-sm md:shadow-none">
+        <h1 class="text-2xl font-bold text-blue-900 mb-2">Biomechanics & Profiling</h1>
+        <p class="text-xs text-stone-500 mb-4 uppercase tracking-wide">FVP vs LVP Report</p>
+        <div class="space-y-2 mb-6 pb-6 border-b border-stone-200">
+            <a href="index.html" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-stone-300 bg-stone-50 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition-colors w-full">
+                <span aria-hidden="true">←</span> S&amp;C modules
+            </a>
+            <a href="../index.html" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-stone-300 bg-stone-50 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition-colors w-full">
+                <span aria-hidden="true">🏠</span> Learning Hub
+            </a>
+        </div>
+        
+        <ul class="space-y-2 flex-grow hidden md:block" id="desktop-nav">
+            <li><button onclick="scrollToSection('neuro')" class="nav-link active w-full text-left px-4 py-2 rounded text-stone-600 hover:bg-stone-100 transition">1. Neurophysiology</button></li>
+            <li><button onclick="scrollToSection('measurement')" class="nav-link w-full text-left px-4 py-2 rounded text-stone-600 hover:bg-stone-100 transition">2. Measurement</button></li>
+            <li><button onclick="scrollToSection('typology')" class="nav-link w-full text-left px-4 py-2 rounded text-stone-600 hover:bg-stone-100 transition">3. Athlete Typology</button></li>
+            <li><button onclick="scrollToSection('applications')" class="nav-link w-full text-left px-4 py-2 rounded text-stone-600 hover:bg-stone-100 transition">4. Applications</button></li>
+            <li><button onclick="scrollToSection('summary')" class="nav-link w-full text-left px-4 py-2 rounded text-stone-600 hover:bg-stone-100 transition">5. Summary Table</button></li>
+        </ul>
+
+        <div class="md:hidden flex justify-between items-center border-t pt-4 mt-2">
+            <span class="font-semibold text-stone-700">Navigate:</span>
+            <select onchange="scrollToSection(this.value)" class="bg-stone-100 border border-stone-300 rounded p-2 text-sm focus:outline-none">
+                <option value="neuro">1. Neurophysiology</option>
+                <option value="measurement">2. Measurement</option>
+                <option value="typology">3. Athlete Typology</option>
+                <option value="applications">4. Applications</option>
+                <option value="summary">5. Summary</option>
+            </select>
+        </div>
+    </nav>
+
+    <main class="flex-1 p-6 md:p-12 max-w-6xl mx-auto overflow-x-hidden">
+        
+        <header class="mb-12 border-b border-stone-200 pb-8 mt-16 md:mt-0">
+            <h2 class="text-4xl md:text-5xl font-extrabold text-stone-900 mb-4 tracking-tight">The Roadmap of Human Performance</h2>
+            <p class="text-xl text-stone-600 leading-relaxed max-w-3xl">Bridging the gap between neuromuscular physiology, biomechanics, and applied strength & conditioning. While RSI, DSI, and RFD dictate force production, Force-Velocity (FVP) and Load-Velocity (LVP) Profiling prescribe the exact physiological adaptations required.</p>
+        </header>
+
+        <section id="neuro" class="mb-20 pt-8">
+            <h3 class="text-3xl font-bold text-blue-900 mb-6 flex items-center">&#9881; 1. Neurophysiological Mechanisms</h3>
+            <p class="text-stone-700 mb-8 text-lg">This section dissects the conceptual differences between macroscopic mechanical capabilities mapping (FVP) and external mass manipulation for motor unit recruitment (LVP).</p>
+            
+            <div class="grid md:grid-cols-2 gap-8 mb-10">
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-100 hover:shadow-md transition">
+                    <h4 class="text-xl font-bold text-blue-800 mb-3 border-b pb-2">Force-Velocity Profiling (FVP)</h4>
+                    <p class="text-stone-600 mb-4 text-sm leading-relaxed">Maps the macroscopic mechanical capabilities of the neuromuscular system during multi-joint movements (e.g., squat jump, sprint acceleration). Based on the work of J.B. Morin and P. Samozino.</p>
+                    <ul class="space-y-2 text-sm text-stone-700">
+                        <li><span class="font-semibold text-stone-900">F₀ (Theoretical Max Force):</span> The y-intercept; maximum force capability at zero velocity.</li>
+                        <li><span class="font-semibold text-stone-900">v₀ (Theoretical Max Velocity):</span> The x-intercept; maximum velocity capability at zero resistance.</li>
+                        <li><span class="font-semibold text-stone-900">Sfv (Slope of F-V curve):</span> Indicates the individual's ratio of force to velocity qualities.</li>
+                        <li><span class="font-semibold text-stone-900">Optimal Profile:</span> The specific Sfv that maximizes ballistic performance (e.g., jump height) for an individual's given power output.</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-100 hover:shadow-md transition">
+                    <h4 class="text-xl font-bold text-blue-800 mb-3 border-b pb-2">Load-Velocity Profiling (LVP)</h4>
+                    <p class="text-stone-600 mb-4 text-sm leading-relaxed">Evaluates the relationship between external mass (load) and movement velocity during traditional strength exercises. Serves as the foundation for Velocity-Based Training (VBT).</p>
+                    <ul class="space-y-2 text-sm text-stone-700">
+                        <li><span class="font-semibold text-stone-900">Physiological Basis:</span> Maps directly to the Size Principle of motor unit recruitment.</li>
+                        <li><span class="font-semibold text-stone-900">Intent to Move:</span> Relies entirely on compensatory acceleration—the athlete must attempt to move the load as fast as possible regardless of mass.</li>
+                        <li><span class="font-semibold text-stone-900">Linearity:</span> Exhibits a highly stable linear relationship across submaximal loads up to the 1RM threshold.</li>
+                        <li><span class="font-semibold text-stone-900">Autoregulation:</span> Used daily to adjust load based on readiness, bypassing subjective 1RM percentages.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-stone-100 p-8 rounded-xl border border-stone-200">
+                <h4 class="text-lg font-bold text-stone-800 mb-4 text-center">Interactive F-V Profile Modeler: F(v) = F₀ - a · v</h4>
+                <p class="text-sm text-stone-600 text-center mb-6">Unlike Hill's hyperbolic curve for isolated muscle fibers, multi-joint human movement is modeled linearly due to complex limb kinematics and multi-muscle coordination. Adjust sliders to see structural shifts.</p>
+                
+                <div class="flex flex-col md:flex-row gap-8 items-center justify-center">
+                    <div class="w-full md:w-1/3 space-y-6 bg-white p-6 rounded-lg shadow-inner">
+                        <div>
+                            <label class="block text-sm font-semibold text-stone-700 mb-1">Max Force (F₀ N/kg) <span id="f0-val" class="text-blue-600">30</span></label>
+                            <input type="range" id="f0-slider" min="15" max="45" value="30" class="w-full accent-blue-600">
+                            <p class="text-xs text-stone-500 mt-1">Drives early acceleration / heavy loads.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-stone-700 mb-1">Max Velocity (v₀ m/s) <span id="v0-val" class="text-blue-600">3.5</span></label>
+                            <input type="range" id="v0-slider" min="2.0" max="5.0" step="0.1" value="3.5" class="w-full accent-blue-600">
+                            <p class="text-xs text-stone-500 mt-1">Drives late phase / unweighted speed.</p>
+                        </div>
+                        <div class="pt-4 border-t border-stone-100">
+                            <p class="text-sm font-semibold text-stone-800">Current Slope (Sfv): <span id="slope-val" class="text-blue-700 font-bold">-8.57</span></p>
+                            <p id="profile-assessment" class="text-xs font-bold mt-2 text-stone-600 bg-stone-100 p-2 rounded text-center">Balanced Profile</p>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full md:w-2/3">
+                        <div class="chart-container">
+                            <canvas id="fvChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="measurement" class="mb-20 pt-8">
+            <h3 class="text-3xl font-bold text-blue-900 mb-6 flex items-center">&#128207; 2. Measurement & Quantification</h3>
+            <p class="text-stone-700 mb-8 text-lg">This section outlines the gold-standard testing protocols to derive both profiles, detailing instrumentation and analytical models.</p>
+
+            <div class="flex flex-wrap gap-2 mb-6 border-b border-stone-200">
+                <button onclick="switchTab('tab-jump')" id="btn-tab-jump" class="tab-btn active px-4 py-2 text-stone-600 hover:text-blue-800 focus:outline-none">Jumping FVP</button>
+                <button onclick="switchTab('tab-sprint')" id="btn-tab-sprint" class="tab-btn px-4 py-2 text-stone-600 hover:text-blue-800 focus:outline-none">Sprinting FVP</button>
+                <button onclick="switchTab('tab-load')" id="btn-tab-load" class="tab-btn px-4 py-2 text-stone-600 hover:text-blue-800 focus:outline-none">LVP & 1RM Prediction</button>
+            </div>
+
+            <div id="tab-jump" class="tab-content fade-in bg-white p-6 rounded-b-xl border-x border-b border-stone-200 shadow-sm">
+                <h4 class="text-xl font-bold text-stone-800 mb-3">Jumping Force-Velocity Profiling</h4>
+                <p class="text-sm text-stone-600 mb-4">Determines the optimal loading parameters for vertical ballistic tasks. Often tested via Squat Jumps (SJ) to isolate concentric capability.</p>
+                <ul class="list-disc pl-5 space-y-2 text-sm text-stone-700 mb-4">
+                    <li><span class="font-semibold text-stone-900">Protocol:</span> Multiple loaded jumps (e.g., Bodyweight, 20%, 40%, 60% of BM).</li>
+                    <li><span class="font-semibold text-stone-900">Instrumentation:</span> Force plates (gold standard) or validated contact mats/optical systems using flight-time derived equations (Samozino's method).</li>
+                    <li><span class="font-semibold text-stone-900">Output:</span> Identifies specific Force Deficits or Velocity Deficits relative to an athlete's theoretical optimum curve.</li>
+                </ul>
+                <div class="bg-stone-50 p-4 border border-stone-200 rounded text-center text-2xl font-mono text-blue-900">
+                    Sfv = -F₀ / v₀
+                </div>
+            </div>
+
+            <div id="tab-sprint" class="tab-content hidden-content bg-white p-6 rounded-b-xl border-x border-b border-stone-200 shadow-sm">
+                <h4 class="text-xl font-bold text-stone-800 mb-3">Sprinting Force-Velocity Profiling</h4>
+                <p class="text-sm text-stone-600 mb-4">Maps the macroscopic F-V relationship specifically during the acceleration phase of a sprint.</p>
+                <ul class="list-disc pl-5 space-y-2 text-sm text-stone-700 mb-4">
+                    <li><span class="font-semibold text-stone-900">Protocol:</span> Single maximal 30m or 40m sprint from a split stance.</li>
+                    <li><span class="font-semibold text-stone-900">Instrumentation:</span> Radar guns, laser devices, motorized resistance devices (e.g., 1080 Sprint), or accurately spaced timing gates mapped against anthropometrics.</li>
+                    <li><span class="font-semibold text-stone-900">Key Metric: Ratio of Forces (RF).</span> Highlights the proportion of total force directed horizontally. Decline in RF limits top speed more than total force production.</li>
+                </ul>
+            </div>
+
+            <div id="tab-load" class="tab-content hidden-content bg-white p-6 rounded-b-xl border-x border-b border-stone-200 shadow-sm">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="w-full md:w-1/2">
+                        <h4 class="text-xl font-bold text-stone-800 mb-3">LVP & Submaximal 1RM Prediction</h4>
+                        <p class="text-sm text-stone-600 mb-4">Utilizes incremental load testing to establish an individualized L-V linear regression, enabling daily autoregulation and 1RM prediction without maximal, fatiguing lifts.</p>
+                        <ul class="list-disc pl-5 space-y-2 text-sm text-stone-700">
+                            <li><span class="font-semibold text-stone-900">Protocol:</span> 3 to 4 submaximal incremental loads (e.g., 40%, 60%, 80% estimated 1RM).</li>
+                            <li><span class="font-semibold text-stone-900">Instrumentation:</span> Linear Position Transducers (LPTs) or validated accelerometers.</li>
+                            <li><span class="font-semibold text-stone-900">Key Variable:</span> Mean Propulsive Velocity (MPV).</li>
+                            <li><span class="font-semibold text-stone-900">Prediction:</span> The linear regression line is extrapolated to the Minimum Velocity Threshold (MVT) of a specific exercise (e.g., ~0.30 m/s for Bench Press) to predict true 1RM.</li>
+                        </ul>
+                    </div>
+                    <div class="w-full md:w-1/2">
+                        <div class="chart-container">
+                            <canvas id="lvChart"></canvas>
+                        </div>
+                        <p class="text-center text-xs text-stone-500 mt-2">Example: Extrapolating 1RM at 0.3 m/s MVT</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="typology" class="mb-20 pt-8">
+            <h3 class="text-3xl font-bold text-blue-900 mb-6 flex items-center">&#127939; 3. Practical Uses by Athlete Typology</h3>
+            <p class="text-stone-700 mb-8 text-lg">Click on an athletic discipline to reveal how high-performance directors apply these models to manipulate biological output and resolve sport-specific constraints.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <button onclick="showTypology('endurance')" id="btn-type-endurance" class="p-4 bg-white border border-stone-300 rounded-lg shadow-sm hover:bg-blue-50 hover:border-blue-300 transition text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="text-3xl mb-2">&#128690;</div>
+                    <h5 class="font-bold text-stone-800">Endurance Athletes</h5>
+                    <p class="text-xs text-stone-500">Marathoners, Triathletes</p>
+                </button>
+                <button onclick="showTypology('middle')" id="btn-type-middle" class="p-4 bg-white border border-stone-300 rounded-lg shadow-sm hover:bg-blue-50 hover:border-blue-300 transition text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="text-3xl mb-2">&#127939;</div>
+                    <h5 class="font-bold text-stone-800">Middle-Distance</h5>
+                    <p class="text-xs text-stone-500">800m - 1500m Runners</p>
+                </button>
+                <button onclick="showTypology('power')" id="btn-type-power" class="p-4 bg-white border border-stone-300 rounded-lg shadow-sm hover:bg-blue-50 hover:border-blue-300 transition text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="text-3xl mb-2">&#127947;</div>
+                    <h5 class="font-bold text-stone-800">Sprinters & Power</h5>
+                    <p class="text-xs text-stone-500">Track Sprint, Team Sports</p>
+                </button>
+            </div>
+
+            <div id="content-endurance" class="typology-content hidden-content bg-blue-50 border border-blue-200 p-6 rounded-lg fade-in">
+                <h4 class="text-xl font-bold text-blue-900 mb-2">Endurance Profile & Application</h4>
+                <p class="text-stone-700 mb-4"><strong>Primary Tool: Load-Velocity Profiling (VBT)</strong></p>
+                <p class="text-stone-600 text-sm leading-relaxed mb-4">For concurrent training models, neuromuscular fatigue management is paramount. Endurance athletes utilize LVP to maintain maximum force output capabilities while strictly minimizing Central Nervous System (CNS) fatigue and mechanical muscle damage.</p>
+                <ul class="list-disc pl-5 text-sm text-stone-700 space-y-1">
+                    <li>Strict velocity loss cutoffs (e.g., ending sets at 10% velocity drop) prevents hypertrophy pathways and DOMS.</li>
+                    <li>Ensures strength sessions do not impair aerobic pathway adaptations or scheduled track volumes.</li>
+                </ul>
+            </div>
+
+            <div id="content-middle" class="typology-content hidden-content bg-blue-50 border border-blue-200 p-6 rounded-lg fade-in">
+                <h4 class="text-xl font-bold text-blue-900 mb-2">Middle-Distance Profile & Application</h4>
+                <p class="text-stone-700 mb-4"><strong>Primary Tool: Sprinting FVP & LVP Hybrid</strong></p>
+                <p class="text-stone-600 text-sm leading-relaxed mb-4">Sprint FVP is leveraged to identify mechanical inefficiencies during acceleration, which deeply impacts running economy. Optimizing F₀ improves ground reaction force mechanics, while elevating v₀ provides the mechanical reserve necessary for a devastating finishing kick.</p>
+                <ul class="list-disc pl-5 text-sm text-stone-700 space-y-1">
+                    <li>Correcting Force Deficits improves overall stride length efficiency at submaximal paces.</li>
+                    <li>LVP is used to schedule explosive strength work without overloading the glycolytic system.</li>
+                </ul>
+            </div>
+
+            <div id="content-power" class="typology-content hidden-content bg-blue-50 border border-blue-200 p-6 rounded-lg fade-in">
+                <h4 class="text-xl font-bold text-blue-900 mb-2">Sprinters & Power Profile & Application</h4>
+                <p class="text-stone-700 mb-4"><strong>Primary Tool: Jumping & Sprinting FVP</strong></p>
+                <p class="text-stone-600 text-sm leading-relaxed mb-4">FVP is the definitive diagnostic tool. It isolates exactly whether a power athlete suffers from a "Force Deficit" (unable to produce massive force rapidly) or a "Velocity Deficit" (unable to continue producing force at high movement speeds). The application of horizontal force (Ratio of Forces, RF) distinguishes elite acceleration from average.</p>
+                <ul class="list-disc pl-5 text-sm text-stone-700 space-y-1">
+                    <li>Directs programming bias: If F₀ dominant but low speed, prescribe assisted sprinting. If high speed but low F₀, prescribe heavy sleds.</li>
+                    <li>Monitors the technical capability to orient force horizontally, independent of total force capacity.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="applications" class="mb-20 pt-8">
+            <h3 class="text-3xl font-bold text-blue-900 mb-6 flex items-center">&#128170; 4. Training Applications & Periodization</h3>
+            <p class="text-stone-700 mb-8 text-lg">Interactive prescriptions mapping biomechanical diagnostic data directly into the weight room and track. Hover or click below to explore exercise prescription and autoregulation zones.</p>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                
+                <div class="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="bg-stone-800 p-4">
+                        <h4 class="text-white font-bold text-lg">Applying FVP: Deficit Correction</h4>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-stone-600 mb-4">The objective is shifting the F-V curve toward the athlete's theoretical optimum based on their specific deficit.</p>
+                        
+                        <div class="space-y-4">
+                            <div class="border border-red-200 bg-red-50 p-4 rounded hover:shadow-md transition cursor-pointer" onclick="toggleDetails('force-def')">
+                                <h5 class="font-bold text-red-800 flex justify-between">Force Deficit <span>&#9660;</span></h5>
+                                <div id="force-def" class="hidden-content mt-2 text-sm text-stone-700 border-t border-red-200 pt-2">
+                                    <p class="font-semibold mb-1">Prescription: High Load, Low Velocity</p>
+                                    <p>Athlete lacks baseline neuromuscular output. Exercises must increase F₀.</p>
+                                    <ul class="list-disc pl-5 mt-2">
+                                        <li>Deep Squats (>85% 1RM)</li>
+                                        <li>Heavy Sled Pushing/Tows (>50% bodyweight resistance)</li>
+                                        <li>Overcoming Isometrics</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="border border-green-200 bg-green-50 p-4 rounded hover:shadow-md transition cursor-pointer" onclick="toggleDetails('vel-def')">
+                                <h5 class="font-bold text-green-800 flex justify-between">Velocity Deficit <span>&#9660;</span></h5>
+                                <div id="vel-def" class="hidden-content mt-2 text-sm text-stone-700 border-t border-green-200 pt-2">
+                                    <p class="font-semibold mb-1">Prescription: Low Load, High Velocity</p>
+                                    <p>Athlete is strong but cannot express force rapidly. Exercises must increase v₀.</p>
+                                    <ul class="list-disc pl-5 mt-2">
+                                        <li>Assisted Sprinting (Bungee/1080 Sprint overspeed)</li>
+                                        <li>Overspeed Jumps / Band-accelerated jumps</li>
+                                        <li>Shock Method / High-intensity plyometrics</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="bg-blue-800 p-4">
+                        <h4 class="text-white font-bold text-lg">Applying LVP: Velocity-Based Zones</h4>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-stone-600 mb-4">Using real-time device feedback (MPV) to dictate daily autoregulation and manage neuromuscular fatigue.</p>
+                        
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center justify-between p-3 bg-stone-100 rounded hover:bg-stone-200 transition" title="Maximal motor unit recruitment, structural strength.">
+                                <span class="font-bold text-stone-800">Absolute Strength</span>
+                                <span class="bg-stone-800 text-white px-2 py-1 rounded text-xs">&lt; 0.50 m/s</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-stone-100 rounded hover:bg-stone-200 transition" title="Moving heavy loads as fast as possible. Peak power foundation.">
+                                <span class="font-bold text-stone-800">Strength-Speed</span>
+                                <span class="bg-stone-800 text-white px-2 py-1 rounded text-xs">0.50 - 0.75 m/s</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-stone-100 rounded hover:bg-stone-200 transition" title="Maximum dynamic power generation. Core athletic zone.">
+                                <span class="font-bold text-stone-800">Speed-Strength</span>
+                                <span class="bg-stone-800 text-white px-2 py-1 rounded text-xs">0.75 - 1.0 m/s</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-stone-100 rounded hover:bg-stone-200 transition" title="Overcoming inertia instantly. Rate of Force Development focus.">
+                                <span class="font-bold text-stone-800">Starting Strength</span>
+                                <span class="bg-stone-800 text-white px-2 py-1 rounded text-xs">&gt; 1.0 m/s</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-stone-200">
+                            <h5 class="font-bold text-stone-800 mb-2 text-sm">Velocity Loss Thresholds (Fatigue Management)</h5>
+                            <div class="flex justify-between items-end gap-2 text-xs">
+                                <div class="bg-blue-100 p-2 rounded flex-1 border border-blue-200 text-center">
+                                    <strong class="block text-blue-900 text-sm">10% Drop</strong>
+                                    <span class="text-stone-600">Peaking/In-Season. Stops set early. Protects CNS, max power, minimal hypertrophy.</span>
+                                </div>
+                                <div class="bg-orange-100 p-2 rounded flex-1 border border-orange-200 text-center">
+                                    <strong class="block text-orange-900 text-sm">20-30% Drop</strong>
+                                    <span class="text-stone-600">Off-Season. Pushes closer to failure. Stimulates hypertrophy and metabolic stress.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="summary" class="mb-20 pt-8">
+            <h3 class="text-3xl font-bold text-blue-900 mb-6 flex items-center">&#128221; 5. Summary Matrix</h3>
+            <p class="text-stone-700 mb-6 text-lg">A structural breakdown contrasting the macro-level capabilities of FVP versus the micro-level prescription rules of LVP.</p>
+            
+            <div class="overflow-x-auto rounded-xl shadow-sm border border-stone-200">
+                <table class="min-w-full text-left bg-white text-sm">
+                    <thead class="bg-stone-800 text-white">
+                        <tr>
+                            <th class="py-4 px-6 font-semibold">Concept</th>
+                            <th class="py-4 px-6 font-semibold border-l border-stone-600">Force-Velocity Profiling (FVP)</th>
+                            <th class="py-4 px-6 font-semibold border-l border-stone-600">Load-Velocity Profiling (LVP)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-stone-200">
+                        <tr class="hover:bg-stone-50 transition">
+                            <td class="py-3 px-6 font-bold text-stone-800 bg-stone-50">Core Purpose</td>
+                            <td class="py-3 px-6 text-stone-700 border-l border-stone-200">Map mechanical capabilities & identify systemic deficits relative to an optimal profile.</td>
+                            <td class="py-3 px-6 text-stone-700 border-l border-stone-200">Map mass-to-speed relationships for exercise prescription and fatigue monitoring.</td>
+                        </tr>
+                        <tr class="hover:bg-stone-50 transition">
+                            <td class="py-3 px-6 font-bold text-stone-800 bg-stone-50">Key Metrics</td>
+                            <td class="py-3 px-6 text-stone-700 border-l border-stone-200">F₀ (max force), v₀ (max velocity), Sfv (profile slope), Ratio of Forces (RF).</td>
+                            <td class="py-3 px-6 text-stone-700 border-l border-stone-200">Mean Propulsive Velocity (MPV), MVT (Minimum Velocity Threshold), Predicted 1RM.</td>
+                        </tr>
+                        <tr class="hover:bg-stone-50 transition">
+                            <td class="py-3 px-6 font-bold text-stone-800 bg-stone-50">Testing Methods</td>
+                            <td class="py-3 px-6 text-stone-700 border-l border-stone-200">Multiple loaded jumps (force plates), single max sprints (radar/timing gates).</td>
+                            <td class="py-3 px-6 text-stone-700 border-l border-stone-200">Incremental submaximal loads (3-4 sets) monitored via LPTs or accelerometers.</td>
+                        </tr>
+                        <tr class="hover:bg-stone-50 transition">
+                            <td class="py-3 px-6 font-bold text-stone-800 bg-stone-50">Primary Use in Programming</td>
+                            <td class="py-3 px-6 text-stone-700 border-l border-stone-200">Exercise selection (e.g., prescribing heavy sleds vs overspeed jumps to shift the curve).</td>
+                            <td class="py-3 px-6 text-stone-700 border-l border-stone-200">Daily autoregulation, defining training zones, capping volume via velocity loss thresholds.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initScrollSpy();
+            initFVChart();
+            initLVChart();
+            showTypology('endurance'); 
+        });
+
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                const yOffset = -20; 
+                const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({top: y, behavior: 'smooth'});
+            }
+        }
+
+        function initScrollSpy() {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('#desktop-nav .nav-link');
+            
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 150) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('onclick').includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        }
+
+        function switchTab(tabId) {
+            const contents = document.querySelectorAll('.tab-content');
+            const btns = document.querySelectorAll('.tab-btn');
+            
+            contents.forEach(c => {
+                c.classList.add('hidden-content');
+                c.classList.remove('fade-in');
+            });
+            btns.forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.remove('hidden-content');
+            document.getElementById(tabId).classList.add('fade-in');
+            document.getElementById('btn-' + tabId).classList.add('active');
+        }
+
+        function showTypology(type) {
+            const contents = document.querySelectorAll('.typology-content');
+            const btns = [document.getElementById('btn-type-endurance'), document.getElementById('btn-type-middle'), document.getElementById('btn-type-power')];
+            
+            contents.forEach(c => {
+                c.classList.add('hidden-content');
+                c.classList.remove('fade-in');
+            });
+            btns.forEach(b => {
+                b.classList.remove('border-blue-500', 'ring-2', 'bg-blue-50');
+                b.classList.add('border-stone-300', 'bg-white');
+            });
+            
+            document.getElementById('content-' + type).classList.remove('hidden-content');
+            document.getElementById('content-' + type).classList.add('fade-in');
+            
+            const activeBtn = document.getElementById('btn-type-' + type);
+            activeBtn.classList.remove('border-stone-300', 'bg-white');
+            activeBtn.classList.add('border-blue-500', 'ring-2', 'bg-blue-50');
+        }
+
+        function toggleDetails(id) {
+            const el = document.getElementById(id);
+            if(el.classList.contains('hidden-content')){
+                el.classList.remove('hidden-content');
+                el.classList.add('fade-in');
+            } else {
+                el.classList.add('hidden-content');
+                el.classList.remove('fade-in');
+            }
+        }
+
+        let fvChartInstance;
+        function initFVChart() {
+            const ctx = document.getElementById('fvChart').getContext('2d');
+            const f0Slider = document.getElementById('f0-slider');
+            const v0Slider = document.getElementById('v0-slider');
+            
+            const updateFV = () => {
+                const f0 = parseFloat(f0Slider.value);
+                const v0 = parseFloat(v0Slider.value);
+                const slope = -(f0 / v0);
+                
+                document.getElementById('f0-val').textContent = f0;
+                document.getElementById('v0-val').textContent = v0.toFixed(1);
+                document.getElementById('slope-val').textContent = slope.toFixed(2);
+                
+                const assessEl = document.getElementById('profile-assessment');
+                if (f0 > 35 && v0 < 3.0) { assessEl.textContent = "Force Dominant (Velocity Deficit)"; assessEl.className = "text-xs font-bold mt-2 text-green-700 bg-green-100 p-2 rounded text-center"; }
+                else if (f0 < 25 && v0 > 4.0) { assessEl.textContent = "Velocity Dominant (Force Deficit)"; assessEl.className = "text-xs font-bold mt-2 text-red-700 bg-red-100 p-2 rounded text-center"; }
+                else { assessEl.textContent = "Balanced Profile"; assessEl.className = "text-xs font-bold mt-2 text-stone-600 bg-stone-100 p-2 rounded text-center"; }
+
+                const dataPts = [];
+                for(let v = 0; v <= 5.5; v += 0.5) {
+                    let f = f0 + (slope * v);
+                    if (f < 0) f = 0;
+                    dataPts.push({x: v, y: f});
+                }
+
+                fvChartInstance.data.datasets[0].data = dataPts;
+                fvChartInstance.update();
+            };
+
+            fvChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'F-V Profile',
+                        data: [{x:0, y:30}, {x:3.5, y:0}],
+                        borderColor: '#1e40af',
+                        backgroundColor: 'rgba(30, 64, 175, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#1e40af',
+                        pointRadius: 4,
+                        fill: true,
+                        tension: 0 
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { type: 'linear', position: 'bottom', title: { display: true, text: 'Velocity (m/s)', font: {weight: 'bold'} }, min: 0, max: 6 },
+                        y: { title: { display: true, text: 'Force (N/kg)', font: {weight: 'bold'} }, min: 0, max: 50 }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) { return `Vel: ${context.parsed.x.toFixed(2)} m/s, Force: ${context.parsed.y.toFixed(1)} N/kg`; }
+                            }
+                        }
+                    }
+                }
+            });
+
+            f0Slider.addEventListener('input', updateFV);
+            v0Slider.addEventListener('input', updateFV);
+            updateFV(); 
+        }
+
+        let lvChartInstance;
+        function initLVChart() {
+            const ctx = document.getElementById('lvChart').getContext('2d');
+            
+            lvChartInstance = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Testing Loads',
+                            data: [
+                                {x: 40, y: 1.15}, 
+                                {x: 60, y: 0.85}, 
+                                {x: 80, y: 0.55}  
+                            ],
+                            backgroundColor: '#166534',
+                            pointRadius: 6,
+                            pointHoverRadius: 8
+                        },
+                        {
+                            label: 'L-V Regression Line',
+                            data: [
+                                {x: 0, y: 1.75}, 
+                                {x: 100, y: 0.25}, 
+                                {x: 105, y: 0.17}  
+                            ],
+                            type: 'line',
+                            borderColor: '#94a3b8',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0
+                        },
+                        {
+                            label: 'Predicted 1RM (MVT=0.3)',
+                            data: [{x: 96.6, y: 0.3}], 
+                            backgroundColor: '#991b1b',
+                            pointStyle: 'rectRot',
+                            pointRadius: 8,
+                            pointHoverRadius: 10
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Load (% Estimated 1RM or kg)', font: {weight: 'bold'} }, min: 0, max: 120 },
+                        y: { title: { display: true, text: 'Mean Propulsive Velocity (m/s)', font: {weight: 'bold'} }, min: 0, max: 2.0 }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { boxWidth: 12 } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) { return `Load: ${context.parsed.x}%, MPV: ${context.parsed.y.toFixed(2)} m/s`; }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

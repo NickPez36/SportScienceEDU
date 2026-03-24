@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate of Force Development (RFD) in Elite Sports</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- MathJax for Formula Rendering -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- Tailwind Configuration & Custom Styles -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            500: '#64748b',
+                            700: '#334155',
+                            900: '#0f172a',
+                            accent: '#2563eb' // Deep blue for high-performance feel
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Essential Chart Container Styling per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 280px;
+            }
+        }
+        
+        /* Custom scrollbar for a polished look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Content block transitions */
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: 600; }
+        .tab-inactive { color: #64748b; }
+        .tab-inactive:hover { color: #334155; }
+    </style>
+</head>
+<body class="bg-brand-50 text-brand-900 font-sans antialiased leading-relaxed">
+
+    <!-- Chosen Palette: Slate/Blue High-Performance Academic. Neutrals (Slate 50-900) for clean text readability, with a deep blue accent (#2563eb) to denote interactivity and highlight key data, maintaining a rigorous, objective academic tone. -->
+    
+    <!-- Application Structure Plan: 
+    The SPA uses a linear narrative flow with a sticky navigation header, representing an interactive academic journal article. 
+    1. Hero: Establishes the academic tone and core definition.
+    2. Mechanisms (Section 1): Uses a split layout with interactive text toggles linked to a dynamic force-time curve to visually separate abstract concepts (<100ms vs >100ms).
+    3. Measurement (Section 2): Highlights the math (MathJax) and physical realities of force plates, supported by a bar chart showing RFD decay over time bands.
+    4. Typologies (Section 3): Uses a tabbed interface and radar chart to allow users to compare different athletic profiles without vertical bloat.
+    5. Periodization (Section 4): Features a timeline chart visualizing the inverse relationship between fatigue/volume and RFD expression, translating theory to coaching practice.
+    This structure was chosen to move the user logically from cellular/neural theory -> quantification -> application -> programming. 
+    -->
+
+    <!-- Visualization & Content Choices: 
+    - Goal: Inform on Early vs Late RFD. Viz: Dynamic Line Chart (Chart.js). Interaction: Buttons highlighting chart zones. Justification: Force-Time curves are the universal language of biomechanics.
+    - Goal: Compare time bands. Viz: Bar Chart. Interaction: Hover tooltips. Justification: Clearly shows the non-linear drop-off in force production rate.
+    - Goal: Compare athlete typologies. Viz: Radar Chart (Chart.js). Interaction: Tab switching updates datasets. Justification: Best for multivariate profile comparisons (Early RFD vs Late RFD vs Peak Force).
+    - Goal: Show temporal training adaptations. Viz: Multi-line Chart. Interaction: Hover to see phase values. Justification: Standard method for illustrating block periodization concepts.
+    CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All interactive elements rely on Canvas (Chart.js) or styled HTML. 
+    -->
+
+    <!-- Sticky Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center gap-2">
+                <div class="flex-shrink-0 font-serif font-bold text-xl text-brand-900 tracking-tight min-w-0 truncate">
+                    RFD Analytics
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <div class="hidden md:flex space-x-8 text-sm font-medium">
+                        <a href="#mechanisms" class="text-brand-500 hover:text-brand-accent transition-colors">Mechanisms</a>
+                        <a href="#measurement" class="text-brand-500 hover:text-brand-accent transition-colors">Measurement</a>
+                        <a href="#typology" class="text-brand-500 hover:text-brand-accent transition-colors">Athlete Typology</a>
+                        <a href="#periodization" class="text-brand-500 hover:text-brand-accent transition-colors">Periodization</a>
+                    </div>
+                    <a href="index.html" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-slate-50 px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors">
+                        <span aria-hidden="true">←</span> S&amp;C modules
+                    </a>
+                    <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-slate-50 px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors">
+                        <span aria-hidden="true">🏠</span> Learning Hub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <!-- Hero / Header -->
+        <header class="text-center max-w-4xl mx-auto space-y-6">
+            <div class="inline-block px-3 py-1 bg-brand-100 text-brand-accent rounded-full text-xs font-bold tracking-wider uppercase mb-2">Research Report</div>
+            <h1 class="text-4xl md:text-5xl font-serif font-extrabold text-brand-900 leading-tight">
+                Rate of Force Development (RFD) in High-Performance Sports
+            </h1>
+            <p class="text-lg text-brand-500 text-justify md:text-center">
+                An exhaustive biomechanical and neurophysiological analysis bridging the gap between neuromuscular physiology, force-plate kinematics, and applied strength and conditioning in elite athletic populations.
+            </p>
+        </header>
+
+        <!-- Section 1: Mechanisms -->
+        <section id="mechanisms" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-3xl font-serif font-bold text-brand-900 border-b-2 border-brand-100 pb-2">1. Neurophysiological and Biomechanical Mechanisms</h2>
+                <p class="mt-4 text-brand-700">
+                    This section elucidates the underlying physiological drivers of explosive strength. By distinguishing between early-phase and late-phase RFD, we isolate the specific neuromuscular and structural qualities required for ballistic force generation. Interact with the metrics below to isolate the force-time curve.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                
+                <!-- Text / Interaction -->
+                <div class="space-y-6">
+                    <div class="flex space-x-2 border-b border-slate-200">
+                        <button id="btn-early" class="pb-2 px-4 tab-active focus:outline-none" onclick="updateMechView('early')">Early RFD (< 100ms)</button>
+                        <button id="btn-late" class="pb-2 px-4 tab-inactive focus:outline-none" onclick="updateMechView('late')">Late RFD (> 100ms)</button>
+                    </div>
+
+                    <div id="mech-content" class="fade-in min-h-[250px]">
+                        <!-- Dynamic content injected here via JS -->
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="w-full">
+                    <div class="chart-container">
+                        <canvas id="forceTimeChart"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-brand-500 mt-4 italic">Figure 1: Theoretical Force-Time Curve during an Isometric Mid-Thigh Pull (IMTP).</p>
+                </div>
+            </div>
+
+            <!-- Summary Table -->
+            <div class="mt-12 overflow-x-auto">
+                <table class="w-full text-left text-sm border-collapse">
+                    <thead>
+                        <tr class="bg-brand-100 text-brand-900">
+                            <th class="p-4 font-semibold border-b border-slate-200 rounded-tl-lg">Physiological Driver</th>
+                            <th class="p-4 font-semibold border-b border-slate-200 border-l border-white">Early RFD (< 100ms)</th>
+                            <th class="p-4 font-semibold border-b border-slate-200 border-l border-white rounded-tr-lg">Late RFD (> 100ms)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-brand-700">
+                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                            <td class="p-4 font-medium">Primary Modulator</td>
+                            <td class="p-4 border-l border-slate-100">Central Nervous System (Neural Drive)</td>
+                            <td class="p-4 border-l border-slate-100">Muscle Architecture & Max Strength</td>
+                        </tr>
+                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                            <td class="p-4 font-medium">Motor Unit Recruitment</td>
+                            <td class="p-4 border-l border-slate-100">Rapid threshold lowering; doublet discharges</td>
+                            <td class="p-4 border-l border-slate-100">Complete spatial summation; tetanus</td>
+                        </tr>
+                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                            <td class="p-4 font-medium">Structural Dependency</td>
+                            <td class="p-4 border-l border-slate-100">Low (primarily relies on rate coding)</td>
+                            <td class="p-4 border-l border-slate-100">High (Type IIx/IIa ratio, pennation angle)</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 font-medium">Training Intervention</td>
+                            <td class="p-4 border-l border-slate-100">Ballistics, Plyometrics, Overspeed</td>
+                            <td class="p-4 border-l border-slate-100">Heavy Resistance Training ( >85% 1RM)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 2: Measurement -->
+        <section id="measurement" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-3xl font-serif font-bold text-brand-900 border-b-2 border-brand-100 pb-2">2. Measurement and Quantification</h2>
+                <p class="mt-4 text-brand-700">
+                    Accurate quantification of RFD mandates strict methodological control. This section outlines the gold-standard testing protocols, mathematical derivations, and the absolute necessity of high-fidelity biomechanical hardware.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+                <div class="md:col-span-5 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
+                    <h3 class="text-xl font-bold mb-4">Foundational Formula</h3>
+                    <div class="p-6 bg-slate-50 rounded-lg text-center mb-6 overflow-x-auto">
+                        <!-- MathJax Formula -->
+                        $$RFD = \frac{\Delta Force}{\Delta Time}$$
+                    </div>
+                    <ul class="space-y-3 text-sm text-brand-700">
+                        <li class="flex items-start">
+                            <span class="text-brand-accent mr-2 font-bold">&#8226;</span>
+                            <span><strong>Hardware Imperative:</strong> Minimum 1000Hz sampling rate via dual force plates is non-negotiable to capture the rapid transient (<50ms) force changes.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-brand-accent mr-2 font-bold">&#8226;</span>
+                            <span><strong>Signal Processing:</strong> Raw signals require low-pass filtering (e.g., 4th order Butterworth, ~10-20Hz cutoff) to remove mechanical ringing without blunting peak transients.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-brand-accent mr-2 font-bold">&#8226;</span>
+                            <span><strong>Onset Identification:</strong> Defined rigidly as 5 SD above baseline resting system mass, resolving the difficulty of identifying true zero-movement initiation.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="md:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="text-xl font-bold mb-2">RFD Time-Band Decay (Theoretical Athlete)</h3>
+                    <p class="text-sm text-brand-500 mb-6">Peak RFD occurs early in the contraction. As time progresses, the rate of change decreases as absolute force approaches maximum isometric capacity.</p>
+                    <div class="chart-container">
+                        <canvas id="rfdBandsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Typologies -->
+        <section id="typology" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-3xl font-serif font-bold text-brand-900 border-b-2 border-brand-100 pb-2">3. Practical Uses by Athlete Typology</h2>
+                <p class="mt-4 text-brand-700">
+                    The expression and necessity of RFD are highly context-dependent. This section analyzes how divergent sports demand specific force-time characteristics to maximize performance and mitigate mechanical fatigue.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="flex flex-col sm:flex-row bg-slate-50 border-b border-slate-200">
+                    <button id="btn-endurance" class="flex-1 py-4 px-6 text-sm font-bold bg-white text-brand-accent border-b-2 border-brand-accent focus:outline-none" onclick="updateTypology('endurance')">Endurance</button>
+                    <button id="btn-middle" class="flex-1 py-4 px-6 text-sm font-semibold text-brand-500 hover:text-brand-900 focus:outline-none" onclick="updateTypology('middle')">Middle-Distance</button>
+                    <button id="btn-sprinter" class="flex-1 py-4 px-6 text-sm font-semibold text-brand-500 hover:text-brand-900 focus:outline-none" onclick="updateTypology('sprinter')">Sprinter / Power</button>
+                </div>
+                
+                <div class="p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div id="typology-text" class="fade-in space-y-4 text-brand-700">
+                        <!-- Injected via JS -->
+                    </div>
+                    <div class="w-full">
+                        <div class="chart-container" style="max-width: 450px;">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Periodization -->
+        <section id="periodization" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-3xl font-serif font-bold text-brand-900 border-b-2 border-brand-100 pb-2">4. Training Applications and Periodization</h2>
+                <p class="mt-4 text-brand-700">
+                    RFD is highly sensitive to acute and chronic fatigue. Strategic periodization is required to transition from structural remodeling (heavy strength) to neural expression (ballistics and tapering).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-t-4 border-t-brand-700">
+                    <h4 class="font-bold text-lg mb-2">Heavy Resistance</h4>
+                    <p class="text-sm text-brand-600">Drives late RFD and peak force potential. Increases cross-sectional area and shifts fiber types toward IIa. Creates high residual CNS fatigue, masking early RFD expression.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-t-4 border-t-brand-500">
+                    <h4 class="font-bold text-lg mb-2">Oly Derivatives & Ballistics</h4>
+                    <p class="text-sm text-brand-600">Loaded jumps and cleans. Focuses on "compensatory acceleration"—the intent to move maximally fast regardless of load. Bridges the gap between strength and speed.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-t-4 border-t-brand-accent">
+                    <h4 class="font-bold text-lg mb-2">Peaking / Tapering</h4>
+                    <p class="text-sm text-brand-600">Drastic volume reduction. Neural wash-out phase allowing high-frequency rate coding and doublet discharges to occur without the blunting effect of metabolic/CNS fatigue.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="text-xl font-bold mb-4 text-center">Macrocycle Fluctuations: Volume vs. RFD Expression</h3>
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="periodizationChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-brand-900 text-slate-400 py-8 text-center text-sm border-t border-brand-700 mt-12">
+        <p>Interactive Academic Simulation &copy; High-Performance Sports Science</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Data Storage for Section 1: Mechanisms ---
+        const mechData = {
+            early: {
+                title: "Early Phase RFD (< 100ms)",
+                html: `
+                    <h3 class="text-xl font-bold text-brand-900 mb-3">Neural Dominance</h3>
+                    <p class="text-sm mb-3">Early phase RFD is critically dependent on the central nervous system's ability to drive the muscle rapidly from a state of relaxation. Structural factors play a minimal role here.</p>
+                    <ul class="space-y-2 text-sm list-none pl-0">
+                        <li><span class="text-brand-accent font-bold mr-2">&#8594;</span><strong>Motor Unit Recruitment:</strong> Elite athletes exhibit heavily depressed recruitment thresholds, allowing massive pools of fast-twitch units to engage instantly.</li>
+                        <li><span class="text-brand-accent font-bold mr-2">&#8594;</span><strong>Rate Coding:</strong> Firing frequencies can exceed 100-150Hz in the first 50ms.</li>
+                        <li><span class="text-brand-accent font-bold mr-2">&#8594;</span><strong>Doublet Discharges:</strong> The CNS employs two rapid consecutive action potentials (<10ms apart) to rapidly take up slack in the series elastic component.</li>
+                    </ul>
+                `
+            },
+            late: {
+                title: "Late Phase RFD (> 100ms)",
+                html: `
+                    <h3 class="text-xl font-bold text-brand-900 mb-3">Structural & Maximum Force Dominance</h3>
+                    <p class="text-sm mb-3">As time progresses beyond 100ms, neural drive is largely maximized. The limiting factor shifts to the muscle's morphological architecture and its absolute peak force capability.</p>
+                    <ul class="space-y-2 text-sm list-none pl-0">
+                        <li><span class="text-brand-accent font-bold mr-2">&#8594;</span><strong>Fiber Type:</strong> Heavily correlated with the proportion of Type IIa and IIx muscle fibers.</li>
+                        <li><span class="text-brand-accent font-bold mr-2">&#8594;</span><strong>Muscle Architecture:</strong> Optimal pennation angles and longer fascicle lengths allow for greater absolute tension.</li>
+                        <li><span class="text-brand-accent font-bold mr-2">&#8594;</span><strong>Tendon Stiffness:</strong> A stiffer tendon transmits muscular force to the bone more effectively during prolonged isometric or slow dynamic contractions.</li>
+                    </ul>
+                `
+            }
+        };
+
+        // --- Data Storage for Section 3: Typologies ---
+        const typologyData = {
+            endurance: {
+                text: `
+                    <h3 class="text-2xl font-bold text-brand-900 mb-2">Endurance Athletes</h3>
+                    <h4 class="text-sm font-semibold text-brand-500 mb-4">(Marathoners, Triathletes)</h4>
+                    <p class="mb-3">While traditionally viewed as purely aerobic entities, elite endurance runners rely heavily on RFD to dictate <strong>Running Economy</strong>.</p>
+                    <ul class="space-y-2 text-sm list-disc pl-5">
+                        <li><strong>Ground Contact Time (GCT):</strong> High RFD allows the athlete to apply necessary vertical impulse in a shorter GCT (<200ms).</li>
+                        <li><strong>Elastic Return:</strong> Rapid force application maximizes the stretch-shortening cycle (SSC) of the Achilles, utilizing free passive elastic energy and sparing metabolic reserves.</li>
+                    </ul>
+                `,
+                stats: [60, 40, 50, 95, 80] // [Early RFD, Late RFD, Peak Force, Tendon Stiffness, Aerobic/Economy] - mapped to radar
+            },
+            middle: {
+                text: `
+                    <h3 class="text-2xl font-bold text-brand-900 mb-2">Middle-Distance</h3>
+                    <h4 class="text-sm font-semibold text-brand-500 mb-4">(800m - 1500m)</h4>
+                    <p class="mb-3">For the middle-distance athlete, RFD acts as a <strong>Neuromuscular Reserve</strong>.</p>
+                    <ul class="space-y-2 text-sm list-disc pl-5">
+                        <li><strong>Fatigue Mitigation:</strong> As metabolic acidosis heavily impairs muscle contractility in the final 300m, athletes with a massive RFD buffer can maintain mechanical efficiency.</li>
+                        <li><strong>The "Kick":</strong> The ability to suddenly surge past competitors at the end of a race relies on preserved neural drive and early RFD accessing high-threshold motor units despite peripheral fatigue.</li>
+                    </ul>
+                `,
+                stats: [80, 70, 65, 85, 90]
+            },
+            sprinter: {
+                text: `
+                    <h3 class="text-2xl font-bold text-brand-900 mb-2">Sprinters & Power Athletes</h3>
+                    <h4 class="text-sm font-semibold text-brand-500 mb-4">(100m, Jumpers, Throwers)</h4>
+                    <p class="mb-3">Power athletes exist at the extreme right of the RFD spectrum, requiring distinct qualities for acceleration versus max velocity.</p>
+                    <ul class="space-y-2 text-sm list-disc pl-5">
+                        <li><strong>Block Clearance:</strong> Pure Early RFD (<100ms) dictates the initial push off the blocks where there is no pre-stretch.</li>
+                        <li><strong>Upright Sprinting:</strong> At max velocity, GCT is astonishingly short (~80-90ms). However, massive <em>peak force</em> capabilities act synergistically with RFD to punch the track with extreme magnitude in minimal time.</li>
+                    </ul>
+                `,
+                stats: [100, 90, 100, 90, 40]
+            }
+        };
+
+        // --- Chart Objects (for updating) ---
+        let forceChart, radarChart, rfdBandsChart, periodChart;
+
+        // --- Initialize Everything ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initForceTimeChart();
+            updateMechView('early'); // Set initial state
+            
+            initRfdBandsChart();
+            
+            initRadarChart();
+            updateTypology('endurance'); // Set initial state
+            
+            initPeriodizationChart();
+        });
+
+        // --- Section 1: Mechanisms Interaction ---
+        function updateMechView(type) {
+            // Update Text
+            const contentDiv = document.getElementById('mech-content');
+            contentDiv.classList.remove('fade-in');
+            void contentDiv.offsetWidth; // trigger reflow
+            contentDiv.innerHTML = mechData[type].html;
+            contentDiv.classList.add('fade-in');
+
+            // Update Buttons
+            document.getElementById('btn-early').className = type === 'early' ? 'pb-2 px-4 tab-active focus:outline-none' : 'pb-2 px-4 tab-inactive focus:outline-none';
+            document.getElementById('btn-late').className = type === 'late' ? 'pb-2 px-4 tab-active focus:outline-none' : 'pb-2 px-4 tab-inactive focus:outline-none';
+
+            // Update Chart Highlights
+            if(forceChart) {
+                forceChart.data.datasets[1].hidden = type !== 'early'; // Highlight Early zone
+                forceChart.data.datasets[2].hidden = type !== 'late';  // Highlight Late zone
+                forceChart.update();
+            }
+        }
+
+        function initForceTimeChart() {
+            const ctx = document.getElementById('forceTimeChart').getContext('2d');
+            
+            // Generate synthetic IMTP curve data
+            const labels = [];
+            const dataPts = [];
+            for(let i=0; i<=300; i+=10) {
+                labels.push(i);
+                // Logistic curve approximation for Force
+                let force = 4000 / (1 + Math.exp(-0.03 * (i - 100)));
+                if (i===0) force = 0;
+                dataPts.push(force);
+            }
+
+            forceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Force (Newtons)',
+                            data: dataPts,
+                            borderColor: '#0f172a',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            fill: false,
+                            zIndex: 10
+                        },
+                        {
+                            label: 'Early Phase Zone',
+                            data: dataPts.map((v, i) => labels[i] <= 100 ? v : null),
+                            backgroundColor: 'rgba(37, 99, 235, 0.2)', // Accent blue
+                            fill: true,
+                            borderWidth: 0,
+                            pointRadius: 0,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Late Phase Zone',
+                            data: dataPts.map((v, i) => labels[i] >= 100 ? v : null),
+                            backgroundColor: 'rgba(100, 116, 139, 0.2)', // Slate
+                            fill: true,
+                            borderWidth: 0,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            hidden: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    if(context.datasetIndex === 0) return context.raw.toFixed(0) + ' N';
+                                    return '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Time (milliseconds)' },
+                            grid: { display: false }
+                        },
+                        y: {
+                            title: { display: true, text: 'Force (N)' },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Section 2: Measurement Chart ---
+        function initRfdBandsChart() {
+            const ctx = document.getElementById('rfdBandsChart').getContext('2d');
+            rfdBandsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['0-50ms', '0-100ms', '0-150ms', '0-200ms', '0-250ms'],
+                    datasets: [{
+                        label: 'Avg RFD (N/s)',
+                        data: [12500, 9800, 7200, 5400, 3100], // Decreasing rate
+                        backgroundColor: '#334155',
+                        hoverBackgroundColor: '#2563eb',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(c) { return c.raw.toLocaleString() + ' N/s'; }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { title: { display: true, text: 'RFD (Newtons per Second)'}, beginAtZero: true },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // --- Section 3: Typology Interaction ---
+        function updateTypology(type) {
+            // Update Buttons
+            const btnClasses = {
+                active: 'flex-1 py-4 px-6 text-sm font-bold bg-white text-brand-accent border-b-2 border-brand-accent focus:outline-none transition-colors',
+                inactive: 'flex-1 py-4 px-6 text-sm font-semibold text-brand-500 bg-slate-50 hover:bg-slate-100 hover:text-brand-900 border-b border-slate-200 focus:outline-none transition-colors'
+            };
+            
+            ['endurance', 'middle', 'sprinter'].forEach(t => {
+                document.getElementById('btn-' + t).className = t === type ? btnClasses.active : btnClasses.inactive;
+            });
+
+            // Update Text
+            const textDiv = document.getElementById('typology-text');
+            textDiv.classList.remove('fade-in');
+            void textDiv.offsetWidth;
+            textDiv.innerHTML = typologyData[type].text;
+            textDiv.classList.add('fade-in');
+
+            // Update Radar Chart
+            if(radarChart) {
+                radarChart.data.datasets[0].data = typologyData[type].stats;
+                
+                // Change color based on type for visual distinction
+                let color = '#334155';
+                if(type==='sprinter') color = '#dc2626'; // Red
+                if(type==='endurance') color = '#2563eb'; // Blue
+                if(type==='middle') color = '#16a34a'; // Green
+
+                radarChart.data.datasets[0].backgroundColor = color + '33'; // 20% opacity
+                radarChart.data.datasets[0].borderColor = color;
+                radarChart.data.datasets[0].pointBackgroundColor = color;
+                
+                radarChart.update();
+            }
+        }
+
+        function initRadarChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Early RFD', 'Late RFD', 'Peak Force', 'Tendon Stiffness', 'Metabolic Econ.'],
+                    datasets: [{
+                        label: 'Profile Score',
+                        data: [0, 0, 0, 0, 0], // Injected on load
+                        backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                        borderColor: '#2563eb',
+                        pointBackgroundColor: '#2563eb',
+                        borderWidth: 2,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.1)' },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            pointLabels: { font: { size: 11, family: 'Inter' }, color: '#334155' },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // --- Section 4: Periodization Chart ---
+        function initPeriodizationChart() {
+            const ctx = document.getElementById('periodizationChart').getContext('2d');
+            periodChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['GPP (Hypertrophy)', 'Max Strength', 'Power/Ballistic', 'Taper', 'Competition'],
+                    datasets: [
+                        {
+                            label: 'Heavy Training Volume',
+                            data: [90, 100, 50, 20, 10],
+                            borderColor: '#64748b',
+                            backgroundColor: '#64748b',
+                            borderWidth: 2,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Ballistic/Plyo Volume',
+                            data: [30, 40, 100, 60, 20],
+                            borderColor: '#2563eb',
+                            backgroundColor: '#2563eb',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            borderDash: [5, 5]
+                        },
+                        {
+                            label: 'Expressed Early RFD Capability',
+                            data: [40, 50, 75, 95, 100],
+                            borderColor: '#0f172a',
+                            backgroundColor: 'rgba(15, 23, 42, 0.1)',
+                            borderWidth: 4,
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        tooltip: { usePointStyle: true },
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: {
+                            title: { display: true, text: 'Relative Intensity / Expression (%)' },
+                            min: 0, max: 110,
+                            ticks: { stepSize: 20 }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

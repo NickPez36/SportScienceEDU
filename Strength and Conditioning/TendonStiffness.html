@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In Vivo Tendon Stiffness: Micro-Adaptations & Macroscopic Force Expression</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Tailwind Config for Academic/Neutral Theme -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        stone: {
+                            50: '#fafaf9',
+                            100: '#f5f5f4',
+                            200: '#e7e5e4',
+                            300: '#d6d3d1',
+                            700: '#44403c',
+                            800: '#292524',
+                            900: '#1c1917',
+                        },
+                        accent: {
+                            blue: '#0369a1', // Deep clinical blue
+                            red: '#be123c',  // Energetic sprint red
+                            green: '#15803d' // Aerobic green
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Merriweather', 'Georgia', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base typography and smooth scrolling */
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: #fafaf9; color: #292524; }
+        h1, h2, h3, h4 { font-family: 'Merriweather', serif; }
+        
+        /* Chart Container Requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+            background: #ffffff;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+
+        /* Custom Scrollbar for a polished look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f5f5f4; }
+        ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+
+        /* Interactive Element Styling */
+        .tab-btn {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-btn.active {
+            border-bottom: 2px solid #0369a1;
+            color: #0369a1;
+            font-weight: 600;
+        }
+        
+        .card-hover {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+
+    <!-- Chosen Palette: Warm neutrals (Stone 50-900) for clinical/academic feel, with subtle accents (clinical blue, energetic red, aerobic green) for specific athlete types and data highlights. -->
+    
+    <!-- Application Structure Plan: 
+         1. Header/Hero: Establishes academic authority and topic.
+         2. Interactive Dashboard (Typologies): Placed high up to immediately engage users with the core practical application (comparing athlete types). Users select an athlete to dynamically update the text, physiological profile chart, and training implications.
+         3. Section: Structural Mechanisms: Explains the 'why' using an interactive Stress-Strain curve chart to visually teach Young's Modulus and stiffness, toggling between Benefits and Risks.
+         4. Section: Measurement & Quantification: Grid layout breaking down Lab vs. Field methods, making methodology digestible.
+         5. Section: Training Interventions: Actionable accordion/grid layout for periodization strategies.
+         6. Summary Table: A consolidated reference matrix.
+         *Rationale*: This structure prioritizes interactive exploration of the end-goals (athlete profiles) first, then allows deeper dives into the physiological mechanisms, measurement techniques, and precise training interventions, moving from macroscopic application to microscopic physiology.
+    -->
+
+    <!-- Visualization & Content Choices: 
+         - Athlete Profiles -> Compare/Relationships -> Radar Chart (Chart.js) -> Allows multivariable comparison (Stiffness, Compliance, RFD, Economy) across athlete types instantly. -> Chart.js Canvas.
+         - Tissue Mechanics (Stiffness vs Modulus) -> Inform/Explain -> Line Chart (Stress-Strain Curve) with tooltips -> Visually explains abstract concepts like the "Toe Region" and "Failure". -> Chart.js Canvas.
+         - Benefits vs Risks -> Organize/Inform -> Interactive Toggle Cards -> Prevents text overload and chunks physiological consequences logically. -> Vanilla JS + HTML/CSS.
+         - Training Modalities -> Organize -> Grid Cards with Hover states -> Makes heavy academic protocols scannable and discrete. -> HTML/CSS.
+         - Summary -> Organize -> HTML Table -> Best format for direct cross-referencing of typologies and protocols.
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-stone-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center gap-2">
+                <div class="flex items-center min-w-0">
+                    <span class="text-xl font-serif font-bold text-stone-800 truncate">🔬 Biomechanics Lab</span>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <div class="hidden md:flex items-center space-x-8">
+                        <a href="#typologies" class="text-sm font-medium text-stone-600 hover:text-accent-blue transition">Athlete Profiles</a>
+                        <a href="#mechanisms" class="text-sm font-medium text-stone-600 hover:text-accent-blue transition">Structural Mechanisms</a>
+                        <a href="#measurement" class="text-sm font-medium text-stone-600 hover:text-accent-blue transition">Quantification</a>
+                        <a href="#interventions" class="text-sm font-medium text-stone-600 hover:text-accent-blue transition">Training</a>
+                    </div>
+                    <a href="index.html" class="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-stone-50 px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold text-stone-700 hover:bg-stone-100 transition-colors">
+                        <span aria-hidden="true">←</span> S&amp;C modules
+                    </a>
+                    <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-stone-50 px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold text-stone-700 hover:bg-stone-100 transition-colors">
+                        <span aria-hidden="true">🏠</span> Learning Hub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header / Hero -->
+    <header class="bg-stone-900 text-stone-50 py-16 lg:py-24">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-accent-blue font-semibold tracking-wider uppercase text-sm mb-4">Research Report & Interactive Analysis</p>
+            <h1 class="text-4xl lg:text-5xl font-bold leading-tight mb-6">In Vivo Tendon Stiffness:<br>Micro-Adaptations & Macroscopic Force Expression</h1>
+            <p class="text-lg text-stone-300 mb-8 max-w-2xl mx-auto">
+                An exhaustive analysis of tendon mechanical properties, the micro-structural interplay between collagen cross-linking and macroscopic force expression, and evidence-based manipulation strategies for high-performance athletes.
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <!-- SECTION: Athlete Typologies (Interactive Dashboard) -->
+        <section id="typologies" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-800 mb-4">Practical Uses by Athlete Typology</h2>
+                <p class="text-stone-600 max-w-3xl">
+                    Select an athlete typology below to explore the optimal mechanical "stiffness profile" required for their specific athletic domain. Tendon architecture must precisely match the energetic and kinematic demands of the sport.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+                <!-- Dashboard Controls -->
+                <div class="flex flex-col sm:flex-row border-b border-stone-200 bg-stone-50">
+                    <button class="flex-1 py-4 px-6 text-center tab-btn active" onclick="updateTypology('endurance', this)">
+                        <span class="block text-xl mb-1">🏃‍♂️</span> Endurance (Marathon)
+                    </button>
+                    <button class="flex-1 py-4 px-6 text-center tab-btn" onclick="updateTypology('middle', this)">
+                        <span class="block text-xl mb-1">⏱️</span> Middle-Distance (800m)
+                    </button>
+                    <button class="flex-1 py-4 px-6 text-center tab-btn" onclick="updateTypology('sprint', this)">
+                        <span class="block text-xl mb-1">⚡</span> Sprinters & Power
+                    </button>
+                </div>
+
+                <!-- Dashboard Content -->
+                <div class="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <!-- Text Data -->
+                    <div id="typology-text-container" class="space-y-6">
+                        <div>
+                            <h3 id="typo-title" class="text-2xl font-bold text-accent-green mb-2">Endurance Athletes</h3>
+                            <p id="typo-desc" class="text-stone-700 leading-relaxed">
+                                Explaining mechanical efficiency and hysteresis. An optimally compliant/stiff Achilles tendon acts as a biological spring, reducing the metabolic cost of running and improving Running Economy (RE) by returning elastic energy.
+                            </p>
+                        </div>
+                        <div class="bg-stone-50 p-4 rounded-lg border border-stone-100">
+                            <h4 class="font-bold text-stone-800 mb-2">Biomechanical Focus:</h4>
+                            <ul id="typo-bullets" class="list-disc pl-5 text-stone-600 space-y-1">
+                                <li>High mechanical efficiency (Hysteresis minimization).</li>
+                                <li>Optimization of Running Economy (RE).</li>
+                                <li>Balancing compliance to absorb thousands of ground impacts.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Chart Data -->
+                    <div class="chart-container">
+                        <canvas id="typologyRadarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Structural Mechanisms -->
+        <section id="mechanisms" class="scroll-mt-24">
+            <div class="mb-10 text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-stone-800 mb-4">Structural Mechanisms: Benefits & Risks</h2>
+                <p class="text-stone-600">
+                    Understanding the micro-anatomy of tendons is critical. We must distinguish between <strong>structural stiffness</strong> 
+                    (<em>k = &Delta;F / &Delta;L</em>, describing the whole tendon) and <strong>material properties</strong> 
+                    (<em>Young’s Modulus</em>, describing the innate tissue quality regardless of thickness).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+                
+                <!-- Chart: Stress-Strain -->
+                <div class="lg:col-span-7">
+                    <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                        <h3 class="text-lg font-bold text-stone-800 mb-2 text-center">Tendon Stress-Strain Mechanics</h3>
+                        <p class="text-sm text-stone-500 text-center mb-4">Hover over regions to understand collagen micro-behavior during loading.</p>
+                        <div class="chart-container h-[300px]">
+                            <canvas id="stressStrainChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Toggles: Benefits vs Negatives -->
+                <div class="lg:col-span-5 space-y-6">
+                    
+                    <!-- Benefits Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 card-hover cursor-pointer" onclick="toggleDetails('benefits-detail')">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-xl font-bold text-accent-blue">The Benefits (SSC & RFD)</h3>
+                            <span class="text-stone-400">▼</span>
+                        </div>
+                        <div id="benefits-detail" class="text-stone-600 text-sm space-y-3">
+                            <p>Optimal tendon stiffness profoundly enhances the <strong>Stretch-Shortening Cycle (SSC)</strong>.</p>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li><strong>Rate of Force Development (RFD):</strong> Stiffer tendons transmit muscle forces to the bone more rapidly, minimizing electrochemical delay.</li>
+                                <li><strong>Isometric Fascicle Function:</strong> A stiff tendon allows muscle fascicles to remain relatively isometric (near optimal length) while the tendon itself stretches and recoils, acting as a power amplifier.</li>
+                                <li><strong>Type I Collagen:</strong> Heavy loading increases cross-linking and extracellular matrix density, thickening the tendon and increasing <em>k</em>.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Risks Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 card-hover cursor-pointer border-l-4 border-l-accent-red" onclick="toggleDetails('risks-detail')">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-xl font-bold text-stone-800">The Risks of "Over-Stiffening"</h3>
+                            <span class="text-stone-400">▼</span>
+                        </div>
+                        <div id="risks-detail" class="text-stone-600 text-sm space-y-3">
+                            <p>A dangerous mechanical interplay exists between the tendon and the muscle belly if stiffness ratios become imbalanced.</p>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li><strong>Eccentric Damage Risk:</strong> During high-load eccentric phases (e.g., landing), energy must be absorbed. If the tendon is exceptionally stiff, it refuses to yield.</li>
+                                <li><strong>Muscle Fascicle Strain:</strong> Because the tendon won't stretch, the mechanical load is forcibly shifted to the muscle fascicles, dragging them through excessive, rapid elongation, leading to micro-tears and macro-strains.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Measurement & Quantification -->
+        <section id="measurement" class="scroll-mt-24 bg-stone-100 p-8 rounded-2xl">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-800 mb-4">Measurement & Quantification Protocols</h2>
+                <p class="text-stone-600 max-w-3xl">
+                    Bridging the gap between localized micro-structural measurements and macroscopic field expressions of lower-limb stiffness.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Lab Methods -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <div class="text-3xl mb-4 text-accent-blue">🔬</div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-3">In Vivo Laboratory Gold-Standards</h3>
+                    <ul class="space-y-4 text-stone-600">
+                        <li class="flex items-start">
+                            <span class="text-accent-blue mr-2 font-bold">•</span>
+                            <span><strong>B-Mode Ultrasound + Dynamometry:</strong> The gold standard. Synchronizes real-time ultrasound imaging of fascicle/aponeurosis behavior with external torque measurement during maximal isometric contractions to calculate precise tendon elongation.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-accent-blue mr-2 font-bold">•</span>
+                            <span><strong>Shear Wave Elastography (SWE):</strong> Emerging tech. Uses acoustic radiation force to map localized tissue stiffness (shear modulus), identifying specific architectural weak points or extreme stiffening within the tendon matrix.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Field Methods -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <div class="text-3xl mb-4 text-stone-700">📊</div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-3">Macroscopic Field Tests</h3>
+                    <ul class="space-y-4 text-stone-600">
+                        <li class="flex items-start">
+                            <span class="text-stone-800 mr-2 font-bold">•</span>
+                            <span><strong>Reactive Strength Index (RSI):</strong> Measured via Drop Jumps. Calculated as <em>Flight Time / Ground Contact Time</em>. Provides a proxy for whole-system leg stiffness and fast SSC utilization.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-stone-800 mr-2 font-bold">•</span>
+                            <span><strong>Limitations of Proxy Metrics:</strong> Field tests measure <em>system</em> stiffness (bones, ligaments, neural drive, muscles, and tendons combined). They cannot isolate intrinsic structural tendon stiffness, risking misinterpretation of adaptation sites.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Training Interventions -->
+        <section id="interventions" class="scroll-mt-24">
+            <div class="mb-8 text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-stone-800 mb-4">Training Applications & Periodization</h2>
+                <p class="text-stone-600">
+                    Tendons possess significantly lower vascularity and metabolic turnover than muscle bellies. Consequently, <strong>tendons adapt slower than muscles</strong>. Interventions must be highly targeted and properly periodized.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- HSR -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 card-hover">
+                    <h3 class="text-lg font-bold text-stone-800 mb-2 border-b border-stone-100 pb-2">1. Heavy Slow Resistance (HSR)</h3>
+                    <p class="text-stone-600 text-sm mb-3"><strong>Mechanism:</strong> Drives structural stiffness and collagen matrix synthesis.</p>
+                    <ul class="list-disc pl-5 text-sm text-stone-600 space-y-1">
+                        <li>Loads must exceed >80% 1RM.</li>
+                        <li>Requires prolonged mechanical tension (e.g., 3-4 second eccentric and concentric phases).</li>
+                        <li>Directly upregulates mechanotransduction pathways in tenocytes.</li>
+                    </ul>
+                </div>
+
+                <!-- Isometrics -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 card-hover">
+                    <h3 class="text-lg font-bold text-stone-800 mb-2 border-b border-stone-100 pb-2">2. Isometric Training</h3>
+                    <p class="text-stone-600 text-sm mb-3"><strong>Mechanism:</strong> Remodeling and tendinopathy rehabilitation.</p>
+                    <ul class="list-disc pl-5 text-sm text-stone-600 space-y-1">
+                        <li><strong>Yielding Isometrics:</strong> Holding submaximal loads for long durations (e.g., 45s) induces analgesia and promotes fiber realignment in damaged tendons.</li>
+                        <li><strong>Overcoming Isometrics:</strong> Pushing against an immovable object at max intent maximizes neural drive and cortical potentiation without damaging tissue.</li>
+                    </ul>
+                </div>
+
+                <!-- Plyometrics -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 card-hover">
+                    <h3 class="text-lg font-bold text-stone-800 mb-2 border-b border-stone-100 pb-2">3. Plyometrics (Shock Method)</h3>
+                    <p class="text-stone-600 text-sm mb-3"><strong>Mechanism:</strong> Primarily <em>neural</em> utilization of existing stiffness.</p>
+                    <ul class="list-disc pl-5 text-sm text-stone-600 space-y-1">
+                        <li>True depth jumps primarily train the nervous system (pre-motor cortex and reflex loops) to tolerate and utilize the stiff tendon rapidly.</li>
+                        <li>They do <em>not</em> significantly alter the gross tendon structure itself compared to HSR.</li>
+                    </ul>
+                </div>
+
+                <!-- Nutrition -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 card-hover bg-stone-50 border-dashed border-stone-300">
+                    <h3 class="text-lg font-bold text-stone-800 mb-2 border-b border-stone-200 pb-2">4. Targeted Nutrition</h3>
+                    <p class="text-stone-600 text-sm mb-3"><strong>Mechanism:</strong> Enhancing targeted collagen synthesis via biochemistry.</p>
+                    <ul class="list-disc pl-5 text-sm text-stone-600 space-y-1">
+                        <li>Consumption of ~15g Hydrolyzed Collagen + 50mg Vitamin C.</li>
+                        <li><strong>Timing is vital:</strong> Must be consumed ~60 minutes prior to targeted tendon loading (like HSR or skipping).</li>
+                        <li>Capitalizes on peak systemic amino acid availability during peak mechanical tissue fluid flux.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Summary Table -->
+        <section class="mb-12">
+            <h3 class="text-2xl font-bold text-stone-800 mb-6 border-b-2 border-stone-200 pb-2">Summary Matrix: Athlete Typologies</h3>
+            <div class="overflow-x-auto bg-white rounded-lg shadow-sm border border-stone-200">
+                <table class="min-w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-stone-100 text-stone-700 font-bold">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 border-b border-stone-200">Athlete Typology</th>
+                            <th scope="col" class="px-6 py-4 border-b border-stone-200">Optimal Stiffness Profile</th>
+                            <th scope="col" class="px-6 py-4 border-b border-stone-200">Primary Goal</th>
+                            <th scope="col" class="px-6 py-4 border-b border-stone-200">Dominant Training Modality</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-stone-600">
+                        <tr class="hover:bg-stone-50 transition">
+                            <td class="px-6 py-4 font-semibold text-accent-green border-b border-stone-100">Endurance (Marathon)</td>
+                            <td class="px-6 py-4 border-b border-stone-100">Moderate/Compliant</td>
+                            <td class="px-6 py-4 border-b border-stone-100">Mechanical Efficiency & Elastic Return</td>
+                            <td class="px-6 py-4 border-b border-stone-100">High Volume Ground Contacts, Yielding Isos</td>
+                        </tr>
+                        <tr class="hover:bg-stone-50 transition">
+                            <td class="px-6 py-4 font-semibold text-accent-blue border-b border-stone-100">Middle Distance (800m)</td>
+                            <td class="px-6 py-4 border-b border-stone-100">Hybrid (Phase Dependent)</td>
+                            <td class="px-6 py-4 border-b border-stone-100">Balance RE and Terminal Sprint RFD</td>
+                            <td class="px-6 py-4 border-b border-stone-100">HSR Maintenance + Reactive Plyometrics</td>
+                        </tr>
+                        <tr class="hover:bg-stone-50 transition">
+                            <td class="px-6 py-4 font-semibold text-accent-red">Sprinter/Power</td>
+                            <td class="px-6 py-4">Extreme Stiffness</td>
+                            <td class="px-6 py-4">Instantaneous Force Transmission (<100ms)</td>
+                            <td class="px-6 py-4">Heavy Slow Resistance (>85%) + Shock Method</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-900 text-stone-400 py-8 text-center text-sm">
+        <p>Interactive Sports Science Analysis | Grounded in established biomechanical research.</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- 1. State & Data Management ---
+        
+        // Data for Athlete Typology Dashboard
+        const typologyData = {
+            endurance: {
+                title: "Endurance Athletes (e.g., Marathoners)",
+                colorClass: "text-accent-green",
+                description: "Endurance athletes require a highly specific mechanism: mechanical efficiency via hysteresis optimization. An optimally compliant (less stiff) Achilles tendon acts as a biological spring. It stores and releases elastic energy slowly during long ground contact times, significantly reducing the metabolic cost of running and improving overall Running Economy (RE). Over-stiffening here destroys metabolic efficiency.",
+                bullets: [
+                    "High mechanical efficiency (Hysteresis minimization).",
+                    "Optimization of Running Economy (RE).",
+                    "Balancing compliance to absorb thousands of cumulative ground impacts safely."
+                ],
+                chartData: [40, 85, 30, 90], // [Structural Stiffness, Compliance/Elasticity, Extreme RFD, Metabolic Efficiency]
+                chartColors: { border: '#15803d', bg: 'rgba(21, 128, 61, 0.2)' }
+            },
+            middle: {
+                title: "Middle-Distance Runners (800m - 1500m)",
+                colorClass: "text-accent-blue",
+                description: "This typology demands a delicate, complex physiological balance. The athlete must maintain enough tissue compliance to ensure metabolic efficiency during the aerobic pacing phases of the race. However, they simultaneously possess enough structural stiffness to enable rapid ground contact times and high Rate of Force Development (RFD) during the terminal, anaerobic sprint to the finish line.",
+                bullets: [
+                    "Hybrid architecture balancing opposing mechanical needs.",
+                    "Compliance for aerobic pacing phases.",
+                    "Stiffness reserve for high-velocity terminal sprinting and kicks."
+                ],
+                chartData: [65, 60, 70, 70],
+                chartColors: { border: '#0369a1', bg: 'rgba(3, 105, 161, 0.2)' }
+            },
+            sprint: {
+                title: "Sprinters and Power Athletes",
+                colorClass: "text-accent-red",
+                description: "For maximal velocity sprinting, extreme tendon stiffness is an absolute necessity. Ground contact times at top speed are under 100 milliseconds. There is no time for a compliant tendon to stretch and recoil. A highly stiff tendon acts like a steel cable, transmitting immense muscular force instantaneously from the muscle belly to the bone leverage system, maximizing RFD.",
+                bullets: [
+                    "Extreme structural stiffness is mandatory.",
+                    "Ground contact times < 100ms demand instantaneous force transmission.",
+                    "Muscle fascicles operate highly isometrically to produce massive peak forces."
+                ],
+                chartData: [95, 20, 95, 30],
+                chartColors: { border: '#be123c', bg: 'rgba(190, 18, 60, 0.2)' }
+            }
+        };
+
+        // --- 2. Chart Configurations ---
+        
+        // Setup: Typology Radar Chart
+        let typologyChartInstance = null;
+        
+        function initTypologyChart() {
+            const ctx = document.getElementById('typologyRadarChart').getContext('2d');
+            const initData = typologyData['endurance'];
+            
+            typologyChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Structural Stiffness', 'Compliance / Elasticity', 'Peak RFD Capability', 'Metabolic Efficiency'],
+                    datasets: [{
+                        label: 'Physiological Profile',
+                        data: initData.chartData,
+                        backgroundColor: initData.chartColors.bg,
+                        borderColor: initData.chartColors.border,
+                        pointBackgroundColor: initData.chartColors.border,
+                        borderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: { font: { family: 'Inter', size: 12 }, color: '#44403c' },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(28, 25, 23, 0.9)',
+                            titleFont: { family: 'Inter', size: 14 },
+                            bodyFont: { family: 'Inter', size: 13 },
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    return ' Relative Importance: ' + context.raw + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Setup: Stress-Strain Line Chart
+        function initStressStrainChart() {
+            const ctx = document.getElementById('stressStrainChart').getContext('2d');
+            
+            // Generate conceptual data points
+            const dataPoints = [
+                {x: 0, y: 0}, {x: 1, y: 5}, {x: 2, y: 15}, // Toe region
+                {x: 3, y: 40}, {x: 4, y: 65}, {x: 5, y: 90}, {x: 6, y: 115}, // Linear region (Youngs Modulus slope)
+                {x: 7, y: 130}, {x: 8, y: 135}, // Yield point / Microfailure
+                {x: 9, y: 138}, {x: 10, y: 0} // Macroscopic failure
+            ];
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Tendon Loading Curve',
+                        data: dataPoints,
+                        borderColor: '#0369a1',
+                        backgroundColor: 'rgba(3, 105, 161, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        segment: {
+                            borderColor: ctx => ctx.p1DataIndex >= 8 ? '#be123c' : undefined,
+                            borderDash: ctx => ctx.p1DataIndex >= 9 ? [5, 5] : undefined,
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { type: 'linear', title: { display: true, text: 'Strain (% Elongation)', font: {weight: 'bold'} } },
+                        y: { title: { display: true, text: 'Stress (Applied Force)', font: {weight: 'bold'} }, beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(28, 25, 23, 0.9)',
+                            callbacks: {
+                                title: function(context) {
+                                    let x = context[0].parsed.x;
+                                    if(x <= 2) return "Toe Region";
+                                    if(x > 2 && x <= 6) return "Linear Region";
+                                    if(x > 6 && x <= 8) return "Micro-Failure Region";
+                                    return "Macroscopic Rupture";
+                                },
+                                label: function(context) {
+                                    let x = context.parsed.x;
+                                    if(x <= 2) return "Crimp in collagen fibers straightens out. Low stiffness here.";
+                                    if(x > 2 && x <= 6) return "Slope = Stiffness (k). Safe, elastic physiological loading.";
+                                    if(x > 6 && x <= 8) return "Cross-links begin to break. Tendinopathy risk increases.";
+                                    return "Complete structural failure of the matrix.";
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- 3. Interaction Handlers ---
+
+        // Update Typology Dashboard DOM & Chart
+        window.updateTypology = function(type, buttonElement) {
+            // Update Buttons UI
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            buttonElement.classList.add('active');
+
+            // Fetch Data
+            const data = typologyData[type];
+
+            // Update Text Elements
+            const titleEl = document.getElementById('typo-title');
+            titleEl.textContent = data.title;
+            titleEl.className = `text-2xl font-bold mb-2 ${data.colorClass}`; // Update color safely
+            
+            document.getElementById('typo-desc').textContent = data.description;
+            
+            const ul = document.getElementById('typo-bullets');
+            ul.innerHTML = '';
+            data.bullets.forEach(bullet => {
+                const li = document.createElement('li');
+                li.textContent = bullet;
+                ul.appendChild(li);
+            });
+
+            // Update Chart
+            if (typologyChartInstance) {
+                typologyChartInstance.data.datasets[0].data = data.chartData;
+                typologyChartInstance.data.datasets[0].backgroundColor = data.chartColors.bg;
+                typologyChartInstance.data.datasets[0].borderColor = data.chartColors.border;
+                typologyChartInstance.data.datasets[0].pointBackgroundColor = data.chartColors.border;
+                typologyChartInstance.update();
+            }
+        };
+
+        // Simple accordion toggle for Benefits/Risks
+        window.toggleDetails = function(id) {
+            const el = document.getElementById(id);
+            if(el.style.display === 'none' || el.style.display === '') {
+                // Ensure smooth transition effect logic if expanding
+                el.style.display = 'block';
+                el.animate([{ opacity: 0, transform: 'translateY(-10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 200, fill: 'forwards' });
+            } else {
+                el.style.display = 'none';
+            }
+        };
+
+        // --- 4. Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initTypologyChart();
+            initStressStrainChart();
+            
+            // Set initial state for accordions
+            document.getElementById('benefits-detail').style.display = 'block';
+            document.getElementById('risks-detail').style.display = 'none';
+        });
+
+    </script>
+</body>
+</html>

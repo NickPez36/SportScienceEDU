@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Strength Index (DSI) in Elite Sports</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Slate & Slate-Blue Academic Neutral -->
+    <!-- Application Structure Plan: A single-page dashboard architecture with a fixed sidebar navigation for seamless transitions between complex academic sections. This structure was chosen to allow users to digest dense neurophysiological data systematically while retaining constant access to the interactive diagnostic tools. The inclusion of an interactive 'DSI Calculator' transforms the static summary table requirement into a functional diagnostic tool for practitioners. -->
+    <!-- Visualization & Content Choices: 
+         1. Report Info: Force-Velocity Relationship -> Goal: Illustrate neurophysiological constraints -> Viz: Chart.js Line Chart (Canvas) -> Interaction: Hover tooltips -> Justification: Clearly maps the theoretical maximums against actual athlete outputs. -> Library: Chart.js (NO SVG).
+         2. Report Info: Athlete Typology -> Goal: Categorize specific domain applications -> Viz: Tabbed Interface -> Interaction: Click tabs to swap content -> Justification: Prevents cognitive overload by hiding irrelevant domain data until requested. -> Method: Vanilla JS.
+         3. Report Info: Training Periodization & Zones -> Goal: Prescribe interventions -> Viz: Interactive Calculator -> Interaction: Input peak forces to generate customized training blocks -> Justification: Converts raw academic thresholds into actionable practitioner data. -> Method: Vanilla JS DOM manipulation. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #0f172a; }
+        .chart-container { position: relative; width: 100%; max-width: 800px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 400px; } }
+        .tab-active { background-color: #1e293b; color: #ffffff; border-color: #1e293b; }
+        .tab-inactive { background-color: #e2e8f0; color: #475569; border-color: #cbd5e1; }
+        .nav-link.active { background-color: #e2e8f0; font-weight: 600; border-left: 4px solid #0f172a; }
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen">
+
+    <nav class="w-full md:w-64 bg-slate-50 border-r border-slate-200 shrink-0 md:h-screen md:sticky top-0 overflow-y-auto">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900 mb-2">DSI Analysis</h1>
+            <p class="text-sm text-slate-500 mb-4">Performance Diagnostics</p>
+            <div class="space-y-2 mb-8 pb-6 border-b border-slate-200">
+                <a href="index.html" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors w-full">
+                    <span aria-hidden="true">←</span> S&amp;C modules
+                </a>
+                <a href="../index.html" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors w-full">
+                    <span aria-hidden="true">🏠</span> Learning Hub
+                </a>
+            </div>
+            <ul class="space-y-2">
+                <li><a href="#mechanisms" class="nav-link active block py-2 px-4 rounded-r-lg text-slate-700 hover:bg-slate-100 transition-colors">1. Mechanisms</a></li>
+                <li><a href="#measurement" class="nav-link block py-2 px-4 rounded-r-lg text-slate-700 hover:bg-slate-100 transition-colors">2. Measurement</a></li>
+                <li><a href="#typology" class="nav-link block py-2 px-4 rounded-r-lg text-slate-700 hover:bg-slate-100 transition-colors">3. Athlete Typology</a></li>
+                <li><a href="#applications" class="nav-link block py-2 px-4 rounded-r-lg text-slate-700 hover:bg-slate-100 transition-colors">4. Applications</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="flex-1 p-6 md:p-12 overflow-y-auto w-full max-w-5xl mx-auto">
+        
+        <header class="mb-12 border-b border-slate-200 pb-8">
+            <h2 class="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">Dynamic Strength Index (DSI)</h2>
+            <p class="text-lg text-slate-600 leading-relaxed">An exhaustive biomechanical and neurophysiological analysis bridging the gap between maximal force capacities, rate of force development (RFD), and applied elite strength and conditioning.</p>
+        </header>
+
+        <section id="mechanisms" class="mb-16 scroll-mt-12">
+            <h3 class="text-2xl font-bold text-slate-800 mb-4 border-l-4 border-slate-800 pl-3">1. Neurophysiological and Biomechanical Mechanisms</h3>
+            <p class="text-slate-600 mb-6 leading-relaxed">This section delineates the underlying physiological mechanisms of the DSI, establishing the critical relationship between maximal isometric capabilities and ballistic rate of force development. Understanding these constraints is paramount for identifying an athlete's precise location on the Force-Velocity curve.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <h4 class="text-lg font-semibold text-slate-800 mb-3">&#9881; Motor Unit & CNS Dynamics</h4>
+                    <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                        <li><strong>Motor Unit Recruitment:</strong> Driven by Henneman's Size Principle, ballistic actions require instantaneous recruitment of high-threshold motor units (HTMUs), whereas isometric actions allow for gradual, complete recruitment.</li>
+                        <li><strong>Rate Coding:</strong> The frequency of neural impulses (Hz) sent by the central nervous system (CNS) dictates the Rate of Force Development (RFD). High DSI scores rely heavily on superior rate coding within the first 100-200ms of contraction.</li>
+                        <li><strong>Cross-Sectional Area (CSA):</strong> Hypertrophy primarily increases maximal isometric force potential. Without concurrent neural adaptations, increases in CSA can inadvertently lower the DSI by expanding the isometric denominator without shifting ballistic peak force.</li>
+                        <li><strong>CNS Drive:</strong> The transition from isometric to dynamic output is gated by cortical and subcortical drive, determining synchronization and inter-muscular coordination.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <h4 class="text-lg font-semibold text-slate-800 mb-3">&#128200; The Force-Velocity Relationship</h4>
+                    <p class="text-slate-600 text-sm mb-4">The DSI mathematically represents the disparity between an athlete's theoretical absolute strength (isometric) and their functional, time-constrained strength (ballistic).</p>
+                    <div class="chart-container">
+                        <canvas id="fvChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="measurement" class="mb-16 scroll-mt-12">
+            <h3 class="text-2xl font-bold text-slate-800 mb-4 border-l-4 border-slate-800 pl-3">2. Measurement and Quantification</h3>
+            <p class="text-slate-600 mb-6 leading-relaxed">Rigorous adherence to gold-standard biomechanical testing protocols is required to calculate DSI. Sub-maximal estimations or low-frequency sampling invalidates the metric. This section outlines the required parameters for data fidelity.</p>
+
+            <div class="bg-slate-800 text-white p-6 rounded-xl shadow-md mb-8 text-center">
+                <p class="text-sm uppercase tracking-widest text-slate-400 mb-2">Foundational Formula</p>
+                <p class="text-3xl font-mono">DSI = <span class="text-blue-300">Ballistic Peak Force</span> / <span class="text-blue-300">Isometric Peak Force</span></p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-slate-200 bg-white rounded-lg p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-xl font-bold text-slate-700">Maximal Isometric Tests</h4>
+                        <span class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded">Denominator</span>
+                    </div>
+                    <p class="text-sm text-slate-500 mb-4">Quantifies absolute force generation without the constraint of time or joint excursion.</p>
+                    <ul class="space-y-3 text-slate-700">
+                        <li class="flex items-start"><span class="mr-2 text-green-600 font-bold">&#10003;</span> <strong>IMTP (Mid-Thigh Pull):</strong> Requires custom rig, hip angle at ~145&deg;, knee angle at ~140&deg;.</li>
+                        <li class="flex items-start"><span class="mr-2 text-green-600 font-bold">&#10003;</span> <strong>Isometric Squat:</strong> Measured at 90&deg; or 120&deg; knee flexion.</li>
+                        <li class="flex items-start"><span class="mr-2 text-green-600 font-bold">&#10003;</span> Duration: 3-5 seconds maximal voluntary contraction (MVC).</li>
+                    </ul>
+                </div>
+
+                <div class="border border-slate-200 bg-white rounded-lg p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-xl font-bold text-slate-700">Maximal Ballistic Tests</h4>
+                        <span class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded">Numerator</span>
+                    </div>
+                    <p class="text-sm text-slate-500 mb-4">Quantifies time-constrained force generation (RFD) utilizing the Stretch-Shortening Cycle (SSC).</p>
+                    <ul class="space-y-3 text-slate-700">
+                        <li class="flex items-start"><span class="mr-2 text-green-600 font-bold">&#10003;</span> <strong>CMJ (Countermovement Jump):</strong> Utilizes slow SSC. Requires calculation of unweighting, braking, and propulsive net forces.</li>
+                        <li class="flex items-start"><span class="mr-2 text-green-600 font-bold">&#10003;</span> <strong>SJ (Squat Jump):</strong> Removes SSC, isolating concentric RFD.</li>
+                        <li class="flex items-start"><span class="mr-2 text-green-600 font-bold">&#10003;</span> Measure: Peak absolute force (N) prior to take-off.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                <h5 class="text-red-800 font-bold mb-2">Critical Hardware Constraints</h5>
+                <p class="text-red-700 text-sm">Calculations <strong>must</strong> be derived from dual uni-axial or tri-axial force plates. A minimum sampling rate of <strong>1000Hz</strong> is required to accurately capture peak ballistic transients. Contact mats or linear position transducers (LPTs) are insufficient for true DSI calculation due to kinematic estimations of kinetic variables.</p>
+            </div>
+        </section>
+
+        <section id="typology" class="mb-16 scroll-mt-12">
+            <h3 class="text-2xl font-bold text-slate-800 mb-4 border-l-4 border-slate-800 pl-3">3. Practical Uses by Athlete Typology</h3>
+            <p class="text-slate-600 mb-6 leading-relaxed">DSI utility is highly contextualized by the specific physiological demands of the athletic domain. Use the interactive interface below to explore how DSI mitigates fatigue and optimizes performance across distinct athletic typologies.</p>
+
+            <div class="flex flex-wrap gap-2 mb-4" id="typology-tabs">
+                <button class="px-4 py-2 text-sm font-semibold rounded-t-lg tab-active" data-target="endurance">Endurance</button>
+                <button class="px-4 py-2 text-sm font-semibold rounded-t-lg tab-inactive border border-b-0" data-target="middle">Middle-Distance</button>
+                <button class="px-4 py-2 text-sm font-semibold rounded-t-lg tab-inactive border border-b-0" data-target="sprint">Sprinters & Power</button>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-b-lg rounded-tr-lg p-6 min-h-[250px]" id="typology-content">
+                <div id="content-endurance" class="block">
+                    <h4 class="text-xl font-bold text-slate-800 mb-3">Endurance Athletes (Marathoners, Triathletes)</h4>
+                    <p class="text-slate-600 mb-4">For endurance athletes, DSI acts as a governor for concurrent training. The primary goal of resistance training here is improving running economy (RE) and force application without adding non-functional muscle mass.</p>
+                    <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                        <li><strong>Monitoring Hypertrophy:</strong> A steadily dropping DSI alongside rising body mass indicates excessive hypertrophy (isometric force rising via CSA, ballistic force lagging).</li>
+                        <li><strong>Tendon Stiffness:</strong> High DSI in endurance athletes often correlates with optimized musculotendinous stiffness, reducing the oxygen cost of running via enhanced elastic energy return.</li>
+                        <li><strong>Prescription:</strong> Heavy isometric or eccentric protocols are utilized strictly to enhance structural integrity, carefully monitored by DSI to ensure neuromuscular adaptations supersede morphological ones.</li>
+                    </ul>
+                </div>
+                
+                <div id="content-middle" class="hidden">
+                    <h4 class="text-xl font-bold text-slate-800 mb-3">Middle-Distance Runners (800m - 1500m)</h4>
+                    <p class="text-slate-600 mb-4">Middle-distance physiology requires a delicate balance between mechanical efficiency for pacing and extreme anoxic maximal force generation for the final sprint (kick).</p>
+                    <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                        <li><strong>Balancing Capabilities:</strong> These athletes require a moderately high DSI to ensure that absolute strength is readily available in time-constrained sprint conditions under high blood lactate concentrations.</li>
+                        <li><strong>Neuromuscular Fatigue:</strong> DSI fluctuations during a mesocycle provide insight into CNS fatigue; a depressed ballistic peak force with stable isometric force indicates specific velocity-based neural fatigue rather than systemic muscle damage.</li>
+                    </ul>
+                </div>
+
+                <div id="content-sprint" class="hidden">
+                    <h4 class="text-xl font-bold text-slate-800 mb-3">Sprinters and Power Athletes</h4>
+                    <p class="text-slate-600 mb-4">In power-centric domains, DSI is the primary diagnostic tool for identifying precise neuromuscular deficiencies, categorizing athletes strictly as "force-deficient" or "velocity-deficient" to maximize acceleration kinematics and top-speed maintenance.</p>
+                    <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                        <li><strong>Acceleration Phase:</strong> Correlates highly with absolute force generation (lower initial DSI requirement, higher absolute IMTP requirement).</li>
+                        <li><strong>Top-Speed Mechanics:</strong> Ground contact times drop below 100ms. High DSI becomes paramount, as the ability to express force rapidly (RFD) completely supersedes absolute isometric capacity.</li>
+                        <li><strong>Intervention:</strong> Identifying the precise ratio dictates whether the athlete spends the off-season in the weight room (moving the entire FV curve) or on the track (shifting specific points on the curve).</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="applications" class="mb-16 scroll-mt-12">
+            <h3 class="text-2xl font-bold text-slate-800 mb-4 border-l-4 border-slate-800 pl-3">4. Training Applications and Periodization</h3>
+            <p class="text-slate-600 mb-6 leading-relaxed">The clinical application of DSI defines precise training interventions. Utilizing the interactive diagnostic simulator below, practitioners can input kinetic data to output specific programmatic prescriptions, detailing macrocycle adjustments and exercise selection.</p>
+
+            <div class="bg-slate-800 rounded-xl shadow-lg p-6 md:p-8">
+                <h4 class="text-white text-xl font-bold mb-4 border-b border-slate-600 pb-2">Interactive DSI Diagnostic Simulator</h4>
+                
+                <div class="flex flex-col md:flex-row gap-6 mb-6">
+                    <div class="flex-1">
+                        <label class="block text-slate-300 text-sm font-bold mb-2">Ballistic Peak Force (CMJ - Newtons)</label>
+                        <input type="number" id="inputBallistic" value="2200" class="w-full px-4 py-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none focus:border-blue-400">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-slate-300 text-sm font-bold mb-2">Isometric Peak Force (IMTP - Newtons)</label>
+                        <input type="number" id="inputIsometric" value="4000" class="w-full px-4 py-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none focus:border-blue-400">
+                    </div>
+                    <div class="flex items-end">
+                        <button id="calculateBtn" class="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded transition-colors">Analyze Data</button>
+                    </div>
+                </div>
+
+                <div id="resultsPane" class="bg-slate-900 p-6 rounded border border-slate-700 hidden">
+                    <div class="flex flex-col md:flex-row items-center justify-between mb-4 pb-4 border-b border-slate-700">
+                        <div>
+                            <p class="text-slate-400 text-sm uppercase tracking-wider">Calculated DSI</p>
+                            <p id="calcDsiValue" class="text-4xl font-mono text-white font-bold">0.00</p>
+                        </div>
+                        <div class="mt-4 md:mt-0 text-center md:text-right">
+                            <p class="text-slate-400 text-sm uppercase tracking-wider">Diagnostic Classification</p>
+                            <p id="calcZone" class="text-2xl font-bold text-blue-400">Zone</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h5 class="text-white font-bold mb-2">Periodization & Training Prescription:</h5>
+                        <p id="calcPrescription" class="text-slate-300 text-sm leading-relaxed mb-4"></p>
+                        
+                        <h5 class="text-white font-bold mb-2">Applied Exercise Examples:</h5>
+                        <ul id="calcExercises" class="list-disc pl-5 text-slate-300 text-sm space-y-1"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 border border-slate-200 rounded-lg overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 border-b border-slate-200">
+                            <th class="p-4 text-slate-800 font-bold">DSI Range</th>
+                            <th class="p-4 text-slate-800 font-bold">Deficit Diagnosis</th>
+                            <th class="p-4 text-slate-800 font-bold">Macrocycle Focus</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-slate-100 bg-white">
+                            <td class="p-4 font-mono text-slate-700">&lt; 0.60</td>
+                            <td class="p-4 text-slate-600 font-semibold">Velocity Deficient</td>
+                            <td class="p-4 text-slate-600 text-sm">High absolute force capacity, poor rate of force development. Shift focus to ballistic/plyometric blocks. Tapering involves completely dropping heavy neural loads.</td>
+                        </tr>
+                        <tr class="border-b border-slate-100 bg-slate-50">
+                            <td class="p-4 font-mono text-slate-700">0.60 - 0.80</td>
+                            <td class="p-4 text-slate-600 font-semibold">Optimal/Balanced</td>
+                            <td class="p-4 text-slate-600 text-sm">Balanced force-velocity profile. Utilize concurrent training blocks to maintain qualities. Peak via minor reductions in both volume and intensity.</td>
+                        </tr>
+                        <tr class="bg-white">
+                            <td class="p-4 font-mono text-slate-700">&gt; 0.80</td>
+                            <td class="p-4 text-slate-600 font-semibold">Force Deficient</td>
+                            <td class="p-4 text-slate-600 text-sm">High utilization of limited absolute force. Requires maximal strength blocks to raise the physiological ceiling. Tapering involves maintaining heavy intensity but drastic volume drops.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = document.getElementById('fvChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [0, 0.2, 0.4, 0.6, 0.8, 1.0], 
+                    datasets: [
+                        {
+                            label: 'Force Deficient (>0.80)',
+                            data: [80, 70, 50, 30, 15, 0],
+                            borderColor: '#ef4444', 
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Velocity Deficient (<0.60)',
+                            data: [120, 90, 60, 40, 20, 0],
+                            borderColor: '#3b82f6', 
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Optimal F-V Profile',
+                            data: [100, 85, 65, 45, 25, 0],
+                            borderColor: '#10b981', 
+                            borderDash: [5, 5],
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'sans-serif', size: 11 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + ' N';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Velocity (m/s)', font: {weight: 'bold'} } },
+                        y: { title: { display: true, text: 'Force (N)', font: {weight: 'bold'} }, min: 0 }
+                    }
+                }
+            });
+
+            const tabs = document.querySelectorAll('#typology-tabs button');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => {
+                        t.classList.remove('tab-active');
+                        t.classList.add('tab-inactive', 'border', 'border-b-0');
+                    });
+                    tab.classList.remove('tab-inactive', 'border', 'border-b-0');
+                    tab.classList.add('tab-active');
+
+                    const target = tab.getAttribute('data-target');
+                    document.getElementById('content-endurance').classList.add('hidden');
+                    document.getElementById('content-middle').classList.add('hidden');
+                    document.getElementById('content-sprint').classList.add('hidden');
+                    
+                    document.getElementById(`content-${target}`).classList.remove('hidden');
+                });
+            });
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('section');
+            
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+                    if (scrollY >= (sectionTop - 150)) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active', 'font-semibold', 'border-left-4', 'border-slate-900', 'bg-slate-200');
+                    link.style.borderLeft = "none";
+                    if (link.getAttribute('href').includes(current) && current !== "") {
+                        link.classList.add('active');
+                        link.style.borderLeft = "4px solid #0f172a";
+                        link.style.backgroundColor = "#e2e8f0";
+                        link.style.fontWeight = "600";
+                    }
+                });
+            });
+
+            const btnCalc = document.getElementById('calculateBtn');
+            btnCalc.addEventListener('click', () => {
+                const balF = parseFloat(document.getElementById('inputBallistic').value);
+                const isoF = parseFloat(document.getElementById('inputIsometric').value);
+                const resultsPane = document.getElementById('resultsPane');
+                const valEl = document.getElementById('calcDsiValue');
+                const zoneEl = document.getElementById('calcZone');
+                const prescEl = document.getElementById('calcPrescription');
+                const exEl = document.getElementById('calcExercises');
+
+                if (isNaN(balF) || isNaN(isoF) || isoF === 0) {
+                    alert('Please enter valid, non-zero numeric kinetic data.');
+                    return;
+                }
+
+                const dsi = balF / isoF;
+                valEl.innerText = dsi.toFixed(2);
+                resultsPane.classList.remove('hidden');
+                exEl.innerHTML = '';
+
+                if (dsi < 0.60) {
+                    zoneEl.innerText = 'Velocity Deficient (Low DSI)';
+                    zoneEl.className = 'text-2xl font-bold text-blue-400';
+                    prescEl.innerText = 'Diagnosis indicates absolute force capacity greatly exceeds rapid force expression capabilities. The central nervous system is failing to recruit motor units rapidly. The macrocycle focus must shift away from heavy, slow resistance training toward high-velocity, ballistic adaptations to improve the rate coding.';
+                    
+                    const exs = ['Unloaded Depth Jumps (Drop Jumps)', 'Assisted (Banded) CMJs', 'Olympic Weightlifting Derivatives (e.g., Hang High Pull, < 60% 1RM)', 'Medicine Ball Reactive Throws'];
+                    exs.forEach(ex => { let li = document.createElement('li'); li.innerText = ex; exEl.appendChild(li); });
+                } 
+                else if (dsi >= 0.60 && dsi <= 0.80) {
+                    zoneEl.innerText = 'Optimal / Balanced Profile';
+                    zoneEl.className = 'text-2xl font-bold text-green-400';
+                    prescEl.innerText = 'Diagnosis indicates a balanced neurophysiological profile. The athlete demonstrates proportional absolute and dynamic force outputs. The periodization model should employ concurrent training methodologies, manipulating volume strictly for peaking and tapering phases rather than attempting to shift the F-V curve drastically.';
+                    
+                    const exs = ['Contrast Training (e.g., Heavy Back Squat directly into Hurdle Hops)', 'Loaded Jump Squats (30-40% 1RM)', 'Mid-Thigh Pulls (80% 1RM)'];
+                    exs.forEach(ex => { let li = document.createElement('li'); li.innerText = ex; exEl.appendChild(li); });
+                } 
+                else {
+                    zoneEl.innerText = 'Force Deficient (High DSI)';
+                    zoneEl.className = 'text-2xl font-bold text-red-400';
+                    prescEl.innerText = 'Diagnosis indicates the physiological ceiling (isometric capacity) is too low. The athlete is highly efficient at using what little absolute strength they possess. To further increase ballistic outputs, the macrocycle must focus on maximal strength protocols to increase cross-sectional area and heavy motor unit recruitment, thereby raising the denominator.';
+                    
+                    const exs = ['Maximal Isometric Mid-Thigh Pulls (3-5 sec MVC)', 'Heavy Back Squats (>85% 1RM)', 'Heavy Trap Bar Deadlifts', 'Eccentric Overload Protocols'];
+                    exs.forEach(ex => { let li = document.createElement('li'); li.innerText = ex; exEl.appendChild(li); });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

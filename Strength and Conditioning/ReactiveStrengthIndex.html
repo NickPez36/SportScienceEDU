@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reactive Strength Index (RSI) in Elite Sports</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Academic Stone & Slate -->
+    <!-- Application Structure Plan: The SPA uses a tabbed dashboard structure to break down the highly technical academic report into digestible, logical sections: 1. Neurophysiology, 2. Measurement, 3. Typologies, 4. Training. This prevents cognitive overload from a long-scrolling document. Interactive charts are used to visualize theoretical concepts (like optimal drop height and athlete profiling) that are otherwise difficult to grasp through text alone. -->
+    <!-- Visualization & Content Choices: 
+         - Fast/Slow SSC: Bar chart to visually distinguish contact time thresholds. Goal: Inform.
+         - Athlete Typology: Scatter plot to show theoretical clustering of athlete types based on Contact Time vs RSI. Goal: Compare/Relationships.
+         - Drop Height Profiling: Line chart demonstrating the inverted-U curve of RSI optimization. Goal: Change/Optimization. 
+         All charts use Chart.js within strictly controlled div containers. NO SVG or Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fafaf9; color: #1c1917; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 800px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 350px; 
+            max-height: 400px; 
+        }
+        @media (min-width: 768px) { .chart-container { height: 400px; } }
+
+        .math-block { background-color: #f5f5f4; border-left: 4px solid #475569; padding: 1rem; font-family: monospace; font-size: 1.1rem; }
+        .nav-btn.active { border-bottom: 2px solid #0f172a; color: #0f172a; font-weight: 600; }
+        .nav-btn { color: #64748b; transition: all 0.2s; }
+        .nav-btn:hover { color: #334155; }
+    </style>
+</head>
+<body class="antialiased selection:bg-slate-200">
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <header class="mb-10 border-b border-stone-200 pb-6">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+                <div>
+                    <h1 class="text-4xl font-bold tracking-tight text-slate-900 mb-2">Reactive Strength Index (RSI)</h1>
+                    <p class="text-xl text-slate-600 font-light">Neurophysiological Mechanisms & Applied Biomechanics in High-Performance Sports</p>
+                </div>
+                <div class="flex flex-wrap gap-2 shrink-0">
+                    <a href="index.html" class="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-stone-50 transition-colors">
+                        <span aria-hidden="true">←</span> S&amp;C modules
+                    </a>
+                    <a href="../index.html" class="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-stone-50 transition-colors">
+                        <span aria-hidden="true">🏠</span> Learning Hub
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <nav class="flex flex-wrap gap-4 mb-8 border-b border-stone-200" id="main-nav">
+            <button class="nav-btn active pb-2 px-1 text-sm sm:text-base" data-target="sec-neuro">1. Neurophysiology</button>
+            <button class="nav-btn pb-2 px-1 text-sm sm:text-base" data-target="sec-measurement">2. Measurement</button>
+            <button class="nav-btn pb-2 px-1 text-sm sm:text-base" data-target="sec-typology">3. Athlete Typology</button>
+            <button class="nav-btn pb-2 px-1 text-sm sm:text-base" data-target="sec-training">4. Training & Application</button>
+        </nav>
+
+        <main>
+            
+            <section id="sec-neuro" class="tab-content active">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-semibold mb-3 text-slate-800">Neurophysiological & Biomechanical Mechanisms</h2>
+                    <p class="text-slate-600 leading-relaxed">This section deconstructs the underlying physiology of RSI, focusing on the Stretch-Shortening Cycle (SSC). Understanding the interaction between neural reflexes and mechanical tissue properties is critical for analyzing reactive strength. Interact with the elements below to explore the distinct mechanisms.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                        <h3 class="text-lg font-bold mb-4 border-b pb-2">The Stretch-Shortening Cycle (SSC)</h3>
+                        <ul class="space-y-4 text-sm text-slate-700">
+                            <li><span class="font-bold text-slate-900">&#9656; Muscle Spindle Reflexes:</span> Detect rate and magnitude of stretch. Rapid lengthening triggers an excitatory Ia afferent signal, causing a powerful reflexive contraction (myotatic reflex) that augments concentric force.</li>
+                            <li><span class="font-bold text-slate-900">&#9656; Golgi Tendon Organs (GTOs):</span> Act as a protective mechanism detecting tension. High forces trigger an inhibitory Ib signal. Elite training downregulates GTO sensitivity, allowing greater force expression during the SSC.</li>
+                            <li><span class="font-bold text-slate-900">&#9656; Fascicle Behavior:</span> During efficient SSC, muscle fascicles remain relatively isometric (quasi-isometric) while the tendinous tissues lengthen, optimizing the length-tension relationship.</li>
+                            <li><span class="font-bold text-slate-900">&#9656; Series Elastic Component (SEC):</span> Tendons and aponeuroses act like springs, storing elastic strain energy during the eccentric phase and returning it during the concentric phase, amplifying power output without additional metabolic cost.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200 flex flex-col">
+                        <h3 class="text-lg font-bold mb-4 border-b pb-2">Fast vs. Slow SSC Thresholds</h3>
+                        <p class="text-sm text-slate-600 mb-4">The classification of SSC is strictly dictated by Ground Contact Time (GCT).</p>
+                        
+                        <div class="flex gap-2 mb-4">
+                            <button id="btn-fast-ssc" class="flex-1 bg-slate-800 text-white py-2 rounded text-sm font-semibold transition hover:bg-slate-700">Fast SSC (< 250ms)</button>
+                            <button id="btn-slow-ssc" class="flex-1 bg-stone-200 text-slate-800 py-2 rounded text-sm font-semibold transition hover:bg-stone-300">Slow SSC (> 250ms)</button>
+                        </div>
+                        
+                        <div id="ssc-desc" class="text-sm text-slate-700 p-4 bg-stone-50 rounded mb-4 min-h-[100px]">
+                            Characterized by short ground contact times. Relies heavily on tendon stiffness, short-latency stretch reflexes, and elastic energy return. Foundational for maximum velocity sprinting and rapid change of direction.
+                        </div>
+
+                        <div class="chart-container flex-grow">
+                            <canvas id="sscChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="sec-measurement" class="tab-content">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-semibold mb-3 text-slate-800">Measurement and Quantification</h2>
+                    <p class="text-slate-600 leading-relaxed">Accurate quantification of RSI dictates programming efficacy. This section outlines the gold-standard testing protocols, foundational equations, and hardware validity required in elite sports science settings.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                        <h3 class="text-lg font-bold mb-4 text-slate-800">Foundational Formulas</h3>
+                        
+                        <div class="mb-6">
+                            <p class="text-sm text-slate-500 mb-1 uppercase font-semibold">Standard RSI (Drop Jumps)</p>
+                            <div class="math-block">RSI = Jump Height (m) / Ground Contact Time (s)</div>
+                            <p class="text-xs text-slate-500 mt-2">Used primarily in single-effort assessments from an external load (drop height) to measure rapid force absorption and expression.</p>
+                        </div>
+
+                        <div>
+                            <p class="text-sm text-slate-500 mb-1 uppercase font-semibold">Modified RSI (Repeated Jumps)</p>
+                            <div class="math-block">RSI<sub class="text-xs">mod</sub> = Flight Time (s) / Ground Contact Time (s)</div>
+                            <p class="text-xs text-slate-500 mt-2">Utilized in cyclical tests (e.g., 10/5 Repeated Jump Test) where true jump height is difficult to ascertain continuously without force plates. Flight time acts as a surrogate for height.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                        <h3 class="text-lg font-bold mb-4 text-slate-800">Testing Protocols</h3>
+                        <ul class="space-y-4">
+                            <li class="p-3 bg-stone-50 rounded border border-stone-100">
+                                <strong class="block text-slate-800 mb-1">Incremental Drop Jump Profile</strong>
+                                <span class="text-sm text-slate-600">Athlete drops from increasing box heights (e.g., 15, 30, 45, 60cm). Identifies the specific height at which RSI peaks before degrading (due to GCT increasing or height dropping). Establishes individual optimal dropping height.</span>
+                            </li>
+                            <li class="p-3 bg-stone-50 rounded border border-stone-100">
+                                <strong class="block text-slate-800 mb-1">10/5 Repeated Jump Test</strong>
+                                <span class="text-sm text-slate-600">Athlete performs one maximal countermovement jump followed by 10 continuous, maximal repeated bounds with minimal ground contact. Averages the best 5. Excellent for cyclical power assessment.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                    <h3 class="text-lg font-bold mb-4 text-slate-800">Hardware Considerations in Elite Settings</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-slate-600">
+                            <thead class="text-xs text-slate-700 uppercase bg-stone-100">
+                                <tr>
+                                    <th class="px-4 py-3">Hardware Type</th>
+                                    <th class="px-4 py-3">Mechanism</th>
+                                    <th class="px-4 py-3">Validity/Reliability</th>
+                                    <th class="px-4 py-3">Application Context</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b">
+                                    <td class="px-4 py-3 font-semibold text-slate-800">Force Plates (Uni/Tri-axial)</td>
+                                    <td class="px-4 py-3">Measures vertical ground reaction forces at >1000Hz. Derives data via impulse-momentum.</td>
+                                    <td class="px-4 py-3 text-emerald-600 font-bold">Gold Standard</td>
+                                    <td class="px-4 py-3">Research, elite laboratory settings. Calculates true jump height from takeoff velocity.</td>
+                                </tr>
+                                <tr class="border-b bg-stone-50">
+                                    <td class="px-4 py-3 font-semibold text-slate-800">Contact Mats</td>
+                                    <td class="px-4 py-3">Circuit closes upon pressure. Calculates flight time.</td>
+                                    <td class="px-4 py-3">Moderate-High</td>
+                                    <td class="px-4 py-3">Field testing. Can overestimate jump height if athlete tucks knees during flight.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 font-semibold text-slate-800">Optical Systems (Lasers/Cameras)</td>
+                                    <td class="px-4 py-3">Beam breaking or high-speed kinematic tracking.</td>
+                                    <td class="px-4 py-3">High (if sampling >120Hz)</td>
+                                    <td class="px-4 py-3">Excellent field alternative to force plates. Non-invasive.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="sec-typology" class="tab-content">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-semibold mb-3 text-slate-800">Practical Uses by Athlete Typology</h2>
+                    <p class="text-slate-600 leading-relaxed">RSI is not uniquely a "sprinter's metric." Its application and interpretation vary drastically depending on the metabolic and biomechanical demands of the sport. Review the theoretical clustering below, then consult the summary matrix.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200 mb-8">
+                    <h3 class="text-lg font-bold mb-2 text-center text-slate-800">Theoretical Profiling: RSI vs. Ground Contact Time</h3>
+                    <p class="text-xs text-center text-slate-500 mb-4">Hover over data points to see typical values for elite athletes in different disciplines.</p>
+                    <div class="chart-container">
+                        <canvas id="typologyChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border border-stone-200 overflow-hidden">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-800 text-white uppercase text-xs">
+                            <tr>
+                                <th class="px-6 py-4">Athlete Domain</th>
+                                <th class="px-6 py-4">Primary Mechanism & RSI Role</th>
+                                <th class="px-6 py-4">Key Performance Correlate</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-stone-200 text-slate-700">
+                            <tr class="hover:bg-stone-50 transition">
+                                <td class="px-6 py-4 font-bold">Endurance<br><span class="text-xs font-normal text-slate-500">(e.g., Marathoners)</span></td>
+                                <td class="px-6 py-4">High tendon stiffness acts to recycle elastic energy. A modest RSI with optimized (not necessarily minimal) ground contact efficiency saves metabolic energy by reducing active muscle work during the stance phase.</td>
+                                <td class="px-6 py-4 font-semibold text-slate-900">Running Economy (RE)</td>
+                            </tr>
+                            <tr class="hover:bg-stone-50 transition">
+                                <td class="px-6 py-4 font-bold">Middle-Distance<br><span class="text-xs font-normal text-slate-500">(e.g., 800m - 1500m)</span></td>
+                                <td class="px-6 py-4">Requires balancing metabolic efficiency with speed-power traits. High RSI capabilities are recruited primarily during the "kick" or terminal velocity phases under high metabolic fatigue.</td>
+                                <td class="px-6 py-4 font-semibold text-slate-900">Terminal Velocity / Anaerobic Reserve</td>
+                            </tr>
+                            <tr class="hover:bg-stone-50 transition">
+                                <td class="px-6 py-4 font-bold">Sprinters & Power<br><span class="text-xs font-normal text-slate-500">(e.g., 100m, Jumpers)</span></td>
+                                <td class="px-6 py-4">Extreme reliance on Fast SSC. High RSI directly correlates to the ability to generate massive mass-specific vertical forces in under 100ms, essential for maximum velocity kinematics.</td>
+                                <td class="px-6 py-4 font-semibold text-slate-900">Max Velocity / Explosive RFD</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="sec-training" class="tab-content">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-semibold mb-3 text-slate-800">Training Applications and Periodization</h2>
+                    <p class="text-slate-600 leading-relaxed">Applying RSI data involves structured plyometric progressions and rigorous daily monitoring. Understanding the dose-response relationship of drop heights is paramount to avoiding central nervous system (CNS) overtraining and structural damage.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                    
+                    <div class="lg:col-span-3 bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                        <h3 class="text-lg font-bold mb-2 text-slate-800">Individualizing Optimal Drop Height</h3>
+                        <p class="text-sm text-slate-600 mb-4">Depth jumps place extreme eccentric loads on the neuromuscular system. By testing RSI across increasing box heights, practitioners identify the "Peak RSI". Training above this height results in prolonged GCT, indicating the athlete cannot handle the eccentric braking forces, thereby shifting the adaptation away from fast SSC.</p>
+                        
+                        <div class="flex items-center gap-4 mb-4">
+                            <label for="athlete-select" class="text-sm font-semibold text-slate-700">Select Athlete Profile:</label>
+                            <select id="athlete-select" class="bg-stone-50 border border-stone-300 text-slate-900 text-sm rounded focus:ring-slate-500 focus:border-slate-500 block p-2">
+                                <option value="elite">Elite Power Athlete</option>
+                                <option value="dev">Developmental Athlete</option>
+                            </select>
+                        </div>
+
+                        <div class="chart-container">
+                            <canvas id="dropHeightChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-slate-800 text-white p-6 rounded-lg shadow-sm">
+                            <h3 class="text-lg font-bold mb-3 border-b border-slate-600 pb-2">Plyometric Progression</h3>
+                            <ul class="space-y-3 text-sm text-slate-200">
+                                <li><span class="font-bold text-white">1. Extensive (Force Absorption):</span><br>Low amplitude, high volume. Focus on landing mechanics and stiffness. e.g., Pogo jumps, low box jumps.</li>
+                                <li><span class="font-bold text-white">2. Intensive (Force Expression):</span><br>Moderate amplitude, moderate volume. Focus on minimizing GCT. e.g., Hurdle hops, bounds.</li>
+                                <li><span class="font-bold text-white">3. Shock Method (Maximal SSC):</span><br>High amplitude, low volume. Utilizing kinetic energy from a drop. e.g., Depth jumps from optimized height.</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                            <h3 class="text-lg font-bold mb-3 text-slate-800">RSI as a Readiness Monitor</h3>
+                            <p class="text-sm text-slate-600 mb-3">RSI (often via a standard Drop Jump or 10/5 test) is highly sensitive to neuromuscular fatigue. It is widely used in daily monitoring routines prior to training sessions.</p>
+                            <div class="p-3 bg-red-50 border-l-4 border-red-500 text-sm text-red-800">
+                                <strong>Actionable Data:</strong> A drop in baseline RSI > 10% indicates acute CNS fatigue or delayed onset muscle soreness (DOMS). Programming should be adjusted to remove high-velocity/high-load stressors for that microcycle.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- Navigation Logic ---
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active from all
+                    navButtons.forEach(b => b.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    // Add active to clicked
+                    btn.classList.add('active');
+                    const targetId = btn.getAttribute('data-target');
+                    document.getElementById(targetId).classList.add('active');
+                });
+            });
+
+            // --- Chart 1: Fast vs Slow SSC ---
+            const ctxSSC = document.getElementById('sscChart').getContext('2d');
+            let sscChart = new Chart(ctxSSC, {
+                type: 'bar',
+                data: {
+                    labels: ['Average Ground Contact Time (ms)'],
+                    datasets: [{
+                        label: 'Fast SSC',
+                        data: [150],
+                        backgroundColor: '#1e293b', // slate-800
+                        barThickness: 50
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            max: 400,
+                            title: { display: true, text: 'Milliseconds (ms)' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            const btnFast = document.getElementById('btn-fast-ssc');
+            const btnSlow = document.getElementById('btn-slow-ssc');
+            const descSSC = document.getElementById('ssc-desc');
+
+            btnFast.addEventListener('click', () => {
+                btnFast.classList.replace('bg-stone-200', 'bg-slate-800');
+                btnFast.classList.replace('text-slate-800', 'text-white');
+                btnSlow.classList.replace('bg-slate-800', 'bg-stone-200');
+                btnSlow.classList.replace('text-white', 'text-slate-800');
+                
+                descSSC.innerHTML = "Characterized by short ground contact times (< 250ms). Relies heavily on tendon stiffness, short-latency stretch reflexes, and elastic energy return. Foundational for maximum velocity sprinting and rapid change of direction.";
+                
+                sscChart.data.datasets[0].data = [150];
+                sscChart.data.datasets[0].backgroundColor = '#1e293b';
+                sscChart.data.datasets[0].label = 'Fast SSC';
+                sscChart.update();
+            });
+
+            btnSlow.addEventListener('click', () => {
+                btnSlow.classList.replace('bg-stone-200', 'bg-slate-800');
+                btnSlow.classList.replace('text-slate-800', 'text-white');
+                btnFast.classList.replace('bg-slate-800', 'bg-stone-200');
+                btnFast.classList.replace('text-white', 'text-slate-800');
+                
+                descSSC.innerHTML = "Characterized by longer ground contact times (> 250ms). Allows for greater muscular involvement and larger angular displacement at joints. Predominant in activities like basketball rebounding, volleyball blocking, and endurance running stance phases.";
+                
+                sscChart.data.datasets[0].data = [320];
+                sscChart.data.datasets[0].backgroundColor = '#94a3b8'; // slate-400
+                sscChart.data.datasets[0].label = 'Slow SSC';
+                sscChart.update();
+            });
+
+            // --- Chart 2: Typology Scatter Plot ---
+            const ctxTypology = document.getElementById('typologyChart').getContext('2d');
+            new Chart(ctxTypology, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Sprinters / Jumpers',
+                            data: [{x: 90, y: 3.5}, {x: 110, y: 3.2}, {x: 100, y: 3.8}],
+                            backgroundColor: '#0f172a', // slate-900
+                            pointRadius: 8
+                        },
+                        {
+                            label: 'Middle Distance',
+                            data: [{x: 160, y: 2.2}, {x: 180, y: 2.0}, {x: 150, y: 2.4}],
+                            backgroundColor: '#64748b', // slate-500
+                            pointRadius: 8
+                        },
+                        {
+                            label: 'Marathoners',
+                            data: [{x: 220, y: 1.4}, {x: 240, y: 1.2}, {x: 210, y: 1.5}],
+                            backgroundColor: '#cbd5e1', // slate-300
+                            pointRadius: 8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Ground Contact Time (ms)' },
+                            suggestedMin: 50,
+                            suggestedMax: 300
+                        },
+                        y: {
+                            title: { display: true, text: 'RSI Score (Arbitrary Units)' },
+                            suggestedMin: 0,
+                            suggestedMax: 4.5
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: GCT ${context.parsed.x}ms, RSI ${context.parsed.y}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // --- Chart 3: Drop Height Optimization Line Chart ---
+            const ctxDrop = document.getElementById('dropHeightChart').getContext('2d');
+            
+            const dataElite = [1.8, 2.5, 3.2, 2.8, 2.1];
+            const dataDev = [1.5, 2.1, 1.8, 1.2, 0.8];
+            const labelsDrop = ['15cm', '30cm', '45cm', '60cm', '75cm'];
+
+            let dropChart = new Chart(ctxDrop, {
+                type: 'line',
+                data: {
+                    labels: labelsDrop,
+                    datasets: [{
+                        label: 'RSI Score vs Box Height',
+                        data: dataElite,
+                        borderColor: '#0f172a',
+                        backgroundColor: 'rgba(15, 23, 42, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#0f172a',
+                        pointRadius: 5,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'RSI Score' },
+                            suggestedMin: 0,
+                            suggestedMax: 4
+                        },
+                        x: {
+                            title: { display: true, text: 'Drop Box Height' }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    // Identify peak logic
+                                    let dataset = context.dataset.data;
+                                    let maxVal = Math.max(...dataset);
+                                    if(context.parsed.y === maxVal) return '🏆 Optimal Drop Height';
+                                    if(context.dataIndex > dataset.indexOf(maxVal)) return '⚠️ Inhibitory / Too High (GCT increasing)';
+                                    return '';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const athleteSelect = document.getElementById('athlete-select');
+            athleteSelect.addEventListener('change', (e) => {
+                if(e.target.value === 'elite') {
+                    dropChart.data.datasets[0].data = dataElite;
+                } else {
+                    dropChart.data.datasets[0].data = dataDev;
+                }
+                dropChart.update();
+            });
+
+        });
+    </script>
+</body>
+</html>
