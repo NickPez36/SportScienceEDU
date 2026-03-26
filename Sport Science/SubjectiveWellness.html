@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Athlete Subjective Wellness Monitoring</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Base typography and smooth scrolling */
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #fafaf9; color: #1c1917; }
+        
+        /* Chart container constraint rules */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f5f5f4; }
+        ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+
+        /* Navigation Transitions */
+        .nav-link { transition: all 0.2s ease-in-out; }
+        .nav-link.active { background-color: #e7e5e4; font-weight: 600; border-left: 4px solid #0369a1; }
+        
+        /* Interactive element transitions */
+        .tab-btn { transition: all 0.2s; }
+        .tab-btn.active { border-bottom: 2px solid #0369a1; color: #0369a1; font-weight: 600; }
+        .accordion-content { transition: max-height 0.3s ease-out; overflow: hidden; max-height: 0; }
+        .accordion-content.open { max-height: 500px; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        stone: { 50: '#fafaf9', 100: '#f5f5f4', 200: '#e7e5e4', 300: '#d6d3d1', 800: '#292524', 900: '#1c1917' },
+                        sky: { 600: '#0284c7', 700: '#0369a1', 800: '#075985' },
+                        rose: { 600: '#e11d48' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="flex h-screen overflow-hidden text-stone-900">
+
+    <!-- Chosen Palette: Warm Neutrals (Stone) with Deep Sky Blue primary accents and Rose red indicators. Chosen for a clinical, professional, yet readable aesthetic appropriate for a high-performance sports science dashboard. -->
+    <!-- Application Structure Plan: A side-navigation SPA dashboard. This structure allows the user (e.g., a coach or sports scientist) to systematically navigate through the theoretical foundations, the specific metrics, and practically applied dashboards without losing context. It mirrors the workflow from macro (executive summary) to micro (daily dashboard triangulation). -->
+    <!-- Visualization & Content Choices: 
+         1. Frameworks: Interactive Tabs (HTML/JS) - Goal: Organize methodologies without clutter.
+         2. Metrics Deep Dive: Radar Chart (Chart.js) - Goal: Compare a multi-dimensional wellness profile (Game Day vs Recovery). Radar is the industry standard for visualizing wellness psychometrics.
+         3. Triangulation Dashboard: Mixed Bar/Line Chart (Chart.js) - Goal: Show relationships between Objective Load (Bar) and Subjective Wellness (Line). 
+         4. Performance Impact: Accordions (HTML/JS) - Goal: Organize "Can Do" / "Cannot Do" intuitively. 
+         Library: Chart.js (Canvas), Tailwind CSS. NO SVG/Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Mobile Header -->
+    <div class="md:hidden fixed top-0 w-full bg-stone-900 text-stone-50 z-50 flex flex-col border-b border-stone-700">
+        <div class="flex justify-between items-center p-4">
+            <div class="font-bold text-lg tracking-tight">HPM Wellness Report</div>
+            <button id="mobile-menu-btn" class="text-stone-50 text-2xl px-2">&#9776;</button>
+        </div>
+        <div class="flex flex-wrap gap-1.5 px-3 pb-3 justify-center">
+            <a href="index.html" class="text-[10px] font-semibold px-2 py-1 rounded bg-stone-800 hover:bg-stone-700">← Sport Science</a>
+            <a href="../index.html" class="text-[10px] font-semibold px-2 py-1 rounded bg-stone-800 hover:bg-stone-700">Learning Hub</a>
+        </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav id="sidebar" class="bg-stone-100 border-r border-stone-200 w-64 flex-shrink-0 h-full flex flex-col absolute md:relative z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out pt-28 md:pt-0">
+        <div class="p-6 border-b border-stone-200 hidden md:block">
+            <h1 class="text-xl font-bold tracking-tight text-stone-900">HPM Directive</h1>
+            <p class="text-xs text-stone-500 mt-1 uppercase tracking-wider">High Performance Dept.</p>
+        </div>
+        <div class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li><a href="#exec-summary" class="nav-link block px-6 py-3 text-sm text-stone-700 hover:bg-stone-200 active" onclick="navigate('exec-summary')">&#128203; Exec Summary</a></li>
+                <li><a href="#frameworks" class="nav-link block px-6 py-3 text-sm text-stone-700 hover:bg-stone-200" onclick="navigate('frameworks')">&#128218; Frameworks & Science</a></li>
+                <li><a href="#metrics" class="nav-link block px-6 py-3 text-sm text-stone-700 hover:bg-stone-200" onclick="navigate('metrics')">&#127919; Metric Deep Dive</a></li>
+                <li><a href="#practical-app" class="nav-link block px-6 py-3 text-sm text-stone-700 hover:bg-stone-200" onclick="navigate('practical-app')">&#128187; Applied Triangulation</a></li>
+                <li><a href="#impact" class="nav-link block px-6 py-3 text-sm text-stone-700 hover:bg-stone-200" onclick="navigate('impact')">&#9878; Efficacy & Limits</a></li>
+                <li><a href="#nuances" class="nav-link block px-6 py-3 text-sm text-stone-700 hover:bg-stone-200" onclick="navigate('nuances')">&#128172; Coaching Art & Nuance</a></li>
+            </ul>
+        </div>
+        <div class="p-4 border-t border-stone-200 space-y-2 mt-auto bg-stone-100">
+            <a href="index.html" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-stone-300 bg-white px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition-colors w-full">
+                <span aria-hidden="true">←</span> Sport Science
+            </a>
+            <a href="../index.html" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-stone-300 bg-white px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition-colors w-full">
+                <span aria-hidden="true">🏠</span> Learning Hub
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto h-full bg-stone-50 pt-28 md:pt-0" id="main-content">
+        
+        <!-- Section: Executive Summary -->
+        <section id="exec-summary" class="content-section p-8 md:p-12 max-w-5xl mx-auto">
+            <header class="mb-10 border-b border-stone-300 pb-6">
+                <span class="text-sky-700 font-semibold tracking-wider text-sm uppercase">Section 01</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2 text-stone-900">Executive Summary & Definition</h2>
+            </header>
+            
+            <p class="text-lg text-stone-700 mb-8 leading-relaxed font-light">
+                This section defines the paradigm of subjective wellness monitoring within elite sports environments. It outlines the foundational rationale for why self-reported psychometric data remains a non-negotiable pillar of athlete management, even in an era dominated by advanced physiological sensors. Understanding this foundation is critical before deploying data collection systems.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                    <h3 class="text-xl font-bold mb-3 text-sky-800 flex items-center gap-2">
+                        <span>&#128269;</span> Defining Subjective Monitoring
+                    </h3>
+                    <p class="text-stone-600 leading-relaxed text-sm">
+                        In elite high-performance sport, subjective wellness monitoring is the systematic, quantified collection of an athlete's self-perceived physiological and psychological states. Unlike objective metrics (e.g., GPS velocity, heart rate variability), subjective monitoring relies entirely on the athlete's internal calibration of their fatigue, mood, stress, and neuromuscular readiness, typically gathered via standardized daily questionnaires.
+                    </p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                    <h3 class="text-xl font-bold mb-3 text-sky-800 flex items-center gap-2">
+                        <span>&#129320;</span> The Physiological & Psychological Rationale
+                    </h3>
+                    <p class="text-stone-600 leading-relaxed text-sm">
+                        Why "ask the athlete" when we have wearables? The academic consensus is clear: <strong>the central nervous system (CNS) often manifests systemic fatigue behaviorally and psychologically before structural or autonomic markers degrade.</strong> Subjective metrics frequently display greater sensitivity to acute training fluctuations than objective markers. An athlete’s perception of effort and stress integrates allostatic load—accounting for cognitive stressors (travel, media, personal life) that physical sensors cannot detect.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="mt-8 bg-sky-50 border-l-4 border-sky-600 p-6 rounded-r-lg">
+                <h4 class="font-bold text-sky-900 mb-2">Director's Note:</h4>
+                <p class="text-sm text-sky-800">"Data is only as valuable as the intervention it drives. Subjective monitoring is not just a data collection exercise; it is an organized communication pathway between the athlete and the performance staff."</p>
+            </div>
+        </section>
+
+        <!-- Section: Frameworks -->
+        <section id="frameworks" class="content-section p-8 md:p-12 max-w-5xl mx-auto hidden">
+            <header class="mb-10 border-b border-stone-300 pb-6">
+                <span class="text-sky-700 font-semibold tracking-wider text-sm uppercase">Section 02</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2 text-stone-900">Research-Supported Methods & Frameworks</h2>
+            </header>
+
+            <p class="text-lg text-stone-700 mb-8 leading-relaxed font-light">
+                This section explores the prevailing academic methodologies used to quantify subjective wellness. By examining the established frameworks (Hooper, POMS, DALDA), sports scientists can select or adapt the most appropriate psychometric tool for their specific locker room, balancing academic rigor with practical compliance.
+            </p>
+
+            <!-- Interactive Tabs -->
+            <div class="mb-6 border-b border-stone-200">
+                <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="framework-tabs">
+                    <li class="mr-2">
+                        <button class="inline-block p-4 rounded-t-lg tab-btn active" data-target="tab-hooper">Hooper Index</button>
+                    </li>
+                    <li class="mr-2">
+                        <button class="inline-block p-4 rounded-t-lg tab-btn text-stone-500 hover:text-stone-700" data-target="tab-poms">POMS</button>
+                    </li>
+                    <li class="mr-2">
+                        <button class="inline-block p-4 rounded-t-lg tab-btn text-stone-500 hover:text-stone-700" data-target="tab-dalda">DALDA</button>
+                    </li>
+                    <li class="mr-2">
+                        <button class="inline-block p-4 rounded-t-lg tab-btn text-stone-500 hover:text-stone-700" data-target="tab-consensus">Academic Consensus</button>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Tab Contents -->
+            <div class="bg-white p-6 rounded-b-lg border border-stone-200 border-t-0 shadow-sm min-h-[250px]">
+                
+                <div id="tab-hooper" class="tab-pane">
+                    <h3 class="text-xl font-bold text-stone-800 mb-2">The Hooper Index</h3>
+                    <p class="text-stone-600 mb-4 text-sm leading-relaxed">Introduced by Hooper et al. (1995), this is the most ubiquitous foundation for modern custom wellness apps in elite sport. It traditionally evaluates four sub-categories on a 1-7 Likert scale: Sleep Quality, Fatigue, Stress, and Delayed Onset Muscle Soreness (DOMS).</p>
+                    <ul class="list-disc pl-5 text-sm text-stone-600 space-y-1">
+                        <li><strong>Pros:</strong> Exceptionally low cognitive load; high compliance rates; easily digitized.</li>
+                        <li><strong>Cons:</strong> Lacks nuance for complex psychological distress; 1-7 scale can lead to "middle-clustering" (athletes defaulting to 4).</li>
+                    </ul>
+                </div>
+
+                <div id="tab-poms" class="tab-pane hidden">
+                    <h3 class="text-xl font-bold text-stone-800 mb-2">Profile of Mood States (POMS)</h3>
+                    <p class="text-stone-600 mb-4 text-sm leading-relaxed">A psychological rating scale used to assess transient, distinct mood states. It measures Tension, Depression, Anger, Vigor, Fatigue, and Confusion. A healthy athlete profile shows an "Iceberg Profile" (high Vigor, low everything else).</p>
+                    <ul class="list-disc pl-5 text-sm text-stone-600 space-y-1">
+                        <li><strong>Pros:</strong> High clinical validity; excellent at detecting overtraining syndrome (OTS) and severe psychosocial distress.</li>
+                        <li><strong>Cons:</strong> Very high cognitive load (original is 65 items, brief is 30 items); impractical for <em>daily</em> monitoring in team sports.</li>
+                    </ul>
+                </div>
+
+                <div id="tab-dalda" class="tab-pane hidden">
+                    <h3 class="text-xl font-bold text-stone-800 mb-2">Daily Analysis of Life Demands for Athletes (DALDA)</h3>
+                    <p class="text-stone-600 mb-4 text-sm leading-relaxed">Separates stress sources into "Sources of Stress" (Part A - diet, home life, training) and "Symptoms of Stress" (Part B - muscle pains, sleep, mood). Athletes rate items as "Worse than normal," "Normal," or "Better than normal."</p>
+                    <ul class="list-disc pl-5 text-sm text-stone-600 space-y-1">
+                        <li><strong>Pros:</strong> Accounts for life stress outside of training; distinguishes between the stressor and the physiological response.</li>
+                        <li><strong>Cons:</strong> "Normal" is highly subjective and shifts over a long season; longer completion time than Hooper.</li>
+                    </ul>
+                </div>
+
+                <div id="tab-consensus" class="tab-pane hidden">
+                    <h3 class="text-xl font-bold text-stone-800 mb-2">The Academic Consensus: Subjective vs. Objective</h3>
+                    <p class="text-stone-600 mb-4 text-sm leading-relaxed">
+                        A landmark systematic review by Saw et al. (2016) in the <em>British Journal of Sports Medicine</em> concluded that <strong>subjective measures responded more sensitively and consistently to acute and chronic training loads than objective measures</strong> (like HRV, blood markers, or oxygen consumption). 
+                    </p>
+                    <p class="text-stone-600 text-sm leading-relaxed">
+                        Objective measures are vital for context, but subjective wellness acts as the "canary in the coal mine" for non-functional overreaching (NFOR). The consensus dictates a mixed-methods approach: Subjective data alerts the practitioner to *look* at the objective data.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Metrics -->
+        <section id="metrics" class="content-section p-8 md:p-12 max-w-5xl mx-auto hidden">
+            <header class="mb-10 border-b border-stone-300 pb-6">
+                <span class="text-sky-700 font-semibold tracking-wider text-sm uppercase">Section 03</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2 text-stone-900">Deep Dive into the Metrics</h2>
+            </header>
+
+            <p class="text-lg text-stone-700 mb-8 leading-relaxed font-light">
+                This section dissects the specific dimensions of subjective wellness. It provides an interactive visualization of a typical athlete profile and analyzes the intricacies of scale design, emphasizing the balance between data granularity and athlete compliance (cognitive load).
+            </p>
+
+            <div class="grid lg:grid-cols-2 gap-10 items-start">
+                
+                <!-- Radar Chart -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200 w-full">
+                    <h3 class="text-center font-bold text-stone-800 mb-2">Athlete Profile Comparison</h3>
+                    <p class="text-center text-xs text-stone-500 mb-4">Higher Score = Better State (e.g., 10 = Great Sleep, No Soreness)</p>
+                    <div class="chart-container">
+                        <canvas id="wellnessRadarChart"></canvas>
+                    </div>
+                    <div class="mt-4 flex justify-center gap-4 text-sm">
+                        <button id="btn-gameday" class="px-3 py-1 bg-stone-200 rounded hover:bg-stone-300 transition text-stone-800">Match Day</button>
+                        <button id="btn-recovery" class="px-3 py-1 bg-sky-100 text-sky-800 rounded hover:bg-sky-200 transition">MD+1 (Recovery)</button>
+                    </div>
+                </div>
+
+                <!-- Metrics Breakdown -->
+                <div>
+                    <h3 class="text-2xl font-bold text-stone-900 mb-4 border-l-4 border-sky-600 pl-3">Core Metrics</h3>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-white rounded border border-stone-100 shadow-sm hover:shadow-md transition">
+                            <h4 class="font-bold text-stone-800 flex justify-between"><span>&#128164; Sleep</span> <span class="text-xs bg-stone-200 px-2 py-1 rounded text-stone-600">Quality / Duration</span></h4>
+                            <p class="text-sm text-stone-600 mt-2">Duration (hours) is objective, but <em>quality</em> is highly subjective. Disruptions due to match-day adrenaline or travel cross time-zones heavily impact CNS recovery.</p>
+                        </div>
+                        <div class="p-4 bg-white rounded border border-stone-100 shadow-sm hover:shadow-md transition">
+                            <h4 class="font-bold text-stone-800 flex justify-between"><span>&#129461; Muscle Soreness</span> <span class="text-xs bg-stone-200 px-2 py-1 rounded text-stone-600">DOMS vs Pain</span></h4>
+                            <p class="text-sm text-stone-600 mt-2"><strong>Crucial distinction:</strong> Is it generalized DOMS (expected load response) or sharp, localized joint/tendon pain (pathology risk)? Questionnaires must differentiate these.</p>
+                        </div>
+                        <div class="p-4 bg-white rounded border border-stone-100 shadow-sm hover:shadow-md transition">
+                            <h4 class="font-bold text-stone-800 flex justify-between"><span>&#9889; Fatigue</span> <span class="text-xs bg-stone-200 px-2 py-1 rounded text-stone-600">CNS Readiness</span></h4>
+                            <p class="text-sm text-stone-600 mt-2">Overall perception of energy. Heavy legs, lethargy, or brain fog. Highly correlated with previous day's high-speed running metrics.</p>
+                        </div>
+                        <div class="p-4 bg-white rounded border border-stone-100 shadow-sm hover:shadow-md transition">
+                            <h4 class="font-bold text-stone-800 flex justify-between"><span>&#129504; Stress & Mood</span> <span class="text-xs bg-stone-200 px-2 py-1 rounded text-stone-600">Allostatic Load</span></h4>
+                            <p class="text-sm text-stone-600 mt-2">Captures non-training stress (media, contracts, family). Irritability is a primary early-warning sign of sympathetic overtraining.</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 bg-stone-800 text-stone-50 p-5 rounded-lg">
+                        <h4 class="font-bold mb-2">Scale Design & Cognitive Load</h4>
+                        <p class="text-sm opacity-90 leading-relaxed mb-2">
+                            A 1-5 scale lacks sensitivity. A 1-100 Visual Analog Scale (VAS) is highly granular but exhausting to complete daily.
+                        </p>
+                        <p class="text-sm opacity-90 leading-relaxed font-semibold text-sky-300">
+                            Best Practice: A 1-10 scale (or discrete 10-point slider) offers the optimal balance between psychometric sensitivity and minimizing athlete survey fatigue.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Practical App (Triangulation) -->
+        <section id="practical-app" class="content-section p-8 md:p-12 max-w-5xl mx-auto hidden">
+            <header class="mb-10 border-b border-stone-300 pb-6">
+                <span class="text-sky-700 font-semibold tracking-wider text-sm uppercase">Section 04</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2 text-stone-900">Practical Applications & Triangulation</h2>
+            </header>
+
+            <p class="text-lg text-stone-700 mb-8 leading-relaxed font-light">
+                Data in isolation is noise. This section demonstrates how subjective wellness data is integrated into daily high-performance routines. It highlights the concept of "triangulation"—overlaying subjective perceptions with objective load (GPS) to make informed, real-time training modifications.
+            </p>
+
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200 mb-8">
+                <h3 class="text-xl font-bold text-stone-800 mb-4">The Morning Routine</h3>
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="flex-1 flex items-start gap-4">
+                        <div class="bg-sky-100 p-3 rounded-full text-xl">&#9200;</div>
+                        <div>
+                            <h4 class="font-bold text-stone-800">08:00 AM - Collection</h4>
+                            <p class="text-sm text-stone-600 mt-1">Athletes complete app-based questionnaire prior to arriving at the facility. Crucial to capture baseline state before peer interaction influences mood.</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 flex items-start gap-4">
+                        <div class="bg-sky-100 p-3 rounded-full text-xl">&#128202;</div>
+                        <div>
+                            <h4 class="font-bold text-stone-800">08:30 AM - Dashboard Triage</h4>
+                            <p class="text-sm text-stone-600 mt-1">Algorithms flag deviations (e.g., score &gt;1 standard deviation below personal baseline). Staff identify "red flag" athletes.</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 flex items-start gap-4">
+                        <div class="bg-rose-100 p-3 rounded-full text-xl">&#129309;</div>
+                        <div>
+                            <h4 class="font-bold text-stone-800">09:00 AM - Interventions</h4>
+                            <p class="text-sm text-stone-600 mt-1">Face-to-face check-ins with flagged athletes to contextualize the data before training load is prescribed or modified.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Triangulation Chart -->
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-stone-800">Data Triangulation: Load vs. Wellness</h3>
+                    <span class="text-xs font-mono bg-stone-100 px-2 py-1 rounded">Athlete: Subject 04</span>
+                </div>
+                <p class="text-sm text-stone-500 mb-6">Interactive view comparing Objective Workload (Total Distance) against Overall Subjective Wellness across a microcycle.</p>
+                
+                <div class="chart-container">
+                    <canvas id="triangulationChart"></canvas>
+                </div>
+
+                <div class="mt-6 p-4 bg-stone-50 border border-stone-200 rounded text-sm text-stone-700 leading-relaxed">
+                    <strong>Interpretation:</strong> Notice the divergence on Day 4. High objective load (Day 3 match) triggers a significant drop in subjective wellness on Day 4. If objective readiness (e.g., Countermovement Jump) is also depressed on Day 4, the triangulation confirms systemic fatigue, demanding an autoregulated recovery day.
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Performance Impact -->
+        <section id="impact" class="content-section p-8 md:p-12 max-w-5xl mx-auto hidden">
+            <header class="mb-10 border-b border-stone-300 pb-6">
+                <span class="text-sky-700 font-semibold tracking-wider text-sm uppercase">Section 05</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2 text-stone-900">Performance Impact: Capabilities & Limitations</h2>
+            </header>
+
+            <p class="text-lg text-stone-700 mb-8 leading-relaxed font-light">
+                A candid evaluation of the utility of subjective monitoring. To maintain scientific integrity, practitioners must understand exactly what this data can facilitate (autoregulation, psychosocial flags) and its inherent flaws (bias, survey fatigue).
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Can Do -->
+                <div>
+                    <h3 class="text-2xl font-bold text-sky-700 mb-4 flex items-center gap-2">
+                        <span>&#9989;</span> What It CAN Do
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="border border-stone-200 rounded bg-white">
+                            <button class="w-full text-left p-4 font-bold text-stone-800 focus:outline-none flex justify-between accordion-toggle">
+                                Drive Autoregulation
+                                <span class="text-stone-400 font-mono">+</span>
+                            </button>
+                            <div class="accordion-content px-4 text-sm text-stone-600 bg-stone-50">
+                                <p class="pb-4">Allows for daily micro-adjustments to prescribed training volumes. If an entire positional group reports high DOMS and low sleep, the session can pivot from high-velocity sprinting to technical tactical walkthroughs, preventing injury spikes.</p>
+                            </div>
+                        </div>
+                        <div class="border border-stone-200 rounded bg-white">
+                            <button class="w-full text-left p-4 font-bold text-stone-800 focus:outline-none flex justify-between accordion-toggle">
+                                Flag Psychosocial Stress
+                                <span class="text-stone-400 font-mono">+</span>
+                            </button>
+                            <div class="accordion-content px-4 text-sm text-stone-600 bg-stone-50">
+                                <p class="pb-4">Physical sensors cannot tell you a player's child was sick all night or they are experiencing contract anxiety. A drop in the "Mood/Stress" metric allows staff to intervene holistically, perhaps bringing in the sports psychologist.</p>
+                            </div>
+                        </div>
+                        <div class="border border-stone-200 rounded bg-white">
+                            <button class="w-full text-left p-4 font-bold text-stone-800 focus:outline-none flex justify-between accordion-toggle">
+                                Empower the Athlete
+                                <span class="text-stone-400 font-mono">+</span>
+                            </button>
+                            <div class="accordion-content px-4 text-sm text-stone-600 bg-stone-50">
+                                <p class="pb-4">Creates a sense of ownership. Athletes who feel they have a voice in their load management exhibit higher buy-in to the broader performance program.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cannot Do -->
+                <div>
+                    <h3 class="text-2xl font-bold text-rose-700 mb-4 flex items-center gap-2">
+                        <span>&#10060;</span> What It CANNOT Do
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="border border-stone-200 rounded bg-white">
+                            <button class="w-full text-left p-4 font-bold text-stone-800 focus:outline-none flex justify-between accordion-toggle">
+                                Overcome "Gaming the System"
+                                <span class="text-stone-400 font-mono">+</span>
+                            </button>
+                            <div class="accordion-content px-4 text-sm text-stone-600 bg-rose-50 border-t border-rose-100">
+                                <p class="pb-4 pt-2">Athletes often lie. A fringe player fighting for a starting spot may under-report fatigue to avoid being rested. Conversely, a player looking to avoid a heavy fitness session may over-report soreness. Subjective data is inherently biased by motivation.</p>
+                            </div>
+                        </div>
+                        <div class="border border-stone-200 rounded bg-white">
+                            <button class="w-full text-left p-4 font-bold text-stone-800 focus:outline-none flex justify-between accordion-toggle">
+                                Pinpoint Structural Damage
+                                <span class="text-stone-400 font-mono">+</span>
+                            </button>
+                            <div class="accordion-content px-4 text-sm text-stone-600 bg-rose-50 border-t border-rose-100">
+                                <p class="pb-4 pt-2">A "Soreness: 3/10" score tells you there is pain, but it cannot differentiate between benign micro-trauma (DOMS) and a grade 1 hamstring strain. It is a pointer, not a diagnostic tool. Medical assessment is still required.</p>
+                            </div>
+                        </div>
+                        <div class="border border-stone-200 rounded bg-white">
+                            <button class="w-full text-left p-4 font-bold text-stone-800 focus:outline-none flex justify-between accordion-toggle">
+                                Survive Survey Fatigue
+                                <span class="text-stone-400 font-mono">+</span>
+                            </button>
+                            <div class="accordion-content px-4 text-sm text-stone-600 bg-rose-50 border-t border-rose-100">
+                                <p class="pb-4 pt-2">If athletes do not see action taken based on their data, they will stop caring. They will mindlessly click "5, 5, 5, 5" just to bypass the screen. Constant monitoring without feedback breeds resentment.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Nuances -->
+        <section id="nuances" class="content-section p-8 md:p-12 max-w-5xl mx-auto hidden">
+            <header class="mb-10 border-b border-stone-300 pb-6">
+                <span class="text-sky-700 font-semibold tracking-wider text-sm uppercase">Section 06</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2 text-stone-900">Anecdotal Nuances & Elite Edge Cases</h2>
+            </header>
+
+            <p class="text-lg text-stone-700 mb-8 leading-relaxed font-light">
+                Sports science is an applied art as much as a hard science. This section addresses the human element of high-performance environments—cultural diversity in pain reporting, the psychological weight of surveillance, and the ultimate value of the practitioner's intuition.
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                
+                <div class="md:col-span-2 space-y-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-stone-800">
+                        <h3 class="text-xl font-bold text-stone-900 mb-2">The "Art of Coaching"</h3>
+                        <p class="text-sm text-stone-700 leading-relaxed mb-4">
+                            A low wellness score is rarely the endgame; it is the <em>icebreaker</em>. The true value of subjective monitoring lies in the conversations it catalyzes. When a high-stoicism athlete logs a 4/10 for Mood, the algorithm flags it, but the art is in the Director of High Performance pulling them aside, pouring a coffee, and asking, <em>"What's going on?"</em> The score itself is often less valuable than the dialogue it sparks.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                        <h3 class="text-lg font-bold text-stone-900 mb-2">Cultural & Positional Differences</h3>
+                        <p class="text-sm text-stone-700 leading-relaxed">
+                            A global locker room possesses vastly different cultural calibrations for "pain" and "fatigue." A player raised in a grit-first development system may interpret a 6/10 pain as a 2/10. Furthermore, positional demands alter perception: a rugby prop expects to be sore daily; a winger may interpret that same soreness as pathological. Baselines must be entirely individualized; comparing Player A's 5 to Player B's 5 is a statistical fallacy.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-stone-900 text-stone-50 p-6 rounded-lg shadow-md flex flex-col justify-center">
+                    <div class="text-4xl mb-4 opacity-50">&#10077;</div>
+                    <blockquote class="text-lg font-light leading-snug mb-4">
+                        "The danger of the modern high-performance environment is creating fragile athletes through over-monitoring. If you ask an athlete every morning if they are tired, eventually, they will tell you yes."
+                    </blockquote>
+                    <p class="text-sm font-bold text-sky-400">— High Performance Heuristic</p>
+                    <div class="mt-6 pt-6 border-t border-stone-700">
+                        <p class="text-xs opacity-75">
+                            <strong>Takeaway:</strong> Do not pathologize normal training fatigue. Athletes must be educated that feeling a "6/10" during pre-season is exactly where they are supposed to be.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="mt-16 text-center text-stone-400 text-sm pb-8 border-t border-stone-200 pt-8">
+                HPM Directive - Internal Report. Developed for High Performance Staff integration.
+            </div>
+        </section>
+        
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Navigation Logic ---
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sidebar = document.getElementById('sidebar');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mainContent = document.getElementById('main-content');
+
+        // Mobile menu toggle
+        mobileMenuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        function navigate(targetId) {
+            // Hide all sections
+            sections.forEach(sec => sec.classList.add('hidden'));
+            // Show target
+            document.getElementById(targetId).classList.remove('hidden');
+            
+            // Update active state on nav
+            navLinks.forEach(link => {
+                link.classList.remove('active', 'font-semibold', 'border-l-4', 'border-sky-700');
+                if(link.getAttribute('href') === `#${targetId}`) {
+                    link.classList.add('active', 'font-semibold', 'border-l-4', 'border-sky-700');
+                }
+            });
+
+            // Close mobile menu if open
+            if(window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+            }
+
+            // Scroll to top of main content
+            mainContent.scrollTop = 0;
+
+            // Trigger chart renders if navigating to their sections
+            if(targetId === 'metrics') initRadarChart();
+            if(targetId === 'practical-app') initTriangulationChart();
+        }
+
+        // --- Tabs Logic (Frameworks) ---
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Reset buttons
+                tabBtns.forEach(b => {
+                    b.classList.remove('active', 'border-sky-700', 'text-sky-700');
+                    b.classList.add('text-stone-500');
+                });
+                // Activate clicked
+                btn.classList.add('active', 'border-sky-700', 'text-sky-700');
+                btn.classList.remove('text-stone-500');
+
+                // Hide panes
+                tabPanes.forEach(p => p.classList.add('hidden'));
+                // Show target pane
+                const targetPane = document.getElementById(btn.getAttribute('data-target'));
+                targetPane.classList.remove('hidden');
+            });
+        });
+
+        // --- Accordion Logic (Impact) ---
+        const accordions = document.querySelectorAll('.accordion-toggle');
+        accordions.forEach(acc => {
+            acc.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+                const icon = this.querySelector('span');
+                
+                if(content.classList.contains('open')) {
+                    content.classList.remove('open');
+                    icon.textContent = '+';
+                } else {
+                    // close others optionally (kept independent here for better exploration)
+                    content.classList.add('open');
+                    icon.textContent = '-';
+                }
+            });
+        });
+
+        // --- Chart.js Implementations ---
+        let radarChartInstance = null;
+        let lineChartInstance = null;
+
+        // Colors based on theme
+        const colorPrimary = 'rgba(2, 132, 199, 0.6)'; // sky-600
+        const colorPrimaryBorder = 'rgba(2, 132, 199, 1)';
+        const colorSecondary = 'rgba(225, 29, 72, 0.6)'; // rose-600
+        const colorSecondaryBorder = 'rgba(225, 29, 72, 1)';
+        const colorNeutral = 'rgba(168, 162, 158, 0.4)'; // stone-400
+        const colorNeutralBorder = 'rgba(120, 113, 108, 1)'; // stone-500
+
+        // Data Models
+        const gameDayData = [8, 9, 8, 7, 9]; // Rested, ready
+        const recoveryDayData = [5, 3, 4, 6, 5]; // Poor sleep, sore, fatigued
+
+        function initRadarChart() {
+            if (radarChartInstance) return; // Already initialized
+
+            const ctx = document.getElementById('wellnessRadarChart').getContext('2d');
+            
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Sleep Quality', 'Mood', 'Stress (Low)', 'Fatigue (Low)', 'Soreness (Low)'],
+                    datasets: [{
+                        label: 'Match Day (Ready)',
+                        data: gameDayData,
+                        fill: true,
+                        backgroundColor: colorPrimary,
+                        borderColor: colorPrimaryBorder,
+                        pointBackgroundColor: colorPrimaryBorder,
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: colorPrimaryBorder
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: {
+                                font: { size: 12, family: "'Inter', sans-serif" },
+                                color: '#444'
+                            },
+                            ticks: { min: 0, max: 10, stepSize: 2, display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: "'Inter', sans-serif" } } },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    // Wrap logic for tooltips if needed
+                                    let title = context[0].label || '';
+                                    return title.length > 16 ? title.substring(0, 16) + '...' : title;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Radar Interactivity
+            document.getElementById('btn-gameday').addEventListener('click', () => {
+                radarChartInstance.data.datasets[0].data = gameDayData;
+                radarChartInstance.data.datasets[0].label = 'Match Day (Ready)';
+                radarChartInstance.data.datasets[0].backgroundColor = colorPrimary;
+                radarChartInstance.data.datasets[0].borderColor = colorPrimaryBorder;
+                radarChartInstance.update();
+            });
+
+            document.getElementById('btn-recovery').addEventListener('click', () => {
+                radarChartInstance.data.datasets[0].data = recoveryDayData;
+                radarChartInstance.data.datasets[0].label = 'MD+1 (Recovery)';
+                radarChartInstance.data.datasets[0].backgroundColor = colorSecondary;
+                radarChartInstance.data.datasets[0].borderColor = colorSecondaryBorder;
+                radarChartInstance.update();
+            });
+        }
+
+        function initTriangulationChart() {
+            if (lineChartInstance) return;
+
+            const ctx = document.getElementById('triangulationChart').getContext('2d');
+            
+            lineChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Day 1', 'Day 2', 'Day 3 (Match)', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Subjective Wellness (1-50)',
+                            data: [42, 45, 46, 25, 32, 40, 44],
+                            borderColor: colorSecondaryBorder,
+                            backgroundColor: colorSecondaryBorder,
+                            borderWidth: 3,
+                            tension: 0.3,
+                            yAxisID: 'y1',
+                            order: 1
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Objective Load (Total Dist. km)',
+                            data: [5.2, 3.1, 11.5, 0, 4.5, 6.2, 4.0],
+                            backgroundColor: colorNeutral,
+                            borderColor: colorNeutralBorder,
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            yAxisID: 'y',
+                            order: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Distance (km)', font: { size: 11 } },
+                            min: 0,
+                            max: 14
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Wellness Score', font: { size: 11 } },
+                            min: 0,
+                            max: 50,
+                            grid: { drawOnChartArea: false } // only draw grid lines for one axis
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

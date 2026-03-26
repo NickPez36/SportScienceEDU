@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Altitude and Hypoxic Training Interventions in Elite High-Performance Sport</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Slate and Oxygen Blue/Red (Warm neutral slate backgrounds, deep clinical blue and arterial red accents to represent hematological themes). -->
+    <!-- Application Structure Plan: The SPA uses a "High-Performance Dashboard" architecture. Given the dense, academic, and applied nature of the report, presenting it as a linear document causes fatigue. By chunking the content into 5 distinct modules (Mechanisms, Methodologies, Monitoring, Impact, Logistics) accessible via a persistent sidebar navigation, the user can non-linearly explore the exact scientific or logistical data they need. Interactive charts visualize physiological timelines and responder probabilities, transforming raw academic concepts into readable clinical dashboards. -->
+    <!-- Visualization & Content Choices: 
+         - Mechanisms (Goal: Inform physiological timeline) -> Line Chart (Timecourse of EPO vs tHb-mass). Interaction: Hover tooltips. Justification: Visualizes the delayed synthesis of hemoglobin vs the immediate spike of EPO. Library: Chart.js (Canvas).
+         - Methodologies (Goal: Compare) -> Summary Data Table. Interaction: Hover highlighting. Justification: Best for strict categorical comparison of LHTH/LHTL/RSH pros and cons. Method: HTML/Tailwind.
+         - Monitoring (Goal: Track daily metrics) -> Dual-axis Line Chart (SpO2 vs Resting HR). Interaction: Tooltips. Justification: Mirrors the actual morning monitoring dashboards coaches use in camps. Library: Chart.js (Canvas).
+         - Impact (Goal: Clarify outcomes) -> Doughnut Chart (Responder vs Non-Responder rates). Interaction: Hover segments. Justification: Visually reinforces that altitude training is not a guaranteed magic bullet. Library: Chart.js (Canvas).
+         - Logistics (Goal: Organize timeline) -> Interactive Timeline layout. Method: HTML/CSS Flexbox. Justification: Maps the highly debated "Return to Sea Level" timeline structurally.
+         CONFIRMATION: NO SVG/Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        .chart-container { position: relative; width: 100%; max-width: 800px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
+        .nav-btn.active { background-color: #1e293b; color: #ffffff; border-left: 4px solid #ef4444; }
+        .nav-btn { transition: all 0.2s ease-in-out; border-left: 4px solid transparent; }
+        .nav-btn:hover:not(.active) { background-color: #e2e8f0; }
+        .section-content { display: none; animation: fadeIn 0.4s ease-out forwards; }
+        .section-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden selection:bg-red-200 selection:text-red-900">
+
+    <aside class="w-64 bg-slate-50 border-r border-slate-200 flex flex-col justify-between hidden md:flex z-20 shadow-sm relative">
+        <div>
+            <div class="p-6 border-b border-slate-200">
+                <h1 class="text-xl font-bold tracking-tight text-slate-800 leading-tight">High-Performance <span class="text-red-600 block">Altitude Interventions</span></h1>
+                <p class="text-xs text-slate-500 mt-2 font-medium uppercase tracking-wider">Director of Sports Science</p>
+            </div>
+            <nav class="mt-4 flex flex-col gap-1 px-3" id="desktop-nav">
+                <button data-target="sec-exec" class="nav-btn active text-left px-4 py-3 rounded-md text-sm font-semibold text-slate-700">1. Physiological Mechanisms</button>
+                <button data-target="sec-methods" class="nav-btn text-left px-4 py-3 rounded-md text-sm font-semibold text-slate-700">2. Core Methodologies</button>
+                <button data-target="sec-metrics" class="nav-btn text-left px-4 py-3 rounded-md text-sm font-semibold text-slate-700">3. Essential Monitoring</button>
+                <button data-target="sec-impact" class="nav-btn text-left px-4 py-3 rounded-md text-sm font-semibold text-slate-700">4. Performance Impact</button>
+                <button data-target="sec-logistics" class="nav-btn text-left px-4 py-3 rounded-md text-sm font-semibold text-slate-700">5. Logistics & Edge Cases</button>
+            </nav>
+            <div class="mt-4 px-3 space-y-2">
+                <a href="index.html" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors w-full">
+                    <span aria-hidden="true">←</span> Sport Science
+                </a>
+                <a href="../index.html" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors w-full">
+                    <span aria-hidden="true">🏠</span> Learning Hub
+                </a>
+            </div>
+        </div>
+        <div class="p-4 border-t border-slate-200">
+            <div class="text-xs text-slate-400">Internal Review Document v2.4<br>Strictly Confidential</div>
+        </div>
+    </aside>
+
+    <div class="md:hidden w-full bg-slate-800 text-white p-3 flex flex-col gap-2 fixed top-0 z-50">
+        <div class="flex justify-between items-center gap-2">
+            <h1 class="text-sm font-bold truncate">Altitude Interventions</h1>
+            <select id="mobile-nav" class="bg-slate-700 text-white text-xs p-2 rounded outline-none border border-slate-600 shrink-0">
+                <option value="sec-exec">1. Mechanisms</option>
+                <option value="sec-methods">2. Methodologies</option>
+                <option value="sec-metrics">3. Monitoring</option>
+                <option value="sec-impact">4. Impact</option>
+                <option value="sec-logistics">5. Logistics</option>
+            </select>
+        </div>
+        <div class="flex flex-wrap gap-1.5 justify-center border-t border-slate-600 pt-2">
+            <a href="index.html" class="text-[10px] font-semibold px-2 py-1 rounded bg-slate-700 hover:bg-slate-600">← Sport Science</a>
+            <a href="../index.html" class="text-[10px] font-semibold px-2 py-1 rounded bg-slate-700 hover:bg-slate-600">Learning Hub</a>
+        </div>
+    </div>
+
+    <main class="flex-1 h-full overflow-y-auto custom-scrollbar bg-slate-100 relative md:pt-0 pt-28">
+        <div class="max-w-5xl mx-auto p-6 md:p-10 pb-24">
+
+            <section id="sec-exec" class="section-content active">
+                <div class="mb-8">
+                    <span class="text-red-600 font-bold text-sm tracking-widest uppercase">Section 1</span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mt-2">Executive Summary & Physiological Mechanisms</h2>
+                    <p class="text-slate-600 mt-4 text-lg leading-relaxed">
+                        This section outlines the foundational science of altitude and hypoxic training within high-performance sport. It details the cascade of hematological and non-hematological adaptations triggered by hypoxic stress, primarily driven by HIF-1&alpha;, culminating in the critical enhancement of total hemoglobin mass.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+                    <div class="glass-panel p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">The Hematological Cascade</h3>
+                        <p class="text-sm text-slate-700 mb-4 leading-relaxed">
+                            Hypoxic training imposes a systemic stress via reduced partial pressure of oxygen. At the cellular level, this prevents the degradation of <strong>Hypoxia-Inducible Factor 1-alpha (HIF-1&alpha;)</strong>. The accumulation of HIF-1&alpha; acts as a master transcriptional regulator.
+                        </p>
+                        <ul class="space-y-3 text-sm text-slate-700">
+                            <li class="flex items-start"><span class="text-red-500 mr-2 font-bold">&#8226;</span> <strong>EPO Stimulation:</strong> HIF-1&alpha; upregulates the EPO gene in the kidneys, causing an acute spike in Erythropoietin within the first 24-48 hours of exposure.</li>
+                            <li class="flex items-start"><span class="text-red-500 mr-2 font-bold">&#8226;</span> <strong>RBC Volume:</strong> Sustained EPO elevation drives reticulocyte production, eventually increasing total Red Blood Cell (RBC) volume.</li>
+                            <li class="flex items-start"><span class="text-red-500 mr-2 font-bold">&#8226;</span> <strong>tHb-mass:</strong> The ultimate physiological KPI. An increase in total Hemoglobin mass ($tHb-mass$) directly correlates with enhanced $VO_2$ max upon return to normoxia.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="glass-panel p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Non-Hematological Adaptations</h3>
+                        <p class="text-sm text-slate-700 mb-4 leading-relaxed">
+                            While $tHb-mass$ is the primary target for endurance athletes, hypoxic stress forces profound metabolic efficiencies at the muscular level, highly relevant for team and power sports.
+                        </p>
+                        <ul class="space-y-3 text-sm text-slate-700">
+                            <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">&#8226;</span> <strong>Angiogenesis:</strong> Upregulation of VEGF (Vascular Endothelial Growth Factor) increases capillary density, improving localized oxygen diffusion.</li>
+                            <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">&#8226;</span> <strong>Mitochondrial Efficiency:</strong> Alterations in the electron transport chain allow for greater ATP yield per molecule of oxygen consumed.</li>
+                            <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">&#8226;</span> <strong>Muscle Buffering:</strong> Enhanced expression of monocarboxylate transporters (MCTs) improves lactate clearance and intracellular pH buffering capacity.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-xl shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2 text-center">Idealized Timecourse of Hypoxic Adaptation</h3>
+                    <p class="text-xs text-center text-slate-500 mb-6">Illustrating the immediate EPO spike vs. the delayed, cumulative increase in tHb-mass over a 21-day camp.</p>
+                    <div class="chart-container">
+                        <canvas id="mechanismsChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="sec-methods" class="section-content">
+                 <div class="mb-8">
+                    <span class="text-red-600 font-bold text-sm tracking-widest uppercase">Section 2</span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mt-2">Core Methodologies</h2>
+                    <p class="text-slate-600 mt-4 text-lg leading-relaxed">
+                        This section breaks down the three primary frameworks utilized in high-performance sport. We evaluate the traditional, gold-standard, and modern paradigms, focusing on the distinct physiological goals and the critical logistical trade-offs inherent to each approach.
+                    </p>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-white border-l-4 border-slate-400 p-6 shadow-sm rounded-r-xl">
+                        <h3 class="text-2xl font-bold text-slate-800 mb-2">Live High, Train High (LHTH)</h3>
+                        <p class="text-sm text-slate-600 mb-3 uppercase tracking-wide font-semibold">The Traditional Model</p>
+                        <p class="text-slate-700 text-sm leading-relaxed mb-4">
+                            Athletes live and train at moderate to high altitudes (2,000m - 3,000m). Excellent for preparing to compete <em>at</em> altitude (acclimatization). However, it suffers from a massive drawback for sea-level performance: <strong>"Detraining"</strong>. Due to reduced ambient oxygen, athletes cannot hit absolute peak power or velocity outputs. Neuromuscular recruitment diminishes, and the absolute intensity of training sessions drops significantly.
+                        </p>
+                    </div>
+
+                    <div class="bg-white border-l-4 border-blue-500 p-6 shadow-sm rounded-r-xl">
+                        <h3 class="text-2xl font-bold text-slate-800 mb-2">Live High, Train Low (LHTL)</h3>
+                        <p class="text-sm text-slate-600 mb-3 uppercase tracking-wide font-semibold">The Gold Standard for Endurance</p>
+                        <p class="text-slate-700 text-sm leading-relaxed mb-4">
+                            Athletes sleep/recover in hypoxia (natural altitude or normobaric hypoxic tents/rooms at ~2,500m-3,000m) for >14 hours a day to stimulate EPO and $tHb-mass$. Crucially, they descend to near sea-level to perform high-intensity workouts. This resolves the LHTH paradox: the athlete gains hematological adaptations while maintaining maximal neuromuscular recruitment and absolute mechanical power output during training.
+                        </p>
+                    </div>
+
+                    <div class="bg-white border-l-4 border-red-500 p-6 shadow-sm rounded-r-xl">
+                        <h3 class="text-2xl font-bold text-slate-800 mb-2">Repeated Sprint in Hypoxia (RSH)</h3>
+                        <p class="text-sm text-slate-600 mb-3 uppercase tracking-wide font-semibold">Live Low, Train High (LLTH) - Modern Power Sports</p>
+                        <p class="text-slate-700 text-sm leading-relaxed mb-4">
+                            Designed for team and power athletes (Rugby, Soccer, Track Sprinting). Athletes live at sea level but perform highly specific, maximal repeated sprints (e.g., 5-10s max sprints, 20-30s rest) in a normobaric hypoxic chamber. This drives localized <strong>muscular</strong> adaptations without the systemic fatigue of living in hypoxia. It rapidly enhances phosphocreatine resynthesis rates, vascular endothelial function, and local tissue perfusion, drastically improving repeated sprint ability (RSA) late in a match.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-10 overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200 text-sm text-left">
+                        <thead class="bg-slate-800 text-white">
+                            <tr>
+                                <th class="py-4 px-6 font-semibold">Methodology</th>
+                                <th class="py-4 px-6 font-semibold">Primary Physiological Goal</th>
+                                <th class="py-4 px-6 font-semibold">Logistical Pros</th>
+                                <th class="py-4 px-6 font-semibold">Logistical Cons / Drawbacks</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-4 px-6 font-bold text-slate-800">LHTH</td>
+                                <td class="py-4 px-6 text-slate-700">Acclimatization, tHb-mass increase</td>
+                                <td class="py-4 px-6 text-slate-700 text-xs">Psychological "camp" focus, constant stimulus.</td>
+                                <td class="py-4 px-6 text-slate-700 text-xs">Loss of absolute training intensity, increased systemic fatigue.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors bg-slate-50/50">
+                                <td class="py-4 px-6 font-bold text-blue-700">LHTL</td>
+                                <td class="py-4 px-6 text-slate-700">tHb-mass increase, maintain mechanical power</td>
+                                <td class="py-4 px-6 text-slate-700 text-xs">Best of both worlds for endurance; preserves neuromuscular output.</td>
+                                <td class="py-4 px-6 text-slate-700 text-xs">Highly demanding logistics (travel between elevations) or expensive normobaric rooms.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-4 px-6 font-bold text-red-700">RSH (LLTH)</td>
+                                <td class="py-4 px-6 text-slate-700">Local muscle buffer capacity, PCr resynthesis</td>
+                                <td class="py-4 px-6 text-slate-700 text-xs">No systemic fatigue; high-quality sleep preserved; highly specific to team sports.</td>
+                                <td class="py-4 px-6 text-slate-700 text-xs">Zero hematological (tHb-mass) benefits. Requires dedicated environmental chambers.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="sec-metrics" class="section-content">
+                <div class="mb-8">
+                    <span class="text-red-600 font-bold text-sm tracking-widest uppercase">Section 3</span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mt-2">Essential Monitoring</h2>
+                    <p class="text-slate-600 mt-4 text-lg leading-relaxed">
+                        Altitude training is not a "set and forget" intervention. This section establishes the rigorous daily and camp-wide physiological monitoring protocols required to track adaptation, manage fatigue, and verify that the ultimate KPI ($tHb-mass$) is being achieved.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white border border-slate-200 p-6 rounded-xl shadow-sm">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-red-100 text-red-800 font-bold px-3 py-1 rounded text-xs tracking-wide mr-3">BLOOD BIOMARKERS</span>
+                            <h3 class="text-lg font-bold text-slate-800">The Hematological Foundation</h3>
+                        </div>
+                        <p class="text-sm text-slate-700 mb-3">Hypoxic adaptation is impossible without the necessary raw materials. We strictly monitor:</p>
+                        <ul class="text-sm text-slate-700 space-y-2">
+                            <li><strong>Serum Ferritin / Iron Stores:</strong> Altitude drives massive erythropoiesis. If baseline ferritin is below 40-50 ng/mL, the body cannot support RBC synthesis. The camp will fail.</li>
+                            <li><strong>Transferrin Saturation:</strong> Indicates functional iron availability. Must remain >20%.</li>
+                            <li><strong>Reticulocyte Count:</strong> Measured at day 7-10. An increase indicates the bone marrow is successfully producing immature red blood cells in response to EPO.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 p-6 rounded-xl shadow-sm">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded text-xs tracking-wide mr-3">GOLD STANDARD</span>
+                            <h3 class="text-lg font-bold text-slate-800">CO-Rebreathing</h3>
+                        </div>
+                        <p class="text-sm text-slate-700 mb-3">
+                            Venous hemoglobin concentration ([Hb]) is volatile due to plasma volume shifts (dehydration/diuresis at altitude). It is an unreliable metric for actual adaptation.
+                        </p>
+                        <p class="text-sm text-slate-700 bg-slate-50 p-3 rounded border border-slate-100 italic">
+                            The ultimate metric of success is the <strong>Carbon Monoxide (CO) Rebreathing method</strong>. Executed pre and post-camp, it safely measures absolute $tHb-mass$ in grams. A successful 3-week camp yields a 3-5% increase in $tHb-mass$.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-xl shadow-sm mb-6">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Daily Autonomic & Oxygenation Monitoring</h3>
+                    <p class="text-sm text-slate-600 mb-4">
+                        Morning metrics track the acute systemic stress and progressive acclimatization over the camp duration. Initial exposure causes $SpO_2$ desaturation and sympathetic drive (elevated HR), which normalize as the athlete adapts. We also monitor weight rigorously due to altitude-induced diuresis.
+                    </p>
+                    <div class="chart-container h-80">
+                        <canvas id="monitoringChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="sec-impact" class="section-content">
+                <div class="mb-8">
+                    <span class="text-red-600 font-bold text-sm tracking-widest uppercase">Section 4</span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mt-2">Performance Impact</h2>
+                    <p class="text-slate-600 mt-4 text-lg leading-relaxed">
+                        A critical evaluation of altitude training efficacy. We distinguish between validated physiological improvements and common misconceptions, explicitly addressing the highly variable individual response rates among elite populations.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                    <div>
+                        <h3 class="text-xl font-bold text-green-700 mb-4 flex items-center"><span class="text-2xl mr-2">&#10003;</span> What It CAN Do</h3>
+                        <ul class="space-y-4">
+                            <li class="bg-white p-4 rounded shadow-sm border-l-4 border-green-500">
+                                <strong class="block text-slate-800 text-sm">Increase Aerobic Capacity ($VO_2$ max)</strong>
+                                <span class="text-xs text-slate-600">Via elevated $tHb-mass$, resulting in greater oxygen delivery to working tissues upon return to normoxia.</span>
+                            </li>
+                            <li class="bg-white p-4 rounded shadow-sm border-l-4 border-green-500">
+                                <strong class="block text-slate-800 text-sm">Improve Repeated Sprint Ability (via RSH)</strong>
+                                <span class="text-xs text-slate-600">Delays fatigue and enhances recovery between high-intensity bursts in team sports.</span>
+                            </li>
+                            <li class="bg-white p-4 rounded shadow-sm border-l-4 border-green-500">
+                                <strong class="block text-slate-800 text-sm">Provide a "Camp Effect"</strong>
+                                <span class="text-xs text-slate-600">The psychological and environmental control of living entirely focused on training, nutrition, and recovery.</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-red-700 mb-4 flex items-center"><span class="text-2xl mr-2">&#10007;</span> What It CANNOT Do</h3>
+                        <ul class="space-y-4">
+                            <li class="bg-white p-4 rounded shadow-sm border-l-4 border-red-500">
+                                <strong class="block text-slate-800 text-sm">Fix a Poor Aerobic Base</strong>
+                                <span class="text-xs text-slate-600">Altitude amplifies existing fitness; it does not replace years of accumulated base miles. Sending unfit athletes to altitude invites overtraining.</span>
+                            </li>
+                            <li class="bg-white p-4 rounded shadow-sm border-l-4 border-red-500">
+                                <strong class="block text-slate-800 text-sm">Replace High-Quality Sea-Level Training</strong>
+                                <span class="text-xs text-slate-600">Specific mechanical power output, pacing, and maximal neuromuscular velocity must still be trained in oxygen-rich environments.</span>
+                            </li>
+                            <li class="bg-white p-4 rounded shadow-sm border-l-4 border-red-500">
+                                <strong class="block text-slate-800 text-sm">Guarantee Improvements</strong>
+                                <span class="text-xs text-slate-600">Altitude is an extreme stressor. Poor management of energy availability, sleep, or iron status will result in performance detriments.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-xl shadow-sm">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2 text-center">The "Responder vs. Non-Responder" Phenomenon</h3>
+                    <p class="text-sm text-slate-600 text-center mb-6 max-w-2xl mx-auto">
+                        In elite populations, genetics and pre-existing iron status dictate adaptation. Practitioners must anticipate that up to 40% of a squad may not derive the expected hematological benefit, and a smaller subset will actually regress due to the accumulated stress.
+                    </p>
+                    <div class="chart-container h-64 md:h-80">
+                        <canvas id="responderChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="sec-logistics" class="section-content">
+                 <div class="mb-8">
+                    <span class="text-red-600 font-bold text-sm tracking-widest uppercase">Section 5</span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mt-2">Logistics & Elite Edge Cases</h2>
+                    <p class="text-slate-600 mt-4 text-lg leading-relaxed">
+                        Bridging peer-reviewed science with applied coaching. This section addresses the "in-the-trenches" realities: strategic timelines for competition post-camp, aggressive nutritional management, and immune system safeguarding.
+                    </p>
+                </div>
+
+                <h3 class="text-2xl font-bold text-slate-800 mb-6">The "Return to Sea Level" Timeline</h3>
+                <div class="flex flex-col md:flex-row gap-4 mb-10">
+                    <div class="flex-1 bg-white p-5 rounded-lg border-t-4 border-green-500 shadow-sm relative">
+                        <div class="absolute -top-3 left-4 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">0 - 48 Hours</div>
+                        <h4 class="font-bold text-slate-800 mt-2">The Acute Window</h4>
+                        <p class="text-sm text-slate-600 mt-2">
+                            Highly favorable. The body has elevated $tHb-mass$ and relies on heightened sympathetic drive. Athletes often feel "light" and perform exceptionally well immediately upon descent.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-100 p-5 rounded-lg border-t-4 border-red-400 shadow-inner relative">
+                        <div class="absolute -top-3 left-4 bg-red-400 text-white text-xs font-bold px-2 py-1 rounded">Days 3 - 10</div>
+                        <h4 class="font-bold text-slate-800 mt-2">The "Altitude Drop"</h4>
+                        <p class="text-sm text-slate-600 mt-2">
+                            The danger zone. Ventilatory acclimatization starts to reverse, parasympathetic rebound causes extreme lethargy, and neuromuscular "flatness" is universally reported. Avoid major competitions.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-white p-5 rounded-lg border-t-4 border-blue-500 shadow-sm relative">
+                        <div class="absolute -top-3 left-4 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">Days 14 - 21</div>
+                        <h4 class="font-bold text-slate-800 mt-2">The True Peak</h4>
+                        <p class="text-sm text-slate-600 mt-2">
+                            The academic and empirical sweet spot. Neuromuscular function normalizes, fatigue from the camp dissipates, and $tHb-mass$ remains elevated. Target peak events (Grand Tours, Olympic Finals) in this window.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="text-xl font-bold text-slate-800 mb-3 text-red-600">The "Iron Squeeze"</h3>
+                        <p class="text-sm text-slate-700 mb-3 leading-relaxed">
+                            Aggressive supplementation is mandatory. Because altitude stimulates EPO, the marrow sucks iron from ferritin stores rapidly.
+                        </p>
+                        <ul class="text-sm text-slate-700 space-y-2 bg-red-50 p-4 rounded-lg">
+                            <li><strong>Pre-camp:</strong> Ensure Ferritin >50 ng/mL. If not, consider clinical iron infusions (if WADA compliant) or high-dose liquid oral iron with Vitamin C.</li>
+                            <li><strong>The Hepcidin Problem:</strong> Altitude causes inflammation, spiking the hormone <em>Hepcidin</em>, which blocks gut absorption of oral iron. Therefore, iron must be given strategically (often away from heavy training sessions) to maximize absorption.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="text-xl font-bold text-slate-800 mb-3 text-orange-600">Nutritional & Immune Demands</h3>
+                        <p class="text-sm text-slate-700 mb-3 leading-relaxed">
+                            Hypoxia fundamentally alters metabolism. At the same absolute workload, the body relies significantly more on carbohydrate oxidation.
+                        </p>
+                        <ul class="text-sm text-slate-700 space-y-2 bg-orange-50 p-4 rounded-lg">
+                            <li><strong>Energy Expenditure:</strong> Baseline metabolic rate increases. Failure to increase caloric (especially CHO) intake leads to rapid Relative Energy Deficiency in Sport (RED-S).</li>
+                            <li><strong>URTI Risk:</strong> Hypoxia suppresses secretory IgA (mucosal immunity). Combined with dry mountain air and sleep architecture disruption (apneas), the risk of Upper Respiratory Tract Infections skyrockets. Hygiene protocols must be ruthless.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const sections = document.querySelectorAll('.section-content');
+            const mobileNav = document.getElementById('mobile-nav');
+
+            let mechanismsChartInstance = null;
+            let monitoringChartInstance = null;
+            let responderChartInstance = null;
+
+            function switchSection(targetId) {
+                sections.forEach(sec => sec.classList.remove('active'));
+                navButtons.forEach(btn => btn.classList.remove('active'));
+                
+                document.getElementById(targetId).classList.add('active');
+                
+                navButtons.forEach(btn => {
+                    if (btn.getAttribute('data-target') === targetId) {
+                        btn.classList.add('active');
+                    }
+                });
+
+                if(mobileNav.value !== targetId) mobileNav.value = targetId;
+
+                setTimeout(renderChartsIfActive, 50);
+            }
+
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchSection(btn.getAttribute('data-target'));
+                });
+            });
+
+            mobileNav.addEventListener('change', (e) => {
+                switchSection(e.target.value);
+            });
+
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.color = '#64748b';
+
+            function renderChartsIfActive() {
+                if(document.getElementById('sec-exec').classList.contains('active') && !mechanismsChartInstance) {
+                    const ctx = document.getElementById('mechanismsChart').getContext('2d');
+                    mechanismsChartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Day 1', 'Day 3', 'Day 7', 'Day 10', 'Day 14', 'Day 21'],
+                            datasets: [
+                                {
+                                    label: 'Serum EPO (% change)',
+                                    data: [150, 100, 50, 20, 10, 5],
+                                    borderColor: '#ef4444',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    tension: 0.4,
+                                    yAxisID: 'y'
+                                },
+                                {
+                                    label: 'tHb-mass (% increase)',
+                                    data: [0, 0.5, 1.5, 2.5, 3.8, 4.5],
+                                    borderColor: '#3b82f6',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                    tension: 0.4,
+                                    yAxisID: 'y1'
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            scales: {
+                                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'EPO Spike' } },
+                                y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'tHb-mass Growth' } }
+                            },
+                            plugins: {
+                                tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleColor: '#fff', bodyColor: '#cbd5e1' }
+                            }
+                        }
+                    });
+                }
+
+                if(document.getElementById('sec-metrics').classList.contains('active') && !monitoringChartInstance) {
+                    const ctx = document.getElementById('monitoringChart').getContext('2d');
+                    monitoringChartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Sea Level', 'Day 1', 'Day 3', 'Day 5', 'Day 10', 'Day 15', 'Day 21'],
+                            datasets: [
+                                {
+                                    label: 'Morning SpO2 (%)',
+                                    data: [98, 88, 90, 92, 94, 94, 95],
+                                    borderColor: '#0ea5e9',
+                                    backgroundColor: '#0ea5e9',
+                                    yAxisID: 'y',
+                                    stepped: true
+                                },
+                                {
+                                    label: 'Resting HR (bpm)',
+                                    data: [45, 55, 52, 50, 48, 47, 46],
+                                    borderColor: '#f59e0b',
+                                    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                                    fill: true,
+                                    tension: 0.4,
+                                    yAxisID: 'y1'
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            scales: {
+                                y: { min: 80, max: 100, position: 'left', title: { display: true, text: 'SpO2 %' } },
+                                y1: { min: 40, max: 65, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Heart Rate (bpm)' } }
+                            }
+                        }
+                    });
+                }
+
+                if(document.getElementById('sec-impact').classList.contains('active') && !responderChartInstance) {
+                    const ctx = document.getElementById('responderChart').getContext('2d');
+                    responderChartInstance = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Positive Responders (+3-5% tHb)', 'Non-Responders (No change)', 'Negative Responders (Detriment)'],
+                            datasets: [{
+                                data: [60, 30, 10],
+                                backgroundColor: ['#10b981', '#94a3b8', '#ef4444'],
+                                borderWidth: 2,
+                                borderColor: '#ffffff',
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '65%',
+                            plugins: {
+                                legend: { position: 'bottom' },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return ' ' + context.label + ': ' + context.parsed + '%';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            renderChartsIfActive();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRV Monitoring in Elite Sport</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Slate Neutrals with Teal (Parasympathetic/Rest) and Amber (Sympathetic/Stress) Accents -->
+    <!-- Application Structure Plan: The SPA is structured as a chronological 'Director's Briefing'. It starts with core physiology, moves to technical metrics (utilizing interactive charts to demonstrate concepts like rolling averages), evaluates data collection methodologies via an interactive comparison, and concludes with practical, scenario-based edge cases. This top-down approach allows practitioners to understand the 'what', the 'how', and finally the 'so what' in applied settings, utilizing interaction to reveal complex data relationships without overwhelming the user initially. -->
+    <!-- Visualization & Content Choices: 
+         1. ANS Balance: Goal - Inform basic physiology. Method - CSS-based interactive slider. Justification - Hands-on way to understand sympathetic vs vagal modulation. 
+         2. rMSSD Trend: Goal - Compare acute vs chronic data. Method - Chart.js Line/Bar chart. Interaction - Toggle daily variance to reveal the 7-day trend signal. Justification - Visually proves why single-day readings are noisy.
+         3. Collection Methods: Goal - Compare protocols. Method - Interactive CSS Grid Tabs. Justification - Consolidates dense text into digestible chunks.
+         4. Edge Cases: Goal - Explain complex scenarios. Method - Clickable scenario cards updating a data dashboard. Justification - Simulates the 'triangulation' process a sports scientist performs daily. 
+         Method: Vanilla JS, Chart.js, Tailwind. Confirming NO SVG/Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+
+        .tab-btn.active {
+            border-bottom-color: #0d9488;
+            color: #0d9488;
+            font-weight: 600;
+        }
+        
+        .scenario-btn.active {
+            background-color: #f1f5f9;
+            border-left: 4px solid #0f172a;
+        }
+
+        /* Custom native range slider styling for smooth interaction */
+        #ans-slider {
+            -webkit-appearance: none;
+            width: 100%;
+        }
+        #ans-slider:focus {
+            outline: none;
+        }
+        #ans-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 28px;
+            width: 28px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 3px solid #0f172a;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        #ans-slider::-moz-range-thumb {
+            height: 28px;
+            width: 28px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 3px solid #0f172a;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-teal-200">
+
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center gap-2">
+                <div class="flex-shrink-0 flex items-center font-bold text-xl text-slate-900 tracking-tight min-w-0 truncate">
+                    <span class="text-teal-600 mr-2">∿</span> HPR Performance
+                </div>
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap justify-end">
+                    <div class="hidden md:flex space-x-8 text-sm font-medium text-slate-600">
+                        <a href="#physiology" class="hover:text-teal-600 transition-colors">Physiology</a>
+                        <a href="#metrics" class="hover:text-teal-600 transition-colors">Metrics</a>
+                        <a href="#collection" class="hover:text-teal-600 transition-colors">Methodology</a>
+                        <a href="#applications" class="hover:text-teal-600 transition-colors">Applied Practice</a>
+                    </div>
+                    <a href="index.html" class="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-slate-50 px-2 py-1.5 text-[10px] sm:text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors">
+                        <span aria-hidden="true">←</span> Sport Sci
+                    </a>
+                    <a href="../index.html" class="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-slate-50 px-2 py-1.5 text-[10px] sm:text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors">
+                        <span aria-hidden="true">🏠</span> Learning Hub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <header class="text-center max-w-3xl mx-auto">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-6">Heart Rate Variability Monitoring in Elite High-Performance Sport</h1>
+            <p class="text-lg text-slate-600 leading-relaxed">A definitive guide covering the physiological underpinnings, data collection consensus, non-linear analytics, and practical "in-the-trenches" applications for managing elite athletic workloads.</p>
+        </header>
+
+        <section id="physiology" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-900 border-b-2 border-slate-200 pb-2 mb-4">1. Executive Summary & Physiological Definition</h2>
+                <p class="text-slate-600">This section establishes the foundational understanding of HRV. It is not simply a measure of heartbeats, but a direct window into the Autonomic Nervous System (ANS). Interact with the slider below to understand how systemic stress alters autonomic balance.</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="text-xl font-bold mb-3 text-slate-800">The Autonomic Tug-of-War</h3>
+                        <p class="mb-4 text-slate-600">Heart Rate Variability (HRV) quantifies the microscopic fluctuations in time intervals between successive heartbeats. It is the most reliable proxy for systemic physiological and psychological stress.</p>
+                        <p class="mb-4 text-slate-600">It reflects the continuous interplay between the two branches of the ANS:</p>
+                        <ul class="space-y-3 mb-6">
+                            <li class="flex items-start">
+                                <span class="text-amber-500 mr-2 font-bold text-lg">↑</span>
+                                <span><strong class="text-amber-700">Sympathetic (SNS):</strong> "Fight or Flight". Mobilizes resources, increases heart rate, decreases variability. Dominates during training, stress, or illness.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-teal-500 mr-2 font-bold text-lg">↓</span>
+                                <span><strong class="text-teal-700">Parasympathetic (PNS):</strong> "Rest and Digest". Vagal modulation. Slows heart rate, increases variability. Promotes recovery and adaptation.</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-slate-50 p-6 rounded-lg border border-slate-100 text-center">
+                        <h4 class="font-semibold text-slate-700 mb-6">Interactive Autonomic State Simulator</h4>
+                        
+                        <div class="mb-8 pt-2 pb-2">
+                            <input type="range" id="ans-slider" min="0" max="100" value="50" class="w-full h-4 bg-gradient-to-r from-teal-400 via-slate-300 to-amber-400 rounded-full appearance-none cursor-pointer transition-all duration-150">
+                        </div>
+
+                        <div class="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wider mb-6">
+                            <span class="text-teal-600">Vagal Dominance</span>
+                            <span class="text-amber-600">Sympathetic Arousal</span>
+                        </div>
+
+                        <div id="ans-readout" class="p-4 bg-white rounded shadow-sm border border-slate-200 min-h-[100px] flex items-center justify-center text-sm text-slate-700 font-medium transition-colors duration-300">
+                            Balanced state. Optimal readiness for training adaptation.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="metrics" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-900 border-b-2 border-slate-200 pb-2 mb-4">2. Research-Supported Methods & Metrics</h2>
+                <p class="text-slate-600">Raw HRV data is noisy. This section outlines the academic consensus on which metrics matter. We focus heavily on rMSSD for daily monitoring and the critical importance of trend analysis over absolute daily values.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="font-bold text-lg mb-2">rMSSD: The Gold Standard</h3>
+                        <p class="text-sm text-slate-600 mb-4">Root Mean Square of Successive Differences. It is preferred over frequency-domain metrics (LF/HF) because it specifically captures parasympathetic (vagal) activity and is highly resistant to variations in breathing rates (Respiratory Sinus Arrhythmia).</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="font-bold text-lg mb-2">Non-Linear: DFA-a1</h3>
+                        <p class="text-sm text-slate-600">Detrended Fluctuation Analysis alpha 1. An emerging metric used for <em>real-time</em> internal load monitoring during exercise. An a1 value dropping below 0.75 reliably correlates with the first ventilatory threshold (Aerobic Threshold), allowing for precise intensity calibration without blood lactate testing.</p>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-lg">The Signal in the Noise: Trend Analysis</h3>
+                        <button id="toggle-variance" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-1 px-3 rounded border border-slate-300 transition-colors">
+                            Hide Daily Variance
+                        </button>
+                    </div>
+                    <p class="text-sm text-slate-600 mb-6">Acute, single-day values are heavily influenced by minor variables. Elite environments rely on the <strong>7-Day Rolling Average</strong> compared against a normal baseline (Coefficient of Variation) to dictate actual readiness.</p>
+                    
+                    <div class="chart-container">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="collection" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-900 border-b-2 border-slate-200 pb-2 mb-4">3. Data Collection Frameworks</h2>
+                <p class="text-slate-600">How you collect the data dictates its utility. Standardization is paramount. Explore the three primary methodologies utilized in professional sports environments.</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="flex border-b border-slate-200 bg-slate-50">
+                    <button class="tab-btn active flex-1 py-4 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 transition-colors" data-tab="overnight">Overnight Continuous</button>
+                    <button class="tab-btn flex-1 py-4 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 transition-colors" data-tab="spot">Morning Spot Check</button>
+                    <button class="tab-btn flex-1 py-4 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 transition-colors" data-tab="orthostatic">Orthostatic Test</button>
+                </div>
+
+                <div class="p-6 md:p-8 min-h-[300px]" id="tab-content">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <span class="text-2xl">☾</span>
+                        <h3 class="text-xl font-bold text-slate-800">Overnight Continuous Monitoring</h3>
+                    </div>
+                    <p class="text-slate-600 mb-6">Collected via wearables (e.g., Oura, Whoop) measuring continuously during sleep stages.</p>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-teal-50 p-4 rounded-lg border border-teal-100">
+                            <h4 class="font-bold text-teal-800 mb-2">Advantages</h4>
+                            <ul class="list-disc list-inside text-sm text-teal-900 space-y-1">
+                                <li>Zero athlete burden (passive collection).</li>
+                                <li>Captures restorative sleep phases.</li>
+                                <li>Eliminates morning environmental variables.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-amber-50 p-4 rounded-lg border border-amber-100">
+                            <h4 class="font-bold text-amber-800 mb-2">Disadvantages</h4>
+                            <ul class="list-disc list-inside text-sm text-amber-900 space-y-1">
+                                <li>Heavily influenced by late meals or alcohol.</li>
+                                <li>Circadian rhythm shifts (travel) skew data.</li>
+                                <li>Hardware dependency and data ownership issues.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="applications" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-900 border-b-2 border-slate-200 pb-2 mb-4">4 & 5. Practical Application & Performance Impact</h2>
+                <p class="text-slate-600">Data without action is trivia. Elite practitioners do not use HRV in isolation. We triangulate autonomic data with subjective wellness and external load tracking to implement Autoregulation.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="bg-emerald-50 p-6 rounded-xl border border-emerald-200">
+                    <div class="text-emerald-600 text-3xl mb-2">✓</div>
+                    <h3 class="font-bold text-slate-800 mb-2">What HRV CAN Do</h3>
+                    <ul class="text-sm text-slate-600 space-y-2">
+                        <li>Predict onset of viral illness 24-48hrs prior to symptoms.</li>
+                        <li>Identify systemic overreaching before clinical Overtraining Syndrome.</li>
+                        <li>Quantify the physiological cost of travel and poor sleep hygiene.</li>
+                    </ul>
+                </div>
+                <div class="bg-rose-50 p-6 rounded-xl border border-rose-200 md:col-span-2">
+                    <div class="text-rose-600 text-3xl mb-2">✗</div>
+                    <h3 class="font-bold text-slate-800 mb-2">What HRV CANNOT Do</h3>
+                    <p class="text-sm text-slate-600">
+                        <strong>HRV cannot predict localized musculoskeletal fatigue or structural tissue damage.</strong> An athlete can present with a perfectly normal, high HRV indicating systemic readiness, but still suffer a hamstring tear due to localized biomechanical overload or insufficient tissue recovery from previous sprints.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h3 class="text-xl font-bold text-slate-900 mb-4 border-l-4 border-slate-800 pl-3">6. Elite Environment Edge Cases (Interactive Dashboard)</h3>
+                <p class="text-slate-600 mb-6">Select a scenario below to see how a Director of High Performance interprets complex triangulated data, avoiding common analytical traps.</p>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-6">
+                <div class="w-full md:w-1/3 flex flex-col space-y-2">
+                    <button class="scenario-btn active text-left p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors" data-scenario="normal">
+                        <span class="block font-bold text-slate-800">Baseline Adaptation</span>
+                        <span class="text-xs text-slate-500">Standard mid-camp profile</span>
+                    </button>
+                    <button class="scenario-btn text-left p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors" data-scenario="gameday">
+                        <span class="block font-bold text-slate-800">Game Day Anxiety</span>
+                        <span class="text-xs text-slate-500">Sympathetic suppression trap</span>
+                    </button>
+                    <button class="scenario-btn text-left p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors" data-scenario="parasympathetic">
+                        <span class="block font-bold text-slate-800">Parasympathetic Overreaching</span>
+                        <span class="text-xs text-slate-500">The "Hyper-recovery" illusion</span>
+                    </button>
+                </div>
+
+                <div class="w-full md:w-2/3 bg-slate-900 rounded-xl p-6 text-slate-300 shadow-xl border border-slate-700">
+                    <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-700">
+                        <h4 class="text-lg font-bold text-white tracking-wide">Athlete Profile: <span id="dash-status" class="text-teal-400">Stable</span></h4>
+                        <span class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Morning Protocol</span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4 mb-8">
+                        <div class="bg-slate-800 p-4 rounded border border-slate-700 text-center">
+                            <div class="text-xs text-slate-400 mb-1 uppercase tracking-wider">HRV (rMSSD)</div>
+                            <div id="dash-hrv" class="text-2xl font-bold text-white">72 <span class="text-sm font-normal text-slate-400">ms</span></div>
+                            <div id="dash-hrv-trend" class="text-xs text-teal-400 mt-1">Within normal limits</div>
+                        </div>
+                        <div class="bg-slate-800 p-4 rounded border border-slate-700 text-center">
+                            <div class="text-xs text-slate-400 mb-1 uppercase tracking-wider">Resting HR</div>
+                            <div id="dash-rhr" class="text-2xl font-bold text-white">48 <span class="text-sm font-normal text-slate-400">bpm</span></div>
+                            <div id="dash-rhr-trend" class="text-xs text-slate-400 mt-1">Baseline: 47</div>
+                        </div>
+                        <div class="bg-slate-800 p-4 rounded border border-slate-700 text-center">
+                            <div class="text-xs text-slate-400 mb-1 uppercase tracking-wider">Subj. Wellness</div>
+                            <div id="dash-well" class="text-2xl font-bold text-white">8<span class="text-sm font-normal text-slate-400">/10</span></div>
+                            <div id="dash-well-trend" class="text-xs text-teal-400 mt-1">Feeling fresh</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800 rounded p-5 border-l-4 border-teal-500" id="dash-decision-box">
+                        <h5 class="text-white font-bold mb-2 uppercase text-sm tracking-wider">Director's Analysis & Action</h5>
+                        <p id="dash-analysis" class="text-sm text-slate-300 leading-relaxed mb-3">All metrics point to positive adaptation to recent training loads. Autonomic balance is maintained.</p>
+                        <p id="dash-action" class="text-sm font-bold text-teal-300">Action: Proceed with planned high-intensity session.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-8 text-center text-sm border-t border-slate-800">
+        <p>&copy; 2026 HPR Performance Systems. Internal Report.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const ansSlider = document.getElementById('ans-slider');
+            const ansReadout = document.getElementById('ans-readout');
+
+            ansSlider.addEventListener('input', (e) => {
+                const val = e.target.value;
+                
+                if (val < 20) {
+                    ansReadout.textContent = "Extreme Vagal Tone. Potential parasympathetic overreaching or deep restorative state.";
+                    ansReadout.className = "p-4 bg-teal-100 rounded shadow-sm border border-teal-300 min-h-[100px] flex items-center justify-center text-sm text-teal-900 font-medium transition-colors duration-300";
+                } else if (val >= 20 && val < 40) {
+                    ansReadout.textContent = "High Vagal Tone. Healthy parasympathetic modulation. Good recovery and rest.";
+                    ansReadout.className = "p-4 bg-teal-50 rounded shadow-sm border border-teal-200 min-h-[100px] flex items-center justify-center text-sm text-teal-800 font-medium transition-colors duration-300";
+                } else if (val > 60 && val <= 80) {
+                    ansReadout.textContent = "Sympathetic Dominance. Acute stress response. Mobilizing resources for action.";
+                    ansReadout.className = "p-4 bg-amber-50 rounded shadow-sm border border-amber-200 min-h-[100px] flex items-center justify-center text-sm text-amber-800 font-medium transition-colors duration-300";
+                } else if (val > 80) {
+                    ansReadout.textContent = "Extreme Sympathetic Arousal. Fight or flight state. If chronic, indicates severe lack of recovery.";
+                    ansReadout.className = "p-4 bg-amber-100 rounded shadow-sm border border-amber-300 min-h-[100px] flex items-center justify-center text-sm text-amber-900 font-medium transition-colors duration-300";
+                } else {
+                    ansReadout.textContent = "Balanced autonomic state. Optimal homeostatic readiness for training adaptation.";
+                    ansReadout.className = "p-4 bg-white rounded shadow-sm border border-slate-200 min-h-[100px] flex items-center justify-center text-sm text-slate-700 font-medium transition-colors duration-300";
+                }
+            });
+
+            const rawData = [65, 58, 62, 70, 45, 50, 68, 72, 75, 55, 60, 80, 82, 78, 76, 75, 77, 74, 76, 78, 75];
+            const labels = Array.from({length: 21}, (_, i) => `Day ${i+1}`);
+            
+            const calculateRollingAverage = (data, window) => {
+                let result = [];
+                for (let i = 0; i < data.length; i++) {
+                    if (i < window - 1) {
+                        result.push(null); 
+                    } else {
+                        let sum = 0;
+                        for (let j = 0; j < window; j++) {
+                            sum += data[i - j];
+                        }
+                        result.push(sum / window);
+                    }
+                }
+                return result;
+            };
+
+            const rollingAvgData = calculateRollingAverage(rawData, 7);
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            
+            let trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Daily rMSSD (ms)',
+                            data: rawData,
+                            borderColor: '#cbd5e1',
+                            backgroundColor: '#cbd5e1',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 4,
+                            tension: 0.3,
+                            type: 'line'
+                        },
+                        {
+                            label: '7-Day Rolling Average',
+                            data: rollingAvgData,
+                            borderColor: '#0f172a',
+                            backgroundColor: 'rgba(15, 23, 42, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: false, 
+                            suggestedMin: 40, 
+                            suggestedMax: 90,
+                            title: { display: true, text: 'rMSSD (ms)' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            let showVariance = true;
+            document.getElementById('toggle-variance').addEventListener('click', function() {
+                showVariance = !showVariance;
+                trendChart.data.datasets[0].hidden = !showVariance;
+                this.textContent = showVariance ? "Hide Daily Variance" : "Show Daily Variance";
+                this.className = showVariance 
+                    ? "text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-1 px-3 rounded border border-slate-300 transition-colors"
+                    : "text-xs bg-teal-100 hover:bg-teal-200 text-teal-800 font-semibold py-1 px-3 rounded border border-teal-300 transition-colors";
+                trendChart.update();
+            });
+
+            const tabData = {
+                overnight: {
+                    icon: '☾', title: 'Overnight Continuous Monitoring',
+                    desc: 'Collected via wearables (e.g., Oura, Whoop) measuring continuously during sleep stages.',
+                    pros: ['Zero athlete burden (passive collection).', 'Captures restorative sleep phases.', 'Eliminates morning environmental variables.'],
+                    cons: ['Heavily influenced by late meals or alcohol.', 'Circadian rhythm shifts (travel) skew data.', 'Hardware dependency and data ownership issues.']
+                },
+                spot: {
+                    icon: '☀️', title: 'Morning Wake-up Spot Check',
+                    desc: 'Ultra-short term (1-2 minute) reading taken immediately upon waking using a chest strap and app.',
+                    pros: ['Highly standardized physiological state (fasted, rested).', 'Immediate actionable feedback before arrival at facility.', 'Cost-effective, hardware agnostic.'],
+                    cons: ['Requires athlete compliance and routine.', 'Environmental control needed (must stay in bed, quiet).', 'Can cause test anxiety altering reading.']
+                },
+                orthostatic: {
+                    icon: '🧍', title: 'Active Orthostatic Test',
+                    desc: 'Measuring HRV transitioning from supine (lying down) to standing position.',
+                    pros: ['Tests the dynamic reactivity of the ANS, not just resting state.', 'Excellent for detecting sympathetic saturation.', 'Provides deeper insight into cardiovascular fitness.'],
+                    cons: ['High time cost and athlete burden.', 'Complex analysis requiring advanced software.', 'Difficult to implement daily with large squads.']
+                }
+            };
+
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContent = document.getElementById('tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const data = tabData[btn.dataset.tab];
+                    
+                    tabContent.innerHTML = `
+                        <div class="flex items-center space-x-3 mb-4 animate-fade-in">
+                            <span class="text-2xl">${data.icon}</span>
+                            <h3 class="text-xl font-bold text-slate-800">${data.title}</h3>
+                        </div>
+                        <p class="text-slate-600 mb-6">${data.desc}</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-teal-50 p-4 rounded-lg border border-teal-100">
+                                <h4 class="font-bold text-teal-800 mb-2">Advantages</h4>
+                                <ul class="list-disc list-inside text-sm text-teal-900 space-y-1">
+                                    ${data.pros.map(p => `<li>${p}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="bg-amber-50 p-4 rounded-lg border border-amber-100">
+                                <h4 class="font-bold text-amber-800 mb-2">Disadvantages</h4>
+                                <ul class="list-disc list-inside text-sm text-amber-900 space-y-1">
+                                    ${data.cons.map(c => `<li>${c}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+            const scenarioData = {
+                normal: {
+                    status: 'Stable', statusColor: 'text-teal-400',
+                    hrv: '72', hrvTrend: 'Within normal limits', hrvColor: 'text-white',
+                    rhr: '48', rhrTrend: 'Baseline: 47', rhrColor: 'text-white',
+                    well: '8', wellTrend: 'Feeling fresh', wellColor: 'text-white',
+                    boxBorder: 'border-teal-500',
+                    analysis: 'All metrics point to positive adaptation to recent training loads. Autonomic balance is maintained.',
+                    action: 'Proceed with planned high-intensity session.', actionColor: 'text-teal-300'
+                },
+                gameday: {
+                    status: 'Aroused (Pre-Match)', statusColor: 'text-amber-400',
+                    hrv: '41', hrvTrend: '↓ Significant drop', hrvColor: 'text-amber-400',
+                    rhr: '55', rhrTrend: '↑ Baseline: 47', rhrColor: 'text-amber-400',
+                    well: '7', wellTrend: 'Anxious but energetic', wellColor: 'text-white',
+                    boxBorder: 'border-amber-500',
+                    analysis: 'Classic pre-match sympathetic arousal. HRV is suppressed due to psychological anticipation and travel, not structural fatigue.',
+                    action: 'Do NOT reduce load/activation. This suppression is functional and expected. Proceed with normal warm-up protocols.', actionColor: 'text-amber-300'
+                },
+                parasympathetic: {
+                    status: 'Warning: Exhaustion', statusColor: 'text-rose-400',
+                    hrv: '105', hrvTrend: '↑↑ Unusually High', hrvColor: 'text-rose-400',
+                    rhr: '42', rhrTrend: '↓↓ Unusually Low', rhrColor: 'text-rose-400',
+                    well: '3', wellTrend: 'Heavy, lethargic', wellColor: 'text-rose-400',
+                    boxBorder: 'border-rose-500',
+                    analysis: 'The Hyper-Parasympathetic Trap. The body is so chronically exhausted it has forced an extreme parasympathetic lockdown. This is not "super-recovery".',
+                    action: 'Complete rest day. No high-intensity work. Focus on active recovery, nutrition, and sleep.', actionColor: 'text-rose-300'
+                }
+            };
+
+            const scenarioBtns = document.querySelectorAll('.scenario-btn');
+            
+            scenarioBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    scenarioBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const sd = scenarioData[btn.dataset.scenario];
+                    
+                    document.getElementById('dash-status').textContent = sd.status;
+                    document.getElementById('dash-status').className = sd.statusColor;
+                    
+                    document.getElementById('dash-hrv').innerHTML = `${sd.hrv} <span class="text-sm font-normal text-slate-400">ms</span>`;
+                    document.getElementById('dash-hrv').className = `text-2xl font-bold ${sd.hrvColor}`;
+                    document.getElementById('dash-hrv-trend').textContent = sd.hrvTrend;
+                    document.getElementById('dash-hrv-trend').className = `text-xs mt-1 ${sd.hrvColor === 'text-white' ? 'text-teal-400' : sd.hrvColor}`;
+
+                    document.getElementById('dash-rhr').innerHTML = `${sd.rhr} <span class="text-sm font-normal text-slate-400">bpm</span>`;
+                    document.getElementById('dash-rhr').className = `text-2xl font-bold ${sd.rhrColor}`;
+                    document.getElementById('dash-rhr-trend').textContent = sd.rhrTrend;
+                    document.getElementById('dash-rhr-trend').className = `text-xs mt-1 ${sd.rhrColor === 'text-white' ? 'text-slate-400' : sd.rhrColor}`;
+
+                    document.getElementById('dash-well').innerHTML = `${sd.well}<span class="text-sm font-normal text-slate-400">/10</span>`;
+                    document.getElementById('dash-well').className = `text-2xl font-bold ${sd.wellColor}`;
+                    document.getElementById('dash-well-trend').textContent = sd.wellTrend;
+                    document.getElementById('dash-well-trend').className = `text-xs mt-1 ${sd.wellColor === 'text-white' ? 'text-teal-400' : sd.wellColor}`;
+
+                    const decisionBox = document.getElementById('dash-decision-box');
+                    decisionBox.className = `bg-slate-800 rounded p-5 border-l-4 ${sd.boxBorder} transition-colors`;
+                    
+                    document.getElementById('dash-analysis').textContent = sd.analysis;
+                    document.getElementById('dash-action').textContent = `Action: ${sd.action}`;
+                    document.getElementById('dash-action').className = `text-sm font-bold ${sd.actionColor}`;
+                });
+            });
+        });
+    </script>
+</body>
+</html>
